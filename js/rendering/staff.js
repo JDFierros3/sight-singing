@@ -123,14 +123,19 @@ function getCanvasDimensions() {
   
   const width = canvasElement.clientWidth;
   const height = canvasElement.clientHeight;
-  const spacing = 16 * appState.display.zoom;
+  // Keep spacing on a stable grid so lines/spaces and note centers don't drift
+  // onto fractional pixels (which causes "inconsistent" looking alignment).
+  const spacing = Math.max(10, Math.round(16 * appState.display.zoom));
   const marginX = 16;
   
   // Calculate positions for grand staff (SATB layout)
   // Middle C will be on a ledger line between the two staves
-  const trebleStaffTop = height * 0.15;
-  const middleCY = trebleStaffTop + (spacing * 5); // One ledger line below treble staff
-  const bassStaffTop = middleCY + spacing; // One ledger line above bass staff
+  const half = spacing / 2;
+  const snapToHalfSpace = (y) => Math.round(y / half) * half;
+
+  const trebleStaffTop = snapToHalfSpace(height * 0.15);
+  const middleCY = snapToHalfSpace(trebleStaffTop + (spacing * 5)); // Middle C ledger line
+  const bassStaffTop = snapToHalfSpace(middleCY + spacing); // Bass top line (A3) is 1 space below middle C
   
   return { 
     width, 
@@ -291,6 +296,14 @@ function drawLedgerLinesForNote(ctx, noteX, y, dimensions) {
   ctx.save();
   ctx.strokeStyle = '#9aa4b2'; // Muted color for ledger lines
   ctx.lineWidth = 1;
+
+  // Middle C (between staves): draw a short ledger line only when a note lands here.
+  if (Math.abs(y - dimensions.middleCY) <= 3) {
+    ctx.beginPath();
+    ctx.moveTo(noteX - ledgerLineLength, dimensions.middleCY);
+    ctx.lineTo(noteX + ledgerLineLength, dimensions.middleCY);
+    ctx.stroke();
+  }
   
   // Draw ledger lines above treble staff
   if (y < trebleStaffTop) {

@@ -10,7 +10,8 @@ import { updateTargetLabel } from '../components/status.js';
 import { getDegreeForMidi } from '../../utils/musicTheory.js';
 import { normalizeModulo } from '../../utils/math.js';
 import { renderStaff } from '../../rendering/staff.js';
-import { getShapeUnicodeSymbol } from '../../rendering/shapes.js';
+import { getShapeColor } from '../../rendering/shapes.js';
+import { renderShapeIconInto } from '../components/shapeIcon.js';
 
 export function buildChordQuickButtons(onChange) {
   const row = getElementById('chordQuick');
@@ -89,10 +90,17 @@ function getChordIntervalToScalePosition(chordSemi) {
 
 function createDegreeToggleButtonForChordTone(chordSemi, scaleDegreeIndex, isActive, onToggle, activeSet) {
   const solfegeLabel = SOLFEGE[scaleDegreeIndex];
-  const shapeSymbol = getShapeUnicodeSymbol(solfegeLabel);
-  
   const button = document.createElement('button');
-  button.innerHTML = `<span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">${shapeSymbol}</span> ${solfegeLabel}`;
+
+  const icon = document.createElement('span');
+  renderShapeIconInto(icon, solfegeLabel, { color: getShapeColor(solfegeLabel), sizePx: 18 });
+  icon.style.marginRight = '6px';
+
+  const text = document.createElement('span');
+  text.textContent = solfegeLabel;
+
+  button.appendChild(icon);
+  button.appendChild(text);
   
   button.onclick = () => {
     toggleDegreeInSet(chordSemi, activeSet);
@@ -149,10 +157,18 @@ export function buildTargetButtons() {
 function createTargetButtonForChordTone(chordSemi, scaleDegreeIndex) {
   const solfegeLabel = SOLFEGE[scaleDegreeIndex];
   const isSelected = chordSemi === appState.target.semi;
-  const shapeSymbol = getShapeUnicodeSymbol(solfegeLabel);
   
   const button = document.createElement('button');
-  button.innerHTML = `<span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">${shapeSymbol}</span> Aim: ${solfegeLabel}`;
+
+  const icon = document.createElement('span');
+  renderShapeIconInto(icon, solfegeLabel, { color: getShapeColor(solfegeLabel), sizePx: 18 });
+  icon.style.marginRight = '6px';
+
+  const text = document.createElement('span');
+  text.textContent = `Aim: ${solfegeLabel}`;
+
+  button.appendChild(icon);
+  button.appendChild(text);
   
   button.onclick = () => {
     // Check if this is the currently selected target

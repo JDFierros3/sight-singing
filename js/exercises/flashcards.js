@@ -5,7 +5,8 @@
 import { getElementById, setTextContent } from '../utils/dom.js';
 import { appState } from '../state/appState.js';
 import { SOLFEGE, SEMITONE_TO_SOLFEGE } from '../config/constants.js';
-import { getShapeColor, getShapeUnicodeSymbol } from '../rendering/shapes.js';
+import { getShapeColor } from '../rendering/shapes.js';
+import { renderShapeIconInto } from '../ui/components/shapeIcon.js';
 
 export function initializeFlashcards() {
   // Generate an initial card so the tab isn't empty when first opened.
@@ -138,43 +139,14 @@ function getBaseShape(solfege) {
 }
 
 function setGlyph(el, solfege, base, shouldShow) {
-  // Reuse the header-guide glyph styling conventions.
-  el.classList.remove(
-    'noteGlyph--do',
-    'noteGlyph--re',
-    'noteGlyph--mi',
-    'noteGlyph--fa',
-    'noteGlyph--sol',
-    'noteGlyph--la',
-    'noteGlyph--ti'
-  );
-
   if (!shouldShow) {
-    el.textContent = '';
-    el.style.background = 'transparent';
-    el.style.color = '#0000';
+    el.innerHTML = '';
+    el.style.color = 'transparent';
     return;
   }
 
-  el.style.color = getShapeColor(solfege);
-
-  const baseLower = (base || 'Do').toLowerCase();
-  if (baseLower === 'sol') {
-    el.classList.add('noteGlyph--sol');
-  } else {
-    el.classList.add(`noteGlyph--${baseLower}`);
-  }
-
-  if (base === 'La') {
-    // CSS rectangle
-    el.textContent = '';
-    el.style.background = 'currentColor';
-    return;
-  }
-
-  // Unicode glyph
-  el.style.background = 'transparent';
-  el.textContent = getShapeUnicodeSymbol(base);
+  const color = getShapeColor(base);
+  renderShapeIconInto(el, base, { color, sizePx: 64 });
 }
 
 

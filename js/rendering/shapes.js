@@ -177,43 +177,184 @@ export function drawNoteHeadWithShape(ctx, x, y, solfege, size = 7) {
   ctx.save();
   ctx.fillStyle = color;
 
-  // Staff noteheads must be consistent in size and aspect ratio.
-  // Some Unicode glyphs (notably La "▬") stretch unpredictably on some platforms,
-  // so we draw Mi and La as true geometric shapes on the staff.
-  if (baseShape === 'Mi' || baseShape === 'La') {
-    drawGeometricShape(ctx, baseShape, x, y, size);
-    ctx.restore();
-    return;
-  }
-
-  // Primary: Unicode symbol (matches requested shapes where supported).
-  // Fallback: geometric shape drawing (works on any platform/font).
-  const symbol = getShapeUnicodeSymbol(baseShape);
-  const fontSize = size * 3.5;
-  ctx.font = `${fontSize}px "Times New Roman", serif`;
-  ctx.textAlign = 'center';
-
-  // Try drawing the symbol; if it looks missing, fall back to geometric shapes.
-  // (Canvas can’t reliably detect missing glyphs, so we use a heuristic: very tiny measured width)
-  const measured = ctx.measureText(symbol);
-  if (!measured || measured.width < 1) {
-    drawGeometricShape(ctx, baseShape, x, y, size);
-  } else {
-    // Center using the actual glyph bounding box when available (more accurate than textBaseline='middle').
-    if (
-      Number.isFinite(measured.actualBoundingBoxAscent) &&
-      Number.isFinite(measured.actualBoundingBoxDescent)
-    ) {
-      ctx.textBaseline = 'alphabetic';
-      const yBaseline = y + (measured.actualBoundingBoxAscent - measured.actualBoundingBoxDescent) / 2;
-      ctx.fillText(symbol, x, yBaseline);
-    } else {
-      ctx.textBaseline = 'middle';
-      ctx.fillText(symbol, x, y);
-    }
-  }
+  // Staff rendering: draw our own shapes (NOT Unicode) so the center of each shape
+  // is exactly the line/space center at (x,y) across all platforms.
+  drawStaffShapeNotehead(ctx, baseShape, x, y, size);
   
   ctx.restore();
+}
+
+function drawStaffShapeNotehead(ctx, baseShape, x, y, size) {
+  // All shapes are drawn centered at (x,y).
+  const s = size; // visual "radius" unit
+
+  switch (baseShape) {
+    case 'Do': {
+      // Up-pointing triangle
+      const w = s * 1.5;
+      const h = s * 1.35;
+      ctx.beginPath();
+      ctx.moveTo(x, y - h / 2);
+      ctx.lineTo(x - w / 2, y + h / 2);
+      ctx.lineTo(x + w / 2, y + h / 2);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'Re': {
+      // Re: half circle (filled semicircle), per user request.
+      // Make it a half-oval (taller than wide) rather than a perfect half-circle.
+      const rx = s * 0.95;
+      const ry = s * 1.08;
+      // Optical centering for the half-oval: nudge slightly so it sits well on line/space.
+      const cy = y + s * 0.28;
+      fillSemiEllipseUp(ctx, x, cy, rx, ry);
+      break;
+    }
+    case 'Mi': {
+      // Diamond
+      // Slightly larger (user feedback)
+      const w = s * 1.55;
+      const h = s * 1.55;
+      ctx.beginPath();
+      ctx.moveTo(x, y - h / 2);
+      ctx.lineTo(x + w / 2, y);
+      ctx.lineTo(x, y + h / 2);
+      ctx.lineTo(x - w / 2, y);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'Fa': {
+      // Fa: right-angled triangle "flag" (not isosceles).
+      // Use a right triangle with a clear right angle and a single diagonal hypotenuse.
+      const w = s * 1.65;
+      const h = s * 1.45;
+      // Place vertices so the triangle centroid is at (x,y).
+      // Right angle at (-w/3, +h/3), other points at (-w/3, -2h/3) and (+2w/3, +h/3).
+      const p0 = { x: x - w / 3, y: y + h / 3 };      // right angle corner
+      const p1 = { x: x - w / 3, y: y - (2 * h) / 3 }; // vertical leg
+      const p2 = { x: x + (2 * w) / 3, y: y + h / 3 }; // horizontal leg
+
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'Sol': {
+      // Oval notehead (filled) with a slight tilt like traditional noteheads
+      const rx = s * 0.98;
+      const ry = s * 0.66;
+      const tilt = -0.35; // radians (~ -20°)
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, tilt, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'La': {
+      // Rectangle notehead (filled)
+      const w = s * 2.0;
+      const h = s * 0.88;
+      ctx.fillRect(x - w / 2, y - h / 2, w, h);
+      break;
+    }
+    case 'Ti': {
+      // Ti: "ice cream cone" — a small cap (top segment of a circle) on a down triangle.
+      // User request: cap should split higher than a semicircle (more like the top ~30% of a circle).
+      // We draw as a single filled silhouette and ensure the cap width matches the cone width at the join.
+
+      const coneW = s * 1.95;
+      const coneH = s * 0.86;
+
+      // Cap arc span (radians). Smaller span => "higher split" (shallower cap).
+      // Tuned to look like a small cap rather than a half circle.
+      const capSpan = Math.PI * 0.62; // ~112°
+      const halfSpan = capSpan / 2;
+      const capRadius = coneW / (2 * Math.sin(halfSpan)); // chord length at split == coneW
+
+      // Join line where the cap meets the cone.
+      const joinY = y - s * 0.02;
+
+      // Center the cap so its chord (between arc endpoints) sits exactly at joinY.
+      const midAngle = -Math.PI / 2; // top
+      const a0 = midAngle - halfSpan;
+      const a1 = midAngle + halfSpan;
+      const chordSin = Math.sin(a1); // (same magnitude as a0), negative value
+      const capCenterY = joinY - capRadius * chordSin;
+
+      const tipY = joinY + coneH;
+
+      ctx.beginPath();
+      // Cap arc (top segment)
+      ctx.arc(x, capCenterY, capRadius, a0, a1, false);
+      // Down the right edge to the cone (endpoint is already at x+coneW/2, joinY by construction)
+      ctx.lineTo(x + coneW / 2, joinY);
+      // Cone tip
+      ctx.lineTo(x, tipY);
+      // Back up left edge
+      ctx.lineTo(x - coneW / 2, joinY);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    default: {
+      // Fallback: oval
+      const rx = s * 1.0;
+      const ry = s * 0.75;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+  }
+}
+
+function fillSemicircleUp(ctx, cx, cy, r) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, 0, false); // upper arc
+  ctx.lineTo(cx + r, cy);               // diameter right endpoint
+  ctx.lineTo(cx - r, cy);               // diameter left endpoint
+  ctx.closePath();
+  ctx.fill();
+}
+
+function fillSemiEllipseUp(ctx, cx, cy, rx, ry) {
+  // Upper half of an ellipse with a flat bottom chord.
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0, false); // upper arc (left -> right)
+  ctx.lineTo(cx + rx, cy);                           // bottom chord
+  ctx.lineTo(cx - rx, cy);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function roundedPolygonPath(ctx, points, r) {
+  // Draw a rounded-corner polygon path using arcTo.
+  // points: [{x,y}, ...] in order.
+  if (!points || points.length < 3) return;
+
+  const clampR = Math.max(0, r);
+  const pts = points.slice();
+  const n = pts.length;
+
+  ctx.beginPath();
+
+  for (let i = 0; i < n; i++) {
+    const prev = pts[(i - 1 + n) % n];
+    const curr = pts[i];
+    const next = pts[(i + 1) % n];
+
+    if (i === 0) {
+      ctx.moveTo(curr.x, curr.y);
+    }
+
+    ctx.arcTo(curr.x, curr.y, next.x, next.y, clampR);
+  }
+
+  ctx.closePath();
 }
 
 function drawGeometricShape(ctx, baseShape, x, y, size) {

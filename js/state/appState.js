@@ -27,7 +27,7 @@ function initializeTuning() {
 function initializeDisplay() {
   return {
     tolerance: 60,
-    zoom: 1,
+    zoom: 1.5,
     playAim: true
   };
 }

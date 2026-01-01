@@ -181,41 +181,20 @@ canvas {
   font-size: 12px;
 }
 
-.noteGlyph {
-  --guide-glyph-size: 24px;
+.shapeIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 18px;
   height: 18px;
-  font-family: "Times New Roman", serif;
-  font-size: var(--guide-glyph-size);
-  line-height: 1;
-  margin-right: 0; /* gap is handled by the parent */
+  color: currentColor;
 }
 
-/* Make Mi match staff sizing (staff draws Mi geometrically smaller) */
-.noteGlyph--mi {
-  font-size: calc(var(--guide-glyph-size) * 0.72);
-  transform: translateY(0.5px);
+.shapeIconSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
-
-/* Draw La as a real rectangle (avoid stretchy unicode ▬) */
-.noteGlyph--la {
-  width: 18px;
-  height: 9px;
-  border-radius: 2px;
-  background: currentColor;
-}
-
-/* Match staff colors */
-.noteBadge--do .noteGlyph { color: #8bd3ff; }
-.noteBadge--re .noteGlyph { color: #a7f3d0; }
-.noteBadge--mi .noteGlyph { color: #fde68a; }
-.noteBadge--fa .noteGlyph { color: #fca5a5; }
-.noteBadge--sol .noteGlyph { color: #c4b5fd; }
-.noteBadge--la .noteGlyph { color: #f9a8d4; }
-.noteBadge--ti .noteGlyph { color: #fdba74; }
 
 .flashcard {
   margin-top: 10px;
@@ -241,16 +220,9 @@ canvas {
   border: 1px solid #1f2336;
 }
 
-.flashcardFace .noteGlyph {
-  --guide-glyph-size: 64px;
+.flashcardFace .shapeIcon {
   width: 64px;
   height: 64px;
-}
-
-.flashcardFace .noteGlyph--la {
-  width: 64px;
-  height: 22px;
-  border-radius: 4px;
 }
 
 .flashcardAnswer {
@@ -261,56 +233,7 @@ canvas {
   letter-spacing: 0.2px;
 }
 
-.shape {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-}
-
-.shape.do {
-  clip-path: polygon(50% 0, 0 100%, 100% 100%);
-  background: #8bd3ff;
-}
-
-.shape.re {
-  clip-path: ellipse(45% 50% at 50% 50%);
-  background: #a7f3d0;
-}
-
-.shape.mi {
-  transform: rotate(45deg);
-  background: #fde68a;
-}
-
-.shape.fa {
-  background: #fca5a5;
-}
-
-.shape.so {
-  clip-path: ellipse(50% 35% at 50% 50%);
-  background: #c4b5fd;
-}
-
-.shape.la {
-  background: #f9a8d4;
-  clip-path: inset(0);
-}
-
-.shape.ti {
-  background: conic-gradient(from 0deg at 50% 65%, #fdba74 0 360deg);
-  position: relative;
-}
-
-.shape.ti::before {
-  content: "";
-  position: absolute;
-  left: 1px;
-  right: 1px;
-  bottom: 0;
-  height: 7px;
-  background: #fdba74;
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
-}
+/* Legacy CSS-only shapes removed; we now use the same SVG geometry everywhere. */
 
 .stickyHead {
   position: sticky;

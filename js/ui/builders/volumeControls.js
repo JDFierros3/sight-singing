@@ -7,7 +7,8 @@ import { appState } from '../../state/appState.js';
 import { updateIndividualDroneGain } from '../../audio/drone.js';
 import { getSolfegeInfoForMidi } from '../../utils/musicTheory.js';
 import { SOLFEGE, DEGREE_SEMITONES } from '../../config/constants.js';
-import { getShapeUnicodeSymbol } from '../../rendering/shapes.js';
+import { getShapeColor } from '../../rendering/shapes.js';
+import { renderShapeIconInto } from '../components/shapeIcon.js';
 
 export function buildIndividualVolumeControls(frequencies) {
   const container = getElementById('droneVolumeControls');
@@ -56,12 +57,8 @@ function createVolumeControlForFrequency(frequency, midi, index) {
   labelContainer.style.fontSize = '12px';
   
   if (solfegeInfo) {
-    const shapeSymbol = getShapeUnicodeSymbol(solfegeInfo.base);
     const shape = document.createElement('span');
-    shape.textContent = shapeSymbol;
-    shape.style.fontSize = '1.4em';
-    shape.style.marginRight = '6px';
-    shape.style.verticalAlign = 'middle';
+    renderShapeIconInto(shape, solfegeInfo.base, { color: getShapeColor(solfegeInfo.base), sizePx: 16 });
     
     const solfegeText = document.createElement('span');
     // Solfege names like "Ri", "Fi", "Di" already indicate the accidental

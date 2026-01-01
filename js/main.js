@@ -4,6 +4,7 @@
 
 import { buildNoteSelectionMenus, buildChordRootMenu, buildChordTypeMenu } from './ui/builders/menus.js';
 import { buildChordQuickButtons, buildDroneDegreeButtons, buildTargetButtons } from './ui/builders/buttons.js';
+import { buildSolfegeGuide } from './ui/builders/solfegeGuide.js';
 import { initializeTabSystem } from './ui/components/tabs.js';
 import { renderStaff } from './rendering/staff.js';
 import { getCurrentPitch } from './pitch/detection.js';
@@ -75,6 +76,7 @@ function setupApplicationState() {
 }
 
 function buildUserInterface() {
+  buildSolfegeGuide();
   buildNoteSelectionMenus();
   buildChordRootMenu();
   buildChordTypeMenu();

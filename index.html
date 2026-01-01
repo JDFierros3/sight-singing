@@ -17,15 +17,7 @@
     <main role="main">
       <header class="stickyHead">
         <div class="flex" style="justify-content:space-between; margin-bottom:8px">
-          <nav class="flex" style="gap:12px; flex-wrap:wrap" aria-label="Solfege reference">
-            <span class="noteBadge noteBadge--do"><span class="noteGlyph noteGlyph--do" aria-hidden="true">▴</span><span class="noteLabel">Do</span></span>
-            <span class="noteBadge noteBadge--re"><span class="noteGlyph noteGlyph--re" aria-hidden="true">𝅓</span><span class="noteLabel">Re</span></span>
-            <span class="noteBadge noteBadge--mi"><span class="noteGlyph noteGlyph--mi" aria-hidden="true">◆</span><span class="noteLabel">Mi</span></span>
-            <span class="noteBadge noteBadge--fa"><span class="noteGlyph noteGlyph--fa" aria-hidden="true">𝅍</span><span class="noteLabel">Fa</span></span>
-            <span class="noteBadge noteBadge--sol"><span class="noteGlyph noteGlyph--sol" aria-hidden="true">𝅘</span><span class="noteLabel">Sol</span></span>
-            <span class="noteBadge noteBadge--la"><span class="noteGlyph noteGlyph--la" aria-hidden="true"></span><span class="noteLabel">La</span></span>
-            <span class="noteBadge noteBadge--ti"><span class="noteGlyph noteGlyph--ti" aria-hidden="true">𝅕</span><span class="noteLabel">Ti</span></span>
-          </nav>
+          <nav id="solfegeGuide" class="flex" style="gap:12px; flex-wrap:wrap" aria-label="Solfege reference"></nav>
           <div style="text-align:right">
             <div>Mic: <span id="micHz" class="hz" aria-live="polite">—</span> Hz | Δ <span id="micCents" aria-live="polite">—</span> cents</div>
             <div class="flex" style="justify-content:flex-end; gap:10px; margin-top:6px; align-items:center">
@@ -88,7 +80,7 @@
           <div class="grid2">
             <div>
               <label for="zoom">Staff zoom</label>
-              <input id="zoom" type="range" min="0.7" max="1.8" value="1" step="0.05" aria-label="Staff zoom level" />
+              <input id="zoom" type="range" min="0.7" max="1.8" value="1.5" step="0.05" aria-label="Staff zoom level" />
             </div>
             <div>
               <label class="flex" style="justify-content:space-between">
@@ -275,7 +267,7 @@
           <div class="flashcard" role="group" aria-label="Flashcard">
             <div id="flashcardPrompt" class="flashcardPrompt" aria-live="polite">—</div>
             <div class="flashcardFace">
-              <span id="flashcardGlyph" class="noteGlyph noteGlyph--do" aria-hidden="true">▴</span>
+              <span id="flashcardGlyph" aria-hidden="true"></span>
             </div>
             <div id="flashcardAnswer" class="flashcardAnswer" aria-live="polite" style="display:none">—</div>
           </div>
