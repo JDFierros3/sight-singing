@@ -1,40 +1,5 @@
-# Dependencies
-node_modules/
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Build artifacts (if you add a bundler later)
-dist/
-build/
-.parcel-cache/
-.vite/
-
-# Local env / secrets
-.env
-.env.*
-
-# OS / Editor
-.DS_Store
-Thumbs.db
-Desktop.ini
-
-.vscode/
-.idea/
-
-# Cursor
+# Cursor 
 .cursor/
 
-# Python (if you use a local server script)
-__pycache__/
-*.pyc
-.venv/
-venv/
-
-# Coverage / test output
-coverage/
 
 

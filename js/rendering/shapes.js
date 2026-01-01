@@ -192,7 +192,6 @@ export function drawNoteHeadWithShape(ctx, x, y, solfege, size = 7) {
   const fontSize = size * 3.5;
   ctx.font = `${fontSize}px "Times New Roman", serif`;
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
 
   // Try drawing the symbol; if it looks missing, fall back to geometric shapes.
   // (Canvas can’t reliably detect missing glyphs, so we use a heuristic: very tiny measured width)
@@ -200,7 +199,18 @@ export function drawNoteHeadWithShape(ctx, x, y, solfege, size = 7) {
   if (!measured || measured.width < 1) {
     drawGeometricShape(ctx, baseShape, x, y, size);
   } else {
-    ctx.fillText(symbol, x, y);
+    // Center using the actual glyph bounding box when available (more accurate than textBaseline='middle').
+    if (
+      Number.isFinite(measured.actualBoundingBoxAscent) &&
+      Number.isFinite(measured.actualBoundingBoxDescent)
+    ) {
+      ctx.textBaseline = 'alphabetic';
+      const yBaseline = y + (measured.actualBoundingBoxAscent - measured.actualBoundingBoxDescent) / 2;
+      ctx.fillText(symbol, x, yBaseline);
+    } else {
+      ctx.textBaseline = 'middle';
+      ctx.fillText(symbol, x, y);
+    }
   }
   
   ctx.restore();

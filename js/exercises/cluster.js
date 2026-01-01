@@ -7,115 +7,128 @@ import { appState } from '../state/appState.js';
 import { DEGREE_SEMITONES, CLUSTER_DIFFICULTY_PRESETS } from '../config/constants.js';
 import { randomInRange, normalizeModulo } from '../utils/math.js';
 import { getSolfegeForMidi, getIntervalName } from '../utils/musicTheory.js';
-import { filterNoteByScale, playTonesForDuration } from './core.js';
+import { playTonesForDuration } from './core.js';
 
 export function playHiddenCluster(count) {
-  const notePool = buildNotePoolForCluster();
-  const filteredPool = filterPoolByScale(notePool);
-  const selectedNotes = selectRandomNotesFromPool(filteredPool, count);
+  const selectedNotes = buildClusterNotes(count);
   
   storeClusterNotes(selectedNotes);
   updateClusterBadge(count);
   playTonesForDuration(selectedNotes, 2.5, `Hidden cluster (${count})`);
 }
 
-function buildNotePoolForCluster() {
-  const root = appState.tuning.doMidi;
-  const scaleDegrees = DEGREE_SEMITONES;
-  const pool = [];
-  
-  scaleDegrees.forEach(degree => {
-    const baseNote = root + degree;
-    const octaves = expandNoteAcrossOctaves(baseNote);
-    pool.push(...octaves);
-  });
-  
-  return pool;
+function buildClusterNotes(count) {
+  const difficulty = appState.exercise.clusterDifficulty || 'easy';
+  const doMidi = appState.tuning.doMidi;
+
+  // Rules requested:
+  // - easy: always includes Do + other notes ascending (above Do), diatonic
+  // - medium: always includes Do + other notes ascending OR descending, diatonic
+  // - hard: no fixed Do, but diatonic in key
+  // - extraHard: free-for-all chromatic within user range
+
+  if (difficulty === 'easy') {
+    return buildAnchoredCluster(count, { anchor: doMidi, direction: 'up', diatonic: true });
+  }
+
+  if (difficulty === 'medium') {
+    return buildAnchoredCluster(count, { anchor: doMidi, direction: 'either', diatonic: true });
+  }
+
+  if (difficulty === 'hard') {
+    return buildFreeCluster(count, { diatonic: true });
+  }
+
+  // extraHard
+  return buildFreeCluster(count, { diatonic: false });
 }
 
-function expandNoteAcrossOctaves(baseNote) {
+function buildAnchoredCluster(count, { anchor, direction, diatonic }) {
+  const pool = buildPool({ anchor, direction, diatonic, excludeDoPitchClass: true });
+
+  // Always include Do (anchor) if it is within range; otherwise pick closest in range.
   const notes = [];
+  const inRangeAnchor = clampToRange(anchor);
+  notes.push(inRangeAnchor);
+
+  // Remove anchor from pool so we don't duplicate it.
+  const available = pool.filter(m => m !== inRangeAnchor);
+
+  // Prefer unique pitch classes so Play 3 doesn't often give (Sol, Sol') etc.
+  // If we run out of unique pitch classes in the allowed range, we fall back to any remaining.
+  const usedPitchClasses = new Set([normalizeModulo(inRangeAnchor, 12)]);
+  while (notes.length < count && available.length > 0) {
+    // Try a few times to find a new pitch class.
+    let chosenIndex = -1;
+    for (let tries = 0; tries < 12; tries++) {
+      const idx = randomInRange(0, available.length - 1);
+      const pc = normalizeModulo(available[idx], 12);
+      if (!usedPitchClasses.has(pc)) {
+        chosenIndex = idx;
+        break;
+      }
+    }
+    if (chosenIndex === -1) {
+      chosenIndex = randomInRange(0, available.length - 1);
+    }
+
+    const chosen = available.splice(chosenIndex, 1)[0];
+    usedPitchClasses.add(normalizeModulo(chosen, 12));
+    notes.push(chosen);
+  }
+
+  return notes.sort((a, b) => a - b);
+}
+
+function buildFreeCluster(count, { diatonic }) {
+  const pool = buildPool({ anchor: appState.tuning.doMidi, direction: 'either', diatonic, excludeDoPitchClass: false });
+  const notes = [];
+  const available = [...pool];
+
+  while (notes.length < count && available.length > 0) {
+    const idx = randomInRange(0, available.length - 1);
+    notes.push(available.splice(idx, 1)[0]);
+  }
+
+  return notes.sort((a, b) => a - b);
+}
+
+function buildPool({ anchor, direction, diatonic, excludeDoPitchClass }) {
   const minMidi = appState.tuning.minMidi;
   const maxMidi = appState.tuning.maxMidi;
   const doMidi = appState.tuning.doMidi;
-  const difficulty = appState.exercise.clusterDifficulty;
-  
-  // Get octave range from preset, or use full range if no difficulty set
-  let maxOctaves = null; // Full range by default
-  if (difficulty) {
-    const preset = CLUSTER_DIFFICULTY_PRESETS[difficulty];
-    if (preset && preset.octaveRange !== null) {
-      maxOctaves = preset.octaveRange;
-    }
-  }
-  
-  // If maxOctaves is null, use full range (all octaves within min/max)
-  if (maxOctaves === null) {
-    // Full range - expand across all octaves within the user's range
-    for (let note = baseNote; note >= minMidi; note -= 12) {
-      if (isNoteInRange(note, minMidi, maxMidi)) {
-        notes.push(note);
-      }
-    }
-    for (let note = baseNote + 12; note <= maxMidi; note += 12) {
-      if (isNoteInRange(note, minMidi, maxMidi)) {
-        notes.push(note);
-      }
-    }
-  } else {
-    // Limited octave range based on difficulty
-    for (let octave = -maxOctaves; octave <= maxOctaves; octave++) {
-      const note = baseNote + (12 * octave);
-      if (isNoteInRange(note, minMidi, maxMidi)) {
-        // For Easy mode, also constrain to one octave from Do
-        if (difficulty === 'easy' && Math.abs(note - doMidi) > 12) {
-          continue;
-        }
-        notes.push(note);
-      }
-    }
-  }
-  
-  return notes;
-}
 
-function isNoteInRange(note, min, max) {
-  return note >= min && note <= max;
-}
+  const preset = CLUSTER_DIFFICULTY_PRESETS[appState.exercise.clusterDifficulty] || null;
+  const octaveRange = preset ? preset.octaveRange : null;
+  const minAllowed = octaveRange ? Math.max(minMidi, doMidi - 12 * octaveRange) : minMidi;
+  const maxAllowed = octaveRange ? Math.min(maxMidi, doMidi + 12 * octaveRange) : maxMidi;
 
-function filterPoolByScale(pool) {
-  if (!appState.exercise.onScaleOnly) {
-    return buildFullRangePool();
-  }
-  return pool;
-}
-
-function buildFullRangePool() {
   const pool = [];
+
+  for (let midi = minAllowed; midi <= maxAllowed; midi++) {
+    if (direction === 'up' && midi < anchor) continue;
+    if (direction === 'down' && midi > anchor) continue;
+    if (direction === 'up' && midi === anchor) continue; // "other note ascending"
+
+    if (diatonic) {
+      const rel = normalizeModulo(midi - doMidi, 12);
+      if (!DEGREE_SEMITONES.includes(rel)) continue;
+      if (excludeDoPitchClass && rel === 0) continue; // avoid octave-Do duplicates in easy/medium
+    }
+
+    pool.push(midi);
+  }
+
+  // If we filtered too hard (edge vocal ranges), fall back to at least the anchor-only pool.
+  return pool.length ? pool : [clampToRange(anchor)];
+}
+
+function clampToRange(midi) {
   const minMidi = appState.tuning.minMidi;
   const maxMidi = appState.tuning.maxMidi;
-  
-  for (let note = minMidi; note <= maxMidi; note++) {
-    pool.push(note);
-  }
-  
-  return pool;
-}
-
-function selectRandomNotesFromPool(pool, count) {
-  const selected = [];
-  const available = [...pool];
-  
-  while (selected.length < count && available.length > 0) {
-    const randomIndex = randomInRange(0, available.length - 1);
-    const note = available.splice(randomIndex, 1)[0];
-    
-    if (filterNoteByScale(note)) {
-      selected.push(note);
-    }
-  }
-  
-  return selected.sort((a, b) => a - b);
+  if (midi < minMidi) return minMidi;
+  if (midi > maxMidi) return maxMidi;
+  return midi;
 }
 
 function storeClusterNotes(notes) {

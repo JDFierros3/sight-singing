@@ -5,8 +5,9 @@
 import { getElementById } from '../../utils/dom.js';
 import { appState } from '../../state/appState.js';
 import { displaySATBExerciseOnStaff, getAllSATBExercises } from '../../exercises/satb.js';
+import { initializeFlashcards } from '../../exercises/flashcards.js';
 
-const TAB_NAMES = ['settings', 'chord-quality', 'warmup', 'cluster', 'intervals', 'satb', 'theory'];
+const TAB_NAMES = ['settings', 'chord-quality', 'warmup', 'cluster', 'intervals', 'flashcards', 'satb', 'theory'];
 
 export function initializeTabSystem() {
   const tabButtons = document.querySelectorAll('.tab');
@@ -50,6 +51,12 @@ export function switchToTab(tabName) {
         // If dropdown not ready but we have a current exercise, display it
         displaySATBExerciseOnStaff(appState.satb.currentExercise);
       }
+    }, 10);
+  }
+
+  if (tabName === 'flashcards') {
+    setTimeout(() => {
+      initializeFlashcards();
     }, 10);
   }
 }

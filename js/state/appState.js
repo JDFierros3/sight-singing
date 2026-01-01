@@ -26,7 +26,7 @@ function initializeTuning() {
 
 function initializeDisplay() {
   return {
-    tolerance: 25,
+    tolerance: 60,
     zoom: 1,
     playAim: true
   };
@@ -60,9 +60,27 @@ function initializeExercise() {
     intervalDifficulty: null,
     clusterDifficulty: null,
     warmupRunning: false,
+    hideAnswers: {
+      intervals: true,
+      cluster: true
+    },
+    showAnswers: {
+      intervals: false,
+      cluster: false
+    },
+    _answerHideTimeouts: {
+      intervals: null,
+      cluster: null
+    },
     display: {
       midis: [],
       label: ''
+    },
+    flashcards: {
+      mode: 'shapeToSolfege',
+      includeAccidentals: false,
+      revealed: false,
+      current: null
     }
   };
 }

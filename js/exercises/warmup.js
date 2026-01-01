@@ -253,7 +253,11 @@ function createStanza3() {
 
 function createStanza4() {
   // Intervals from Do (down)
-  const intervals = [12, 11, 12, 9, 12, 7, 12, 5, 12, 0];
+  // Pattern: high Do, then step down (Ti, La, Sol, Fa, Mi, Re, Do),
+  // always returning to high Do between each target interval.
+  //
+  // This matches the “Intervals from Do” drill style used in shape-note contexts.
+  const intervals = [12, 11, 12, 9, 12, 7, 12, 5, 12, 4, 12, 2, 12, 0];
   const baseNoteDuration = 0.5;
   const notes = intervals.map((degree, index) => ({
     midi: appState.tuning.doMidi + degree,

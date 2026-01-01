@@ -18,27 +18,29 @@
       <header class="stickyHead">
         <div class="flex" style="justify-content:space-between; margin-bottom:8px">
           <nav class="flex" style="gap:12px; flex-wrap:wrap" aria-label="Solfege reference">
-            <span class="noteBadge"><span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">▴</span>Do</span>
-            <span class="noteBadge"><span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">𝅓</span>Re</span>
-            <span class="noteBadge"><span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">◆</span>Mi</span>
-            <span class="noteBadge"><span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">𝅍</span>Fa</span>
-            <span class="noteBadge"><span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">𝅘</span>Sol</span>
-            <span class="noteBadge"><span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">▬</span>La</span>
-            <span class="noteBadge"><span style="font-size: 1.5em; margin-right: 6px; vertical-align: middle;">𝅕</span>Ti</span>
+            <span class="noteBadge noteBadge--do"><span class="noteGlyph noteGlyph--do" aria-hidden="true">▴</span><span class="noteLabel">Do</span></span>
+            <span class="noteBadge noteBadge--re"><span class="noteGlyph noteGlyph--re" aria-hidden="true">𝅓</span><span class="noteLabel">Re</span></span>
+            <span class="noteBadge noteBadge--mi"><span class="noteGlyph noteGlyph--mi" aria-hidden="true">◆</span><span class="noteLabel">Mi</span></span>
+            <span class="noteBadge noteBadge--fa"><span class="noteGlyph noteGlyph--fa" aria-hidden="true">𝅍</span><span class="noteLabel">Fa</span></span>
+            <span class="noteBadge noteBadge--sol"><span class="noteGlyph noteGlyph--sol" aria-hidden="true">𝅘</span><span class="noteLabel">Sol</span></span>
+            <span class="noteBadge noteBadge--la"><span class="noteGlyph noteGlyph--la" aria-hidden="true"></span><span class="noteLabel">La</span></span>
+            <span class="noteBadge noteBadge--ti"><span class="noteGlyph noteGlyph--ti" aria-hidden="true">𝅕</span><span class="noteLabel">Ti</span></span>
           </nav>
           <div style="text-align:right">
             <div>Mic: <span id="micHz" class="hz" aria-live="polite">—</span> Hz | Δ <span id="micCents" aria-live="polite">—</span> cents</div>
-            <div>Target: <span id="targetLabel" aria-live="polite">(none)</span></div>
+            <div class="flex" style="justify-content:flex-end; gap:10px; margin-top:6px; align-items:center">
+              <label for="tolerance" style="margin:0">Tolerance</label>
+              <input id="tolerance" type="range" min="5" max="100" value="60" aria-label="Pitch tolerance in cents" />
+            </div>
           </div>
         </div>
         <div class="flex" style="justify-content:space-between; margin-top:8px; padding-top:8px; border-top: 1px solid #1f2336;">
-          <div class="row" id="targetRow" role="group" aria-label="Target note selection"></div>
           <div class="row">
             <button id="startMic" class="good" aria-label="Start microphone">Start Mic</button>
             <button id="stopMic" class="bad" aria-label="Stop microphone">Stop Mic</button>
           </div>
         </div>
-        <div class="help" style="margin-top:8px; font-size:12px;">Pick a chord tone to aim for. The green line on the staff is your aim. Press <span class="kbd">M</span> to toggle the mic. Use headphones to prevent feedback and keep drones clean.</div>
+        <div class="help" style="margin-top:8px; font-size:12px;">Press <span class="kbd">M</span> to toggle the mic. Use headphones to prevent feedback and keep drones clean.</div>
       </header>
 
       <nav class="tabs" role="tablist" aria-label="Application tabs">
@@ -47,6 +49,7 @@
         <button class="tab" data-tab="warmup" role="tab" aria-selected="false" aria-controls="panel-warmup">Warmup</button>
         <button class="tab" data-tab="cluster" role="tab" aria-selected="false" aria-controls="panel-cluster">Hidden Cluster</button>
         <button class="tab" data-tab="intervals" role="tab" aria-selected="false" aria-controls="panel-intervals">Interval Training</button>
+        <button class="tab" data-tab="flashcards" role="tab" aria-selected="false" aria-controls="panel-flashcards">Flashcards</button>
         <button class="tab" data-tab="satb" role="tab" aria-selected="false" aria-controls="panel-satb">SATB Practice</button>
         <button class="tab" data-tab="theory" role="tab" aria-selected="false" aria-controls="panel-theory">Music Theory</button>
       </nav>
@@ -82,8 +85,6 @@
               <select id="maxNote" aria-label="Select maximum note"></select>
             </div>
           </div>
-          <label for="tolerance">Tolerance (cents)</label>
-          <input id="tolerance" type="range" min="5" max="100" value="25" aria-label="Pitch tolerance in cents" />
           <div class="grid2">
             <div>
               <label for="zoom">Staff zoom</label>
@@ -96,7 +97,11 @@
               </label>
             </div>
           </div>
-          <div class="help">Tolerance controls how close your pitch must be to the aim line to turn green. Zoom changes staff scale. Uncheck to avoid hearing the aim tone on selection.</div>
+          <div class="help">
+            Set your key and vocal range. Use <b>Zoom</b> if notes feel cramped.
+            <b>Play aim tone</b> is optional (it “beeps” the chosen target).
+            The mic line shows your pitch on the staff; <b>Tolerance</b> (top slider) reduces jitter.
+          </div>
         </fieldset>
       </section>
 
@@ -113,10 +118,15 @@
               <select id="chordSelect" aria-label="Select chord type"></select>
             </div>
           </div>
-          <div class="help">Quick presets below toggle individual degrees on/off.</div>
+          <div class="help">Pick a chord root in the key (Do/Re/Mi…), then choose a chord quality. Quick presets can override the quality. Degrees toggles are the actual drone chord tones.</div>
           <div class="row" id="chordQuick" role="group" aria-label="Quick chord presets"></div>
           <label>Degrees (relative to Do)</label>
           <div class="row" id="droneNotes" role="group" aria-label="Drone degree toggles"></div>
+
+          <label style="margin-top:10px">Aim note (target)</label>
+          <div class="row" id="targetRow" role="group" aria-label="Target note selection"></div>
+          <div class="help">Target: <span id="targetLabel" aria-live="polite">(none)</span>. Click an Aim button to toggle the aim line on/off for that tone.</div>
+
           <div class="row">
             <button id="startDrone" class="primary" aria-label="Start drone">Start Drone</button>
             <button id="stopDrone" aria-label="Stop drone">Stop Drone</button>
@@ -166,14 +176,18 @@
           </fieldset>
           <label for="warmupTempo">Tempo (BPM)</label>
           <input id="warmupTempo" type="range" min="40" max="120" value="60" step="5" aria-label="Tempo in beats per minute" />
-          <div class="help" style="margin-top:8px">Use warm ups to prepare your voice. Staff above shows notes scrolling left to right as they play.</div>
+          <div class="help" style="margin-top:8px">Check stanzas, press Play. Notes stay fixed; the red line moves at tempo.</div>
         </fieldset>
       </section>
 
       <section id="panel-cluster" class="panel" role="tabpanel" aria-labelledby="tab-cluster" style="display:none">
         <fieldset>
           <legend>Hidden Cluster</legend>
-          <div class="help">App plays 2 or 3 hidden tones within your range. Try to split and hum each tone. Reveal shows solfege + intervals (no letter names).</div>
+          <div class="help">Listen for 2–3 hidden tones. Hum each tone you hear. Use Reveal only after you’ve tried to find them.</div>
+          <label class="flex" style="justify-content:space-between; margin:8px 0">
+            Hide staff answers (until Reveal)
+            <input id="hideAnswers-cluster" type="checkbox" checked aria-label="Hide staff answers until Reveal is clicked" />
+          </label>
           <div class="row" style="margin-bottom:8px">
             <button class="difficulty-btn" data-difficulty="easy" data-exercise="cluster" aria-label="Easy difficulty">Easy</button>
             <button class="difficulty-btn" data-difficulty="medium" data-exercise="cluster" aria-label="Medium difficulty">Medium</button>
@@ -196,12 +210,17 @@
       <section id="panel-intervals" class="panel" role="tabpanel" aria-labelledby="tab-intervals" style="display:none">
         <fieldset>
           <legend>Interval Training</legend>
+          <div class="help">Press Play Interval, then identify the second pitch relative to the first. Use Show only after you decide.</div>
           <div class="row" style="margin-bottom:8px">
             <button class="difficulty-btn" data-difficulty="easy" data-exercise="interval" aria-label="Easy difficulty">Easy</button>
             <button class="difficulty-btn" data-difficulty="medium" data-exercise="interval" aria-label="Medium difficulty">Medium</button>
             <button class="difficulty-btn" data-difficulty="hard" data-exercise="interval" aria-label="Hard difficulty">Hard</button>
             <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="interval" aria-label="Extra hard difficulty">Extra Hard</button>
           </div>
+          <label class="flex" style="justify-content:space-between; margin-bottom:8px">
+            Hide staff answers (until Show)
+            <input id="hideAnswers-intervals" type="checkbox" checked aria-label="Hide staff answers until Show is clicked" />
+          </label>
           <label class="flex" style="justify-content:space-between; margin-bottom:8px">
             Constrain to scale notes (diatonic)
             <input id="onScaleOnly-intervals" type="checkbox" checked aria-label="Constrain to scale notes" />
@@ -232,9 +251,47 @@
         </fieldset>
       </section>
 
+      <section id="panel-flashcards" class="panel" role="tabpanel" aria-labelledby="tab-flashcards" style="display:none">
+        <fieldset>
+          <legend>Flashcards • Shape ↔ Solfege</legend>
+          <div class="help">Train instant recognition. Hit <span class="kbd">N</span> for next and <span class="kbd">Space</span> to flip.</div>
+
+          <div class="grid2" style="margin-top:8px">
+            <div>
+              <label for="flashcardMode">Mode</label>
+              <select id="flashcardMode" aria-label="Flashcard mode">
+                <option value="shapeToSolfege" selected>Shape → Solfege</option>
+                <option value="solfegeToShape">Solfege → Shape</option>
+              </select>
+            </div>
+            <div>
+              <label class="flex" style="justify-content:space-between; margin-top:8px">
+                Include chromatic solfege (Di/Ri/Fi/Si/Li…)
+                <input id="flashcardAccidentals" type="checkbox" aria-label="Include solfege accidentals" />
+              </label>
+            </div>
+          </div>
+
+          <div class="flashcard" role="group" aria-label="Flashcard">
+            <div id="flashcardPrompt" class="flashcardPrompt" aria-live="polite">—</div>
+            <div class="flashcardFace">
+              <span id="flashcardGlyph" class="noteGlyph noteGlyph--do" aria-hidden="true">▴</span>
+            </div>
+            <div id="flashcardAnswer" class="flashcardAnswer" aria-live="polite" style="display:none">—</div>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <button id="flashcardNext" class="primary" aria-label="Next flashcard">Next</button>
+            <button id="flashcardFlip" aria-label="Flip flashcard">Flip</button>
+            <span id="flashcardBadge" class="chip" aria-live="polite">Ready</span>
+          </div>
+        </fieldset>
+      </section>
+
       <section id="panel-satb" class="panel" role="tabpanel" aria-labelledby="tab-satb" style="display:none">
         <fieldset>
           <legend>SATB Practice</legend>
+          <div class="help">Pick an exercise, pick the part you want to “aim for,” then balance the part volumes. The play line follows the notes left→right at tempo.</div>
           
           <!-- Exercise Selection -->
           <div style="margin-bottom:12px">
@@ -280,7 +337,7 @@
           
           <!-- Staff Canvas (shared with main staff - #staff above) -->
           
-          <div class="help">Practice SATB harmony. Select which part to aim for, adjust volumes, and play along with the scrolling staff.</div>
+          <div class="help">Tip: leave your own part a little quieter so you don’t just “follow the recording.”</div>
         </fieldset>
       </section>
 

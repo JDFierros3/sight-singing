@@ -8,8 +8,12 @@ export function midiToFrequency(midi, a4 = 440) {
 }
 
 export function frequencyToMidi(freq, a4 = 440) {
+  if (!freq || freq <= 0) return NaN;
+
+  // Convert incoming frequency to the equivalent frequency under standard A4=440,
+  // then convert to MIDI using the standard reference of 440Hz at MIDI 69.
   const adjustedFreq = freq / (a4 / 440);
-  return 69 + 12 * Math.log2(adjustedFreq);
+  return 69 + 12 * Math.log2(adjustedFreq / 440);
 }
 
 export function centsBetween(freq1, freq2) {

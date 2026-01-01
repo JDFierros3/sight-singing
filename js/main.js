@@ -20,6 +20,8 @@ import {
   handleZoomChange,
   handlePlayAimChange,
   handleScaleOnlyChange,
+  handleHideAnswersIntervalsChange,
+  handleHideAnswersClusterChange,
   handleChordRootChange,
   handleChordTypeChange,
   handleDroneGainChange,
@@ -41,7 +43,11 @@ import {
   handleSATBExerciseChange,
   handleMidiFileSelect,
   handleIntervalDifficultyPreset,
-  handleClusterDifficultyPreset
+  handleClusterDifficultyPreset,
+  handleFlashcardNextClick,
+  handleFlashcardFlipClick,
+  handleFlashcardModeChange,
+  handleFlashcardAccidentalsChange
 } from './ui/handlers/inputs.js';
 import { initializeSATBControls } from './exercises/satb.js';
 import { handleGlobalKeyPress } from './ui/handlers/keyboard.js';
@@ -162,6 +168,18 @@ function setupExerciseControls() {
   getElementById('revealHidden').onclick = handleRevealHiddenClick;
   getElementById('playInterval').onclick = handlePlayIntervalClick;
   getElementById('showInterval').onclick = handleShowIntervalClick;
+
+  const hideIntervals = getElementById('hideAnswers-intervals');
+  if (hideIntervals) {
+    hideIntervals.addEventListener('change', handleHideAnswersIntervalsChange);
+    // Ensure UI reflects default state (hide answers ON by default)
+    hideIntervals.checked = !!appState.exercise.hideAnswers.intervals;
+  }
+  const hideCluster = getElementById('hideAnswers-cluster');
+  if (hideCluster) {
+    hideCluster.addEventListener('change', handleHideAnswersClusterChange);
+    hideCluster.checked = !!appState.exercise.hideAnswers.cluster;
+  }
   
   // SATB controls
   const btnSatbPlay = getElementById('btnSatbPlay');
@@ -199,6 +217,17 @@ function setupExerciseControls() {
   setupDifficultyButtons();
   getElementById('btnWarmup').onclick = handleWarmupClick;
   getElementById('warmupTempo').addEventListener('input', handleWarmupTempoChange);
+
+  // Flashcards
+  const flashNext = getElementById('flashcardNext');
+  const flashFlip = getElementById('flashcardFlip');
+  const flashMode = getElementById('flashcardMode');
+  const flashAcc = getElementById('flashcardAccidentals');
+
+  if (flashNext) flashNext.onclick = handleFlashcardNextClick;
+  if (flashFlip) flashFlip.onclick = handleFlashcardFlipClick;
+  if (flashMode) flashMode.addEventListener('change', handleFlashcardModeChange);
+  if (flashAcc) flashAcc.addEventListener('change', handleFlashcardAccidentalsChange);
 }
 
 function setupDifficultyButtons() {

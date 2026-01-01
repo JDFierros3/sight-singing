@@ -9,20 +9,49 @@ import { getDegreeForMidi, getIntervalName } from '../utils/musicTheory.js';
 import { randomInRange, normalizeModulo } from '../utils/math.js';
 import { pickRandomNoteInRange, filterNoteByScale, playTonesForDuration } from './core.js';
 
+// Lightweight history to avoid annoying repeats.
+const intervalHistory = {
+  lastSpan: null,
+  lastStartMidi: null,
+  lastEndMidi: null
+};
+
 export function playIntervalExercise() {
   const direction = getIntervalDirection();
   const range = getIntervalRange();
   const validSpans = buildValidIntervalSpans(range.min, range.max);
-  const span = pickRandomIntervalSpan(validSpans);
-  
+
+  let span = pickRandomIntervalSpan(validSpans);
   let noteA = pickRandomStartingNote();
   let noteB = calculateIntervalNote(noteA, span, direction);
+
+  // Retry a few times to avoid obvious repeats like:
+  // - same interval span repeatedly
+  // - same exact A→B pair repeatedly
+  // This keeps distribution feeling more even without getting overly complex.
+  for (let i = 0; i < 8; i++) {
+    const sameSpan = intervalHistory.lastSpan !== null && span === intervalHistory.lastSpan;
+    const samePair =
+      intervalHistory.lastStartMidi !== null &&
+      intervalHistory.lastEndMidi !== null &&
+      noteA === intervalHistory.lastStartMidi &&
+      noteB === intervalHistory.lastEndMidi;
+
+    if (!sameSpan && !samePair) break;
+
+    span = pickRandomIntervalSpan(validSpans, intervalHistory.lastSpan);
+    noteA = pickRandomStartingNote(intervalHistory.lastStartMidi);
+    noteB = calculateIntervalNote(noteA, span, direction);
+  }
   
   noteB = constrainNoteToRange(noteB);
   noteA = constrainToScaleIfNeeded(noteA);
   noteB = constrainToScaleIfNeeded(noteB);
   
   storeInterval(noteA, noteB);
+  intervalHistory.lastSpan = span;
+  intervalHistory.lastStartMidi = noteA;
+  intervalHistory.lastEndMidi = noteB;
   updateIntervalBadge('?');
   
   playTonesForDuration([noteA], 1.2, 'Interval A');
@@ -62,17 +91,31 @@ function buildValidIntervalSpans(min, max) {
   return spans;
 }
 
-function pickRandomIntervalSpan(spans) {
-  const randomIndex = randomInRange(0, spans.length - 1);
-  return spans[randomIndex];
+function pickRandomIntervalSpan(spans, avoidSpan = null) {
+  if (!spans.length) return 0;
+  if (spans.length === 1) return spans[0];
+
+  let chosen = avoidSpan;
+  let safety = 20;
+  while (chosen === avoidSpan && safety-- > 0) {
+    const randomIndex = randomInRange(0, spans.length - 1);
+    chosen = spans[randomIndex];
+  }
+  return chosen;
 }
 
-function pickRandomStartingNote() {
+function pickRandomStartingNote(avoidMidi = null) {
   if (appState.exercise.intervalDifficulty === 'easy' || 
       appState.exercise.intervalDifficulty === 'medium') {
     return appState.tuning.doMidi; // Always start on Do
   }
-  return pickRandomNoteInRange(); // Existing behavior
+  if (avoidMidi === null) return pickRandomNoteInRange();
+  let chosen = avoidMidi;
+  let safety = 20;
+  while (chosen === avoidMidi && safety-- > 0) {
+    chosen = pickRandomNoteInRange();
+  }
+  return chosen;
 }
 
 function calculateIntervalNote(startNote, span, direction) {

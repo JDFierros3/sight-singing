@@ -9,6 +9,9 @@ import { randomInRange } from '../utils/math.js';
 import { startDroneWithFrequencies, stopAllDroneOscillators } from '../audio/drone.js';
 import { updateNowPlayingBadge } from '../ui/components/status.js';
 
+let activePlaybackTimeoutId = null;
+let activePlaybackToken = 0;
+
 export function setActiveDisplay(midis, label) {
   appState.exercise.display.midis = midis.slice();
   appState.exercise.display.label = label || '';
@@ -23,6 +26,15 @@ export function pickRandomNoteInRange() {
 }
 
 export function playTonesForDuration(midis, duration, label) {
+  // Cancel any previous scheduled stop, otherwise older timeouts can
+  // stop a newer playback early (this was causing “timing is totally wrong”).
+  if (activePlaybackTimeoutId) {
+    clearTimeout(activePlaybackTimeoutId);
+    activePlaybackTimeoutId = null;
+  }
+  activePlaybackToken += 1;
+  const token = activePlaybackToken;
+
   setActiveDisplay(midis, label);
   
   const frequencies = convertMidisToFrequencies(midis);
@@ -31,9 +43,19 @@ export function playTonesForDuration(midis, duration, label) {
   startDroneWithFrequencies(frequencies, gain);
   appState.drone.on = true;
   
-  setTimeout(() => {
+  activePlaybackTimeoutId = setTimeout(() => {
+    // Only stop if this timeout belongs to the latest playback.
+    if (token !== activePlaybackToken) return;
     stopAllDroneOscillators();
     appState.drone.on = false;
+
+    // Clear exercise note display after playback so answers don't linger
+    // (interval/cluster solutions remain in state; staff visibility is controlled separately)
+    appState.exercise.display.midis = [];
+    appState.exercise.display.label = '';
+    appState.exercise.showAnswers.intervals = false;
+    appState.exercise.showAnswers.cluster = false;
+    activePlaybackTimeoutId = null;
   }, duration * 1000);
 }
 

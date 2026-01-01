@@ -4,10 +4,17 @@
 
 import { microphone } from '../audio/microphone.js';
 import { getAudioContext } from '../audio/context.js';
+import { centsBetween } from '../utils/audioMath.js';
+import { appState } from '../state/appState.js';
 
 export const pitchState = {
   buffer: new Float32Array(2048),
-  hz: 0
+  hz: 0,
+  stableHz: 0,
+  smoothedHz: 0,
+  _candidateHz: 0,
+  _candidateSince: 0,
+  _lastStableAt: 0
 };
 
 export function readMicrophoneBuffer() {
@@ -97,6 +104,7 @@ export function getCurrentPitch() {
   const buffer = readMicrophoneBuffer();
   if (!buffer) {
     pitchState.hz = 0;
+    updateStablePitch(0);
     return 0;
   }
   
@@ -108,8 +116,75 @@ export function getCurrentPitch() {
   
   const detectedHz = detectPitchWithAutocorrelation(buffer, ctx.sampleRate);
   pitchState.hz = detectedHz > 0 ? detectedHz : 0;
+
+  // Tolerance-driven smoothing: higher tolerance = heavier averaging (more stable UI line).
+  updateSmoothedPitch(pitchState.hz);
+  updateStablePitch(pitchState.hz);
   
   return pitchState.hz;
+}
+
+function updateSmoothedPitch(rawHz) {
+  const toleranceCents = Number(appState.display?.tolerance) || 25;
+
+  if (!rawHz || rawHz <= 0) {
+    pitchState.smoothedHz = 0;
+    return;
+  }
+
+  // Higher tolerance => smaller alpha => heavier smoothing
+  const alpha = Math.max(0.04, Math.min(0.35, 12 / (toleranceCents + 12)));
+
+  if (!pitchState.smoothedHz) {
+    pitchState.smoothedHz = rawHz;
+    return;
+  }
+
+  pitchState.smoothedHz = pitchState.smoothedHz * (1 - alpha) + rawHz * alpha;
+}
+
+function updateStablePitch(rawHz) {
+  const now = performance.now();
+  const toleranceCents = Number(appState.display?.tolerance) || 25;
+
+  // How long pitch must remain within tolerance to be considered stable
+  const holdMs = Math.max(50, Math.min(400, toleranceCents * 4));
+  // How long we keep last stable pitch before clearing when input disappears/jitters
+  const decayMs = Math.max(150, Math.min(800, toleranceCents * 8));
+
+  if (!rawHz || rawHz <= 0) {
+    pitchState._candidateHz = 0;
+    pitchState._candidateSince = 0;
+
+    if (pitchState._lastStableAt && now - pitchState._lastStableAt > decayMs) {
+      pitchState.stableHz = 0;
+    }
+    return;
+  }
+
+  // Initialize candidate
+  if (!pitchState._candidateHz) {
+    pitchState._candidateHz = rawHz;
+    pitchState._candidateSince = now;
+    return;
+  }
+
+  const deltaCents = Math.abs(centsBetween(pitchState._candidateHz, rawHz));
+
+  if (deltaCents <= toleranceCents) {
+    // Candidate remains within tolerance band
+    if (now - pitchState._candidateSince >= holdMs) {
+      // Promote to stable pitch and gently track the incoming signal
+      const alpha = 0.25;
+      const next = pitchState.stableHz ? (pitchState.stableHz * (1 - alpha) + rawHz * alpha) : rawHz;
+      pitchState.stableHz = next;
+      pitchState._lastStableAt = now;
+    }
+  } else {
+    // Too jumpy — restart candidate window
+    pitchState._candidateHz = rawHz;
+    pitchState._candidateSince = now;
+  }
 }
 
 function isMicrophoneReady() {
@@ -117,7 +192,9 @@ function isMicrophoneReady() {
 }
 
 function trimBufferEdges(buffer) {
-  const threshold = 0.2;
+  // Lower threshold so quieter voices (especially higher pitches) still retain enough data.
+  // The old value (0.2) could trim nearly everything and break detection.
+  const threshold = 0.05;
   let startIndex = 0;
   let endIndex = buffer.length - 1;
   
@@ -128,7 +205,12 @@ function trimBufferEdges(buffer) {
   while (endIndex > 0 && Math.abs(buffer[endIndex]) < threshold) {
     endIndex--;
   }
-  
+
+  // If we trimmed too aggressively, fall back to the full buffer.
+  if (endIndex - startIndex < 64) {
+    return buffer;
+  }
+
   return buffer.slice(startIndex, endIndex + 1);
 }
 

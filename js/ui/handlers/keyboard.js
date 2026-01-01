@@ -2,6 +2,9 @@
  * Keyboard shortcut handlers
  */
 
+import { appState } from '../../state/appState.js';
+import { flipFlashcard, nextFlashcard } from '../../exercises/flashcards.js';
+
 export function handleGlobalKeyPress(event) {
   if (shouldIgnoreKeyPress(event)) {
     return;
@@ -11,6 +14,17 @@ export function handleGlobalKeyPress(event) {
   
   if (key === 'm') {
     toggleMicrophoneWithKey();
+  }
+
+  // Flashcards shortcuts (only when on the Flashcards tab)
+  if (appState.exercise?.currentTab === 'flashcards') {
+    if (key === ' ' || key === 'space') {
+      event.preventDefault();
+      flipFlashcard();
+    }
+    if (key === 'n') {
+      nextFlashcard();
+    }
   }
 }
 

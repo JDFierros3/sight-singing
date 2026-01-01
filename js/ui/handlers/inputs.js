@@ -18,6 +18,7 @@ import { setTempo } from '../../rendering/scrollingStaff.js';
 import { playHiddenCluster, revealClusterNotes } from '../../exercises/cluster.js';
 import { playIntervalExercise, revealIntervalSolution } from '../../exercises/intervals.js';
 import { playSATBExercise, stopSATBExercise, handlePartSelection, getAllSATBExercises, displaySATBExerciseOnStaff, loadMidiExercise } from '../../exercises/satb.js';
+import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode, setFlashcardAccidentalsEnabled } from '../../exercises/flashcards.js';
 import { buildExerciseSelection } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
 
@@ -69,6 +70,49 @@ export function handleScaleOnlyChange(event) {
   appState.exercise.onScaleOnly = value;
   // Sync all checkboxes to the same value
   syncScaleOnlyCheckboxes(value);
+}
+
+export function handleHideAnswersIntervalsChange(event) {
+  const value = event.target.checked;
+  appState.exercise.hideAnswers.intervals = value;
+  // If user disables hiding, immediately show current answers (if any)
+  if (!value) {
+    appState.exercise.showAnswers.intervals = true;
+  } else {
+    appState.exercise.showAnswers.intervals = false;
+  }
+  renderStaff();
+}
+
+export function handleHideAnswersClusterChange(event) {
+  const value = event.target.checked;
+  appState.exercise.hideAnswers.cluster = value;
+  if (!value) {
+    appState.exercise.showAnswers.cluster = true;
+  } else {
+    appState.exercise.showAnswers.cluster = false;
+  }
+  renderStaff();
+}
+
+function revealAnswersBriefly(kind, ms = 3000) {
+  const timeouts = appState.exercise._answerHideTimeouts || {};
+  if (timeouts[kind]) {
+    clearTimeout(timeouts[kind]);
+  }
+
+  appState.exercise.showAnswers[kind] = true;
+  renderStaff();
+
+  timeouts[kind] = setTimeout(() => {
+    // Only auto-hide if hideAnswers is still enabled
+    if (appState.exercise.hideAnswers[kind]) {
+      appState.exercise.showAnswers[kind] = false;
+      renderStaff();
+    }
+  }, ms);
+
+  appState.exercise._answerHideTimeouts = timeouts;
 }
 
 function syncScaleOnlyCheckboxes(value) {
@@ -180,6 +224,24 @@ export function handleWarmupClick() {
   }
 }
 
+export function handleFlashcardNextClick() {
+  nextFlashcard();
+}
+
+export function handleFlashcardFlipClick() {
+  flipFlashcard();
+}
+
+export function handleFlashcardModeChange(event) {
+  setFlashcardMode(event.target.value);
+}
+
+export function handleFlashcardAccidentalsChange(event) {
+  setFlashcardAccidentalsEnabled(!!event.target.checked);
+}
+
+// (Tab system calls initializeFlashcards() on tab switch)
+
 export function handleWarmupTempoChange(event) {
   const tempo = Number(event.target.value);
   
@@ -196,23 +258,39 @@ export function handleWarmupTempoChange(event) {
 }
 
 export function handlePlayHidden2Click() {
+  // Reset staff answer visibility on new exercise
+  appState.exercise.showAnswers.cluster = false;
   playHiddenCluster(2);
 }
 
 export function handlePlayHidden3Click() {
+  appState.exercise.showAnswers.cluster = false;
   playHiddenCluster(3);
 }
 
 export function handleRevealHiddenClick() {
   revealClusterNotes();
+  if (appState.exercise.hideAnswers.cluster) {
+    revealAnswersBriefly('cluster', 3000);
+  } else {
+    appState.exercise.showAnswers.cluster = true;
+    renderStaff();
+  }
 }
 
 export function handlePlayIntervalClick() {
+  appState.exercise.showAnswers.intervals = false;
   playIntervalExercise();
 }
 
 export function handleShowIntervalClick() {
   revealIntervalSolution();
+  if (appState.exercise.hideAnswers.intervals) {
+    revealAnswersBriefly('intervals', 3000);
+  } else {
+    appState.exercise.showAnswers.intervals = true;
+    renderStaff();
+  }
 }
 
 export function handleSATBPlayClick() {

@@ -13,6 +13,7 @@ import { getDroneFrequencies } from '../state/appState.js';
 
 let canvas = null;
 let ctx = null;
+let lastMicMidiForLine = null;
 
 function getCanvas() {
   if (!canvas) {
@@ -42,11 +43,16 @@ export function renderStaff() {
   if (appState.staff.scrollingMode && appState.staff.notes.length > 0) {
     drawScrollingNotes(noteMapper, dimensions);
     drawPlayhead(dimensions);
+    // Mic should work on all tabs/modes
+    drawMicrophoneDot(noteMapper, dimensions);
   } else {
     // Static mode: exercises (interval/cluster), target+mic, and any static note lists (SATB preview)
     drawTargetLine(noteMapper, dimensions);
     drawMicrophoneDot(noteMapper, dimensions);
-    drawActiveNotes(noteMapper);
+
+    if (shouldRenderExerciseAnswerNotes()) {
+      drawActiveNotes(noteMapper);
+    }
     
     // Draw notes if we have them (for SATB preview or warmup display)
     // Only render SATB preview notes when the SATB tab is active.
@@ -58,6 +64,25 @@ export function renderStaff() {
       drawStaticNotes(noteMapper, dimensions);
     }
   }
+}
+
+function shouldRenderExerciseAnswerNotes() {
+  const tab = appState.exercise?.currentTab;
+  const hideAnswers = appState.exercise?.hideAnswers || {};
+  const showAnswers = appState.exercise?.showAnswers || {};
+  const hasNotes = Array.isArray(appState.exercise?.display?.midis) && appState.exercise.display.midis.length > 0;
+
+  if (!hasNotes) return false;
+
+  if (tab === 'intervals') {
+    return hideAnswers.intervals ? !!showAnswers.intervals : true;
+  }
+
+  if (tab === 'cluster') {
+    return hideAnswers.cluster ? !!showAnswers.cluster : true;
+  }
+
+  return false;
 }
 
 function resizeCanvasForDisplay() {
@@ -499,22 +524,80 @@ function drawActiveNoteDot(ctx, x, y) {
 }
 
 function drawMicrophoneDot(noteMapper, dimensions) {
-  const micHz = pitchState.hz;
-  updatePitchDisplay(micHz);
-  
-  if (!micHz) {
+  // Always draw mic feedback from the raw pitch (so the singer sees sharp/flat movement),
+  // and keep it as a single line (no separate “stable/established” overlay).
+  const rawHz = pitchState.hz || 0;
+
+  updatePitchDisplay(rawHz);
+
+  if (!rawHz) {
+    updateCentsDisplay(0);
+    lastMicMidiForLine = null;
     return;
   }
-  
-  const micMidi = frequencyToMidi(micHz, appState.tuning.a4);
+
+  // Use RAW pitch for placement so it reacts fast enough for quick singing (hymns),
+  // and doesn't "fly in" due to smoothing/averaging.
+  // NOTE: We compute micMidi with a local conversion to avoid any module caching weirdness.
+  const rawMicMidi = frequencyToMidiCorrect(rawHz, appState.tuning.a4);
+  if (!Number.isFinite(rawMicMidi)) {
+    return;
+  }
+
+  // Tolerance now acts as a "deadband" to reduce jitter:
+  // if the detected pitch wiggles by less than tolerance cents, keep the line steady.
+  const toleranceCents = appState.display.tolerance;
+  let micMidi = rawMicMidi;
+  if (Number.isFinite(lastMicMidiForLine)) {
+    const deltaCents = (rawMicMidi - lastMicMidiForLine) * 100;
+    if (Math.abs(deltaCents) < toleranceCents) {
+      micMidi = lastMicMidiForLine;
+    } else {
+      lastMicMidiForLine = rawMicMidi;
+    }
+  } else {
+    lastMicMidiForLine = rawMicMidi;
+  }
+  if (!Number.isFinite(micMidi)) {
+    return;
+  }
   const targetMidi = calculateTargetMidi();
   const targetFreq = midiToFrequency(targetMidi, appState.tuning.a4);
   
-  const y = noteMapper(micMidi);
-  const delta = centsBetween(micHz, targetFreq);
+  // For mic feedback, anchor to the correct staff line/space (diatonic),
+  // then nudge by cents so sharp/flat is visible without breaking staff placement.
+  const y = micYForMidi(micMidi, noteMapper, dimensions);
+  const delta = centsBetween(rawHz, targetFreq);
   
   updateCentsDisplay(delta);
-  drawMicIndicator(y, delta, dimensions);
+  drawMicPitchLine(y, delta, dimensions, false);
+}
+
+function frequencyToMidiCorrect(freq, a4 = 440) {
+  if (!freq || freq <= 0) return NaN;
+  const adjustedFreq = freq / (a4 / 440);
+  return 69 + 12 * Math.log2(adjustedFreq / 440);
+}
+
+function micYForMidi(midiFloat, noteMapper, dimensions) {
+  if (!Number.isFinite(midiFloat)) {
+    return NaN;
+  }
+  // 1) Snap to the nearest semitone (for a stable staff anchor)
+  const nearestMidi = Math.round(midiFloat);
+  const baseY = noteMapper(nearestMidi);
+  if (!Number.isFinite(baseY)) {
+    return NaN;
+  }
+
+  // 2) Nudge within that staff position by cents so sharp/flat is visible.
+  // This avoids the incorrect “1 semitone = 1 line/space” assumption.
+  const centsFromNearest = (midiFloat - nearestMidi) * 100;
+  const maxNudgePx = dimensions.spacing * 0.35; // subtle but visible
+  const nudge = Math.max(-50, Math.min(50, centsFromNearest)) / 50 * maxNudgePx;
+
+  // Higher pitch -> smaller y
+  return baseY - nudge;
 }
 
 function calculateTargetMidi() {
@@ -533,49 +616,31 @@ function updateCentsDisplay(delta) {
   setTextContent(micCentsElement, sign + delta.toFixed(1));
 }
 
-function drawMicIndicator(y, delta, dimensions) {
+function drawMicPitchLine(y, delta, dimensions, _isStable) {
   if (!ctx) return;
+  if (!Number.isFinite(y)) return;
+
+  // Clamp so low/high voices always show feedback even if out of view.
+  const clampedY = Math.max(-5, Math.min(dimensions.height + 5, y));
   
-  const micMidi = frequencyToMidi(pitchState.hz, appState.tuning.a4);
-  const solfege = getSolfegeForMidi(micMidi, appState.tuning.doMidi);
-  const x = dimensions.width - 60;
-  
-  const absoluteDelta = Math.abs(delta);
-  const tolerance = appState.display.tolerance;
-  
-  // Determine color based on accuracy
-  let color = '#f87171';
-  if (absoluteDelta < tolerance) {
-    color = '#34d399';
-  } else if (absoluteDelta < tolerance * 2) {
-    color = '#fbbf24';
-  }
+  // Single neutral color (no red→green shifting).
+  const color = '#60a5fa';
   
   // Draw ledger lines if needed
-  drawLedgerLines(ctx, y, dimensions);
-  
-  if (solfege) {
-    // Draw shape-note head with color indicating accuracy
-    ctx.save();
-    drawNoteHeadWithShape(ctx, x, y, solfege, 8);
-    
-    // Draw accuracy indicator ring
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x, y, 10, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-  } else {
-    // Fallback for non-diatonic notes
-    ctx.fillStyle = color;
-    ctx.strokeStyle = '#0b0f19';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(x, y, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-  }
+  drawLedgerLines(ctx, clampedY, dimensions);
+
+  // Draw horizontal mic pitch line across the staff
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = 0.95;
+  ctx.lineWidth = 2.6;
+  // Single solid line
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(dimensions.marginX, clampedY);
+  ctx.lineTo(dimensions.width - dimensions.marginX, clampedY);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawScrollingNotes(noteMapper, dimensions) {
@@ -628,14 +693,10 @@ function drawScrollingNotes(noteMapper, dimensions) {
         // Draw ledger lines if needed (at the note's X position)
         drawLedgerLinesForNote(ctx, x, y, dimensions);
         
-        if (solfege) {
-          // Check if this note is part of the aim part (for highlighting)
-          const isAimPart = note.part && note.part === aimPart;
-          drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart);
-        } else {
-          // Fallback: still draw a visible notehead even if solfege mapping fails
-          drawFallbackNoteHead(ctx, x, y);
-        }
+        // SEMITONE_TO_SOLFEGE covers all 12 semitones; solfege should always resolve as long as Do is valid.
+        // Check if this note is part of the aim part (for highlighting)
+        const isAimPart = note.part && note.part === aimPart;
+        drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart);
       }
   });
   
@@ -688,14 +749,10 @@ function drawStaticNotes(noteMapper, dimensions) {
       // Draw ledger lines if needed (at the note's X position)
       drawLedgerLinesForNote(ctx, x, y, dimensions);
       
-      if (solfege) {
-        // Check if this note is part of the aim part (for highlighting)
-        const isAimPart = note.part && note.part === aimPart;
-        drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart);
-      } else {
-        // Fallback: still draw a visible notehead even if solfege mapping fails
-        drawFallbackNoteHead(ctx, x, y);
-      }
+      // SEMITONE_TO_SOLFEGE covers all 12 semitones; solfege should always resolve as long as Do is valid.
+      // Check if this note is part of the aim part (for highlighting)
+      const isAimPart = note.part && note.part === aimPart;
+      drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart);
     }
   });
   
@@ -770,22 +827,25 @@ function drawNoteAtPosition(x, y, midi, isActive, solfege, isAimPart = false) {
     ctx.globalAlpha = 0.7; // Slightly transparent for other parts
   }
   
-  // Draw note head with shape (size varies for aim part)
-  drawNoteHeadWithShape(ctx, x, y, solfege, isAimPart ? 10 : 8);
-  
-  ctx.restore();
-}
+  // Draw note head with shape (keep size consistent; highlight aim part without rings)
+  const noteSize = 8;
 
-function drawFallbackNoteHead(ctx, x, y) {
-  if (!ctx) return;
-  ctx.save();
-  ctx.fillStyle = '#cfe6ff';
-  ctx.strokeStyle = '#0b0f19';
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.ellipse(x, y, 7.5, 5.5, -0.35, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+  if (isAimPart) {
+    // Subtle glow highlight around the shape itself (no circles/rings)
+    ctx.save();
+    ctx.globalAlpha = 1.0;
+    ctx.shadowColor = '#34d399';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    // Draw twice to strengthen the glow without changing geometry
+    drawNoteHeadWithShape(ctx, x, y, solfege, noteSize);
+    drawNoteHeadWithShape(ctx, x, y, solfege, noteSize);
+    ctx.restore();
+  } else {
+    drawNoteHeadWithShape(ctx, x, y, solfege, noteSize);
+  }
+  
   ctx.restore();
 }
 
