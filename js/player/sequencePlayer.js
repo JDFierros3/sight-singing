@@ -126,8 +126,8 @@ class StanzaSequencePlayer {
         stopScrollingAnimation();
         appState.staff.isPlaying = false;
 
-        // Clear SATB preview mode when starting a sequence
-        appState.staff.satbPreviewMode = false;
+        // Keep SATB preview mode active during playback (don't clear key signature)
+        // appState.staff.satbPreviewMode is preserved
         
         // Set notes with sequence ID to prevent old sequences from overwriting
         // Also pass the stanza duration so the playhead stops at the right place

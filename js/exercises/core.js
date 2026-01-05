@@ -8,6 +8,7 @@ import { getDegreeForMidi } from '../utils/musicTheory.js';
 import { randomInRange } from '../utils/math.js';
 import { startDroneWithFrequencies, stopAllDroneOscillators } from '../audio/drone.js';
 import { updateNowPlayingBadge } from '../ui/components/status.js';
+import { isUsingSoundfont, playInstrumentNote } from '../audio/instruments.js';
 
 let activePlaybackTimeoutId = null;
 let activePlaybackToken = 0;
@@ -27,7 +28,7 @@ export function pickRandomNoteInRange() {
 
 export function playTonesForDuration(midis, duration, label) {
   // Cancel any previous scheduled stop, otherwise older timeouts can
-  // stop a newer playback early (this was causing “timing is totally wrong”).
+  // stop a newer playback early (this was causing "timing is totally wrong").
   if (activePlaybackTimeoutId) {
     clearTimeout(activePlaybackTimeoutId);
     activePlaybackTimeoutId = null;
@@ -37,17 +38,30 @@ export function playTonesForDuration(midis, duration, label) {
 
   setActiveDisplay(midis, label);
   
-  const frequencies = convertMidisToFrequencies(midis);
   const gain = appState.drone.gain;
   
-  startDroneWithFrequencies(frequencies, gain);
-  appState.drone.on = true;
+  // Use instruments if available, otherwise use sine wave drones
+  if (isUsingSoundfont()) {
+    // Play each note with the instrument
+    midis.forEach(midi => {
+      playInstrumentNote(midi, duration, gain);
+    });
+  } else {
+    // Use traditional sine wave drones
+    const frequencies = convertMidisToFrequencies(midis);
+    startDroneWithFrequencies(frequencies, gain);
+    appState.drone.on = true;
+  }
   
   activePlaybackTimeoutId = setTimeout(() => {
     // Only stop if this timeout belongs to the latest playback.
     if (token !== activePlaybackToken) return;
-    stopAllDroneOscillators();
-    appState.drone.on = false;
+    
+    // Stop drones only if using sine waves
+    if (!isUsingSoundfont()) {
+      stopAllDroneOscillators();
+      appState.drone.on = false;
+    }
 
     // Clear exercise note display after playback so answers don't linger
     // (interval/cluster solutions remain in state; staff visibility is controlled separately)
@@ -57,6 +71,25 @@ export function playTonesForDuration(midis, duration, label) {
     appState.exercise.showAnswers.cluster = false;
     activePlaybackTimeoutId = null;
   }, duration * 1000);
+}
+
+export function stopOneShotPlayback() {
+  // Invalidate any pending stop timeout and stop immediately.
+  if (activePlaybackTimeoutId) {
+    clearTimeout(activePlaybackTimeoutId);
+    activePlaybackTimeoutId = null;
+  }
+  activePlaybackToken += 1;
+
+  stopAllDroneOscillators();
+  appState.drone.on = false;
+
+  appState.exercise.display.midis = [];
+  appState.exercise.display.label = '';
+  appState.exercise.showAnswers.intervals = false;
+  appState.exercise.showAnswers.cluster = false;
+
+  updateNowPlayingBadge('');
 }
 
 export function filterNoteByScale(midi) {

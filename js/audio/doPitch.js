@@ -1,5 +1,5 @@
 /**
- * Target tone beep functionality
+ * Do pitch beep functionality (for the global header)
  */
 
 import { ensureAudioContext, getAudioContext } from './context.js';
@@ -8,40 +8,37 @@ import { midiToFrequency } from '../utils/audioMath.js';
 import { appState } from '../state/appState.js';
 import { isUsingSoundfont, playInstrumentNote } from './instruments.js';
 
-export async function beepTarget() {
-  if (!appState.display.playAim) {
-    return;
-  }
-  
+export async function beepDo() {
   await ensureAudioContext();
   const ctx = getAudioContext();
-  
-  const targetMidi = appState.tuning.doMidi + appState.drone.rootSemi + appState.target.semi;
+
+  const doMidi = appState.tuning.doMidi;
   
   // Try to use instrument if available
   if (isUsingSoundfont()) {
-    const note = playInstrumentNote(targetMidi, 0.5, 0.5);
+    const note = playInstrumentNote(doMidi, 0.5, 0.5);
     if (note) {
       return; // Successfully played with instrument
     }
   }
   
   // Fall back to oscillator
-  const frequency = midiToFrequency(targetMidi, appState.tuning.a4);
-  
+  const frequency = midiToFrequency(doMidi, appState.tuning.a4);
+
   const oscillator = createOscillator(frequency, 'sine', 0.18);
   if (!oscillator) {
     return;
   }
-  
+
   connectOscillatorToDestination(oscillator, ctx.destination);
   startOscillator(oscillator);
-  
+
   const fadeOutTime = ctx.currentTime + 0.45;
   oscillator.g.gain.exponentialRampToValueAtTime(0.0001, fadeOutTime);
-  
+
   setTimeout(() => {
     stopOscillator(oscillator);
   }, 480);
 }
+
 

@@ -35,7 +35,7 @@ export function initializeStaffPanning() {
   updateCursor();
   
   // Update cursor when window resizes or notes change
-  window.addEventListener('resize', updateCursor);
+  window.addEventListener('resize', handleResize);
 }
 
 /**
@@ -90,6 +90,18 @@ function updateCursor() {
     canvas.style.cursor = 'grab';
   } else {
     canvas.style.cursor = 'default';
+  }
+}
+
+function handleResize() {
+  updateCursor();
+
+  // Clamp current offset to the new viewport bounds to avoid getting stuck off-screen.
+  const current = appState.staff.viewportOffset || 0;
+  const clamped = clampViewportOffset(current);
+  if (clamped !== current) {
+    appState.staff.viewportOffset = clamped;
+    renderStaff();
   }
 }
 

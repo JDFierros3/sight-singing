@@ -20,7 +20,8 @@ function initializeTuning() {
     a4: 440,
     doMidi: 60,
     minMidi: 48,
-    maxMidi: 72
+    maxMidi: 72,
+    instrument: 'sine' // Current instrument (sine for oscillator, or soundfont name)
   };
 }
 
@@ -28,7 +29,9 @@ function initializeDisplay() {
   return {
     tolerance: 60,
     zoom: 1.5,
-    playAim: true
+    playAim: true,
+    showKeySignature: false,
+    showAccidentals: false
   };
 }
 
@@ -54,7 +57,7 @@ function initializeTarget() {
 function initializeExercise() {
   return {
     onScaleOnly: true,
-    currentTab: 'settings',
+    currentTab: 'warmup',
     hidden: null,
     interval: null,
     intervalDifficulty: null,
@@ -72,6 +75,7 @@ function initializeExercise() {
       intervals: null,
       cluster: null
     },
+    clusterThinkTime: 3, // seconds before auto-hiding cluster answers
     display: {
       midis: [],
       label: ''
@@ -114,7 +118,8 @@ function initializeSATB() {
     },
     currentExercise: null,
     isPlaying: false,
-    midiExercises: [] // Array of exercises loaded from MIDI files
+    midiExercises: [], // Array of exercises loaded from MIDI files
+    transposeSemis: 0
   };
 }
 
@@ -139,7 +144,8 @@ export function getDoMidiForDisplay() {
   ) {
     // midiKeyMidi is 0-11 (pitch class), we need to find a reasonable octave
     // Use middle C (60) as reference, then adjust to the key
-    const keyPitchClass = currentExercise.midiKeyMidi;
+    const transpose = appState.satb?.transposeSemis || 0;
+    const keyPitchClass = ((currentExercise.midiKeyMidi + transpose) % 12 + 12) % 12;
     // Find the octave that puts the key note closest to middle C
     const baseOctave = 4; // C4 = 60
     const keyMidi = baseOctave * 12 + keyPitchClass;

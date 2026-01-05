@@ -10,6 +10,8 @@ import { pitchState } from '../pitch/detection.js';
 import { drawShapeBadge, drawRoundedRect, drawNoteHeadWithShape } from './shapes.js';
 import { getSolfegeForMidi } from '../utils/musicTheory.js';
 import { getDroneFrequencies } from '../state/appState.js';
+import { drawSharp, drawFlat, drawNatural, drawKeySignature } from './accidentals.js';
+import { getAccidentalForNote } from '../utils/keySignature.js';
 
 let canvas = null;
 let ctx = null;
@@ -151,7 +153,7 @@ function getCanvasDimensions() {
 function drawStaffLines(dimensions) {
   if (!ctx) return;
   
-  ctx.strokeStyle = '#233056';
+  ctx.strokeStyle = '#9aa4b2';
   ctx.lineWidth = 1.4;
   
   // Draw treble staff (5 lines)
@@ -181,6 +183,18 @@ function drawStaffLines(dimensions) {
   // Draw clefs
   drawTrebleClef(ctx, dimensions);
   drawBassClef(ctx, dimensions);
+  
+  // Draw key signature if we have key info (for SATB exercises only) and it's enabled
+  if (Number.isFinite(appState.staff.keyTonic) && appState.staff.satbPreviewMode && appState.display.showKeySignature) {
+    const keySignatureDimensions = {
+      width: dimensions.width,
+      height: dimensions.height,
+      trebleStaffTop: dimensions.trebleStaffTop,
+      bassStaffTop: dimensions.bassStaffTop,
+      lineSpacing: dimensions.spacing
+    };
+    drawKeySignature(ctx, appState.staff.keyTonic, appState.staff.keyMode || 'major', keySignatureDimensions);
+  }
 }
 
 function drawTrebleClef(ctx, dimensions) {
@@ -197,7 +211,7 @@ function drawTrebleClef(ctx, dimensions) {
   // Draw treble clef symbol (G clef)
   // Positioned on the G line (G4) of the treble staff
   // Using Unicode musical symbol
-  ctx.font = '32px "Times New Roman", serif';
+  ctx.font = '48px "Times New Roman", serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   // trebleStaffTop is the TOP line (F5). G4 is line index 3 from the top.
@@ -218,11 +232,12 @@ function drawBassClef(ctx, dimensions) {
   // Draw bass clef symbol (F clef)
   // Positioned on the 4th line (F line) of the bass staff
   // Using Unicode musical symbol
-  ctx.font = '28px "Times New Roman", serif';
+  ctx.font = '44px "Times New Roman", serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   // bassStaffTop is the TOP line (A3). F3 is line index 1 from the top.
-  ctx.fillText('𝄢', x, bassStaffTop + staffSpacing * 1);
+  // Adjust down slightly for better visual alignment
+  ctx.fillText('𝄢', x, bassStaffTop + staffSpacing * 1 + 4);
 }
 
 function drawLedgerLines(ctx, y, dimensions) {
@@ -499,6 +514,9 @@ function drawActiveNotes(noteMapper) {
     return;
   }
   
+  const tonic = appState.tuning.doMidi;
+  const mode = 'major'; // Assume major mode for exercises
+  
   ctx.save();
   ctx.strokeStyle = '#233056';
   ctx.lineWidth = 1;
@@ -511,6 +529,23 @@ function drawActiveNotes(noteMapper) {
     // Draw ledger lines if needed
     const dimensions = getCanvasDimensions();
     drawLedgerLines(ctx, y, dimensions);
+    
+    // Check for accidental (if enabled)
+    if (appState.display.showAccidentals) {
+      const accidental = getAccidentalForNote(midi, tonic, mode);
+      if (accidental) {
+        const accidentalX = x - 14;
+        const accidentalY = y - 2;
+        
+        if (accidental === 'sharp') {
+          drawSharp(ctx, accidentalX, accidentalY, 14);
+        } else if (accidental === 'flat') {
+          drawFlat(ctx, accidentalX, accidentalY, 14);
+        } else if (accidental === 'natural') {
+          drawNatural(ctx, accidentalX, accidentalY, 14);
+        }
+      }
+    }
     
     if (solfege) {
       drawNoteHeadWithShape(ctx, x, y, solfege, 8);
@@ -661,7 +696,9 @@ function drawScrollingNotes(noteMapper, dimensions) {
   
   const notes = appState.staff.notes;
   const currentTime = appState.staff.currentTime;
-  const startX = 80;
+  // Add extra space when key signature is shown
+  const keySignatureWidth = (appState.display.showKeySignature && appState.staff.satbPreviewMode) ? 50 : 0;
+  const startX = 80 + keySignatureWidth;
   // Fixed spacing: 80 pixels per second
   // Note startTimes are already scaled by tempo, so we use fixed pixelsPerSecond
   // This ensures notes stay in fixed positions regardless of tempo
@@ -709,7 +746,8 @@ function drawScrollingNotes(noteMapper, dimensions) {
         // SEMITONE_TO_SOLFEGE covers all 12 semitones; solfege should always resolve as long as Do is valid.
         // Check if this note is part of the aim part (for highlighting)
         const isAimPart = note.part && note.part === aimPart;
-        drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart);
+        const accidental = note.accidental || null;
+        drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart, accidental);
       }
   });
   
@@ -722,7 +760,9 @@ function drawStaticNotes(noteMapper, dimensions) {
   const notes = appState.staff.notes;
   if (notes.length === 0) return;
   
-  const startX = 80;
+  // Add extra space when key signature is shown
+  const keySignatureWidth = (appState.display.showKeySignature && appState.staff.satbPreviewMode) ? 50 : 0;
+  const startX = 80 + keySignatureWidth;
   const pixelsPerSecond = 80; // Same spacing as scrolling notes
   
   // Get viewport offset for panning (when not playing)
@@ -765,7 +805,8 @@ function drawStaticNotes(noteMapper, dimensions) {
       // SEMITONE_TO_SOLFEGE covers all 12 semitones; solfege should always resolve as long as Do is valid.
       // Check if this note is part of the aim part (for highlighting)
       const isAimPart = note.part && note.part === aimPart;
-      drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart);
+      const accidental = note.accidental || null;
+      drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart, accidental);
     }
   });
   
@@ -828,10 +869,24 @@ function isNoteActive(note, currentTime) {
   return currentTime >= note.startTime && currentTime < (note.startTime + note.duration);
 }
 
-function drawNoteAtPosition(x, y, midi, isActive, solfege, isAimPart = false) {
+function drawNoteAtPosition(x, y, midi, isActive, solfege, isAimPart = false, accidental = null) {
   if (!ctx) return;
   
   ctx.save();
+  
+  // Draw accidental before the shape (if present and enabled)
+  if (accidental && appState.display.showAccidentals) {
+    const accidentalX = x - 14; // Position to the left of note
+    const accidentalY = y - 2; // Slightly above center
+    
+    if (accidental === 'sharp') {
+      drawSharp(ctx, accidentalX, accidentalY, 14);
+    } else if (accidental === 'flat') {
+      drawFlat(ctx, accidentalX, accidentalY, 14);
+    } else if (accidental === 'natural') {
+      drawNatural(ctx, accidentalX, accidentalY, 14);
+    }
+  }
   
   // If this is the aim part, use different styling
   if (isAimPart) {

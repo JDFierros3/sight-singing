@@ -62,15 +62,13 @@ export function renderFlashcard() {
 
   const promptEl = getElementById('flashcardPrompt');
   const glyphEl = getElementById('flashcardGlyph');
-  const answerEl = getElementById('flashcardAnswer');
   const badgeEl = getElementById('flashcardBadge');
 
-  if (!promptEl || !glyphEl || !answerEl || !badgeEl) return;
+  if (!promptEl || !glyphEl || !badgeEl) return;
 
   if (!card) {
     setTextContent(promptEl, '—');
-    setTextContent(answerEl, '—');
-    answerEl.style.display = 'none';
+    glyphEl.innerHTML = '';
     setTextContent(badgeEl, 'Ready');
     return;
   }
@@ -78,26 +76,22 @@ export function renderFlashcard() {
   const { solfege, base } = card;
   const showingAnswer = !!state.revealed;
 
-  // Prompt/answer text depends on mode.
   if (state.mode === 'shapeToSolfege') {
+    // Show shape, flip to reveal solfege text
     setTextContent(promptEl, 'What solfege is this shape?');
-    setTextContent(answerEl, solfege);
+    if (showingAnswer) {
+      setContentAsText(glyphEl, solfege);
+    } else {
+      setGlyph(glyphEl, solfege, base, true);
+    }
   } else {
+    // Show solfege text, flip to reveal shape
     setTextContent(promptEl, 'What shape matches this solfege?');
-    setTextContent(answerEl, solfege);
-  }
-
-  // Glyph depends on mode and reveal state.
-  const shouldShowGlyph = state.mode === 'shapeToSolfege' ? true : showingAnswer;
-  setGlyph(glyphEl, solfege, base, shouldShowGlyph);
-
-  // Answer visibility depends on mode:
-  // - shape→solfege: answer text hidden until flip
-  // - solfege→shape: prompt already contains solfege, so answer is the shape (glyph)
-  if (state.mode === 'shapeToSolfege') {
-    answerEl.style.display = showingAnswer ? 'block' : 'none';
-  } else {
-    answerEl.style.display = 'none';
+    if (showingAnswer) {
+      setGlyph(glyphEl, solfege, base, true);
+    } else {
+      setContentAsText(glyphEl, solfege);
+    }
   }
 
   setTextContent(badgeEl, showingAnswer ? 'Revealed' : 'Hidden');
@@ -147,6 +141,18 @@ function setGlyph(el, solfege, base, shouldShow) {
 
   const color = getShapeColor(base);
   renderShapeIconInto(el, base, { color, sizePx: 64 });
+}
+
+function setContentAsText(el, text) {
+  el.innerHTML = '';
+  el.style.color = '#ffffff';
+  el.style.fontSize = '32px';
+  el.style.fontWeight = '700';
+  el.style.display = 'flex';
+  el.style.alignItems = 'center';
+  el.style.justifyContent = 'center';
+  el.style.minHeight = '110px';
+  setTextContent(el, text);
 }
 
 

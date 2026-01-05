@@ -12,6 +12,7 @@ import { buildArpeggioUp, buildArpeggioDown } from './chords.js';
 import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence, getCurrentSequenceId, trackBadgeTimeout, removeBadgeTimeout } from '../player/sequenceManager.js';
+import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from '../audio/instruments.js';
 
 // Track active warmup oscillators so we can stop them
 let activeWarmupOscillators = [];
@@ -38,10 +39,32 @@ export async function runWarmupSequence(selectedStanzaIndices = null) {
         return;
       }
       
-      const frequency = midiToFrequency(note.midi, appState.tuning.a4);
       const gain = appState.drone.gain;
       
-      // Create a single oscillator for this note
+      // Try to use instrument if available
+      if (isUsingSoundfont()) {
+        const instrumentNote = playInstrumentNote(note.midi, note.duration, gain);
+        if (instrumentNote) {
+          activeWarmupOscillators.push(instrumentNote);
+          
+          // Wait for the note duration
+          await waitWithValidation(
+            note.duration * 1000,
+            seqId,
+            () => appState.exercise.warmupRunning
+          );
+          
+          // Remove from tracking
+          const index = activeWarmupOscillators.indexOf(instrumentNote);
+          if (index > -1) {
+            activeWarmupOscillators.splice(index, 1);
+          }
+          return;
+        }
+      }
+      
+      // Fall back to oscillator
+      const frequency = midiToFrequency(note.midi, appState.tuning.a4);
       const oscillator = createWarmupOscillator(frequency, gain);
       
       if (oscillator) {
@@ -330,7 +353,13 @@ function createWarmupOscillator(freq, gain) {
 }
 
 function stopWarmupOscillator(oscillator) {
-  stopOscillator(oscillator);
+  if (oscillator && oscillator.stop) {
+    // Instrument note
+    stopInstrumentNote(oscillator);
+  } else {
+    // Regular oscillator
+    stopOscillator(oscillator);
+  }
 }
 
 

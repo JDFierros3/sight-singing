@@ -7,95 +7,105 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header role="banner">
-    <h1>Shape‑Note Ear Trainer (Lite)</h1>
-    <small>sing against drones • movable‑Do • no scoring</small>
-    <span class="pill" id="status" role="status" aria-live="polite">Idle</span>
+  <header class="appHeader" role="banner">
+    <div class="appHeaderRow">
+      <div class="appTitle">
+        <h1>Shape‑Note Ear Trainer (Lite)</h1>
+        <small class="subtitle">sing against drones • movable‑Do • no scoring</small>
+      </div>
+      <div class="appHeaderBadges">
+        <span class="chip">Now:</span>
+        <span id="nowBadge" class="chip" aria-live="polite">—</span>
+        <span class="pill" id="status" role="status" aria-live="polite">Idle</span>
+      </div>
+    </div>
+
+    <div class="appHeaderRow appHeaderControls">
+      <div class="row rowCompact">
+        <button id="btnGlobalPlay" class="primary" aria-label="Global play">Play</button>
+        <button id="btnGlobalStop" class="bad" aria-label="Global stop" disabled>Stop</button>
+        <button id="btnMicToggle" aria-label="Toggle microphone">Mic</button>
+        <span class="chip micChip">
+          Mic:
+          <span id="micHz" class="hz" aria-live="polite">—</span> Hz | Δ <span id="micCents" aria-live="polite">—</span> cents
+        </span>
+        <button id="toggleRibbon" class="ghost" aria-label="Toggle controls visibility">Hide controls</button>
+      </div>
+
+      <div class="tabSelectBlock">
+        <label class="inlineLabel" for="tabSelect">Tab</label>
+        <select id="tabSelect" aria-label="Choose tab"></select>
+      </div>
+
+      <div class="controlRibbon">
+        <div id="solfegeGuide" class="controlGroup" aria-label="Solfege reference"></div>
+
+        <div class="controlGroup">
+          <label for="doNote">Do</label>
+          <select id="doNote" aria-label="Select movable Do note"></select>
+          <button id="btnPlayDo" aria-label="Play Do pitch">Play Do</button>
+        </div>
+
+        <div class="controlGroup">
+          <label for="tolerance">Tolerance</label>
+          <input id="tolerance" type="range" min="5" max="100" value="60" aria-label="Pitch tolerance in cents" />
+        </div>
+
+        <div class="controlGroup">
+          <label for="a4">A4</label>
+          <input id="a4" type="number" value="440" min="400" max="460" step="0.1" aria-label="A4 reference frequency in hertz" />
+        </div>
+
+        <div class="controlGroup">
+          <label for="instrument">Voice</label>
+          <select id="instrument" aria-label="Select instrument voice">
+            <option value="sine" selected>Sine Wave</option>
+            <option value="acoustic_grand_piano">Piano</option>
+          </select>
+        </div>
+
+        <div class="controlGroup">
+          <label for="minNote">Low</label>
+          <select id="minNote" aria-label="Select minimum note"></select>
+          <label for="maxNote">High</label>
+          <select id="maxNote" aria-label="Select maximum note"></select>
+        </div>
+
+        <div class="controlGroup">
+          <label for="zoom">Zoom</label>
+          <input id="zoom" type="range" min="0.7" max="1.8" value="1.5" step="0.05" aria-label="Staff zoom level" />
+        </div>
+
+        <div class="controlGroup controlInline">
+          <label class="inlineLabel" for="playAim">Play aim</label>
+          <input id="playAim" type="checkbox" checked aria-label="Play aim tone when selected" />
+        </div>
+
+        <div class="controlGroup controlInline">
+          <button id="startMic" class="good" aria-label="Start microphone">Start Mic</button>
+          <button id="stopMic" class="bad" aria-label="Stop microphone">Stop Mic</button>
+        </div>
+      </div>
+    </div>
   </header>
 
   <div class="wrap">
     <main role="main">
-      <header class="stickyHead">
-        <div class="flex" style="justify-content:space-between; margin-bottom:8px">
-          <nav id="solfegeGuide" class="flex" style="gap:12px; flex-wrap:wrap" aria-label="Solfege reference"></nav>
-          <div style="text-align:right">
-            <div>Mic: <span id="micHz" class="hz" aria-live="polite">—</span> Hz | Δ <span id="micCents" aria-live="polite">—</span> cents</div>
-            <div class="flex" style="justify-content:flex-end; gap:10px; margin-top:6px; align-items:center">
-              <label for="tolerance" style="margin:0">Tolerance</label>
-              <input id="tolerance" type="range" min="5" max="100" value="60" aria-label="Pitch tolerance in cents" />
-            </div>
-          </div>
-        </div>
-        <div class="flex" style="justify-content:space-between; margin-top:8px; padding-top:8px; border-top: 1px solid #1f2336;">
-          <div class="row">
-            <button id="startMic" class="good" aria-label="Start microphone">Start Mic</button>
-            <button id="stopMic" class="bad" aria-label="Stop microphone">Stop Mic</button>
-          </div>
-        </div>
-        <div class="help" style="margin-top:8px; font-size:12px;">Press <span class="kbd">M</span> to toggle the mic. Use headphones to prevent feedback and keep drones clean.</div>
-      </header>
-
       <nav class="tabs" role="tablist" aria-label="Application tabs">
-        <button class="tab active" data-tab="settings" role="tab" aria-selected="true" aria-controls="panel-settings">Settings</button>
-        <button class="tab" data-tab="chord-quality" role="tab" aria-selected="false" aria-controls="panel-chord-quality">Chord Quality</button>
-        <button class="tab" data-tab="warmup" role="tab" aria-selected="false" aria-controls="panel-warmup">Warmup</button>
+        <button class="tab active" data-tab="warmup" role="tab" aria-selected="true" aria-controls="panel-warmup">Warmup</button>
         <button class="tab" data-tab="cluster" role="tab" aria-selected="false" aria-controls="panel-cluster">Hidden Cluster</button>
         <button class="tab" data-tab="intervals" role="tab" aria-selected="false" aria-controls="panel-intervals">Interval Training</button>
         <button class="tab" data-tab="flashcards" role="tab" aria-selected="false" aria-controls="panel-flashcards">Flashcards</button>
         <button class="tab" data-tab="satb" role="tab" aria-selected="false" aria-controls="panel-satb">SATB Practice</button>
+        <button class="tab" data-tab="chord-quality" role="tab" aria-selected="false" aria-controls="panel-chord-quality">Chord Quality</button>
         <button class="tab" data-tab="theory" role="tab" aria-selected="false" aria-controls="panel-theory">Music Theory</button>
       </nav>
 
-      <article class="panel" style="padding-top:10px">
-        <div class="row">
-          <span class="chip">Now playing:</span>
-          <span id="nowBadge" class="chip" aria-live="polite">—</span>
-        </div>
-        <canvas id="staff" title="Pinch/scroll to zoom (or use slider)" role="img" aria-label="Musical staff showing pitch detection"></canvas>
+      <article class="panel staffPanel" style="padding-top:10px">
+        <canvas id="staff" title="Drag to pan; pinch/scroll to zoom (or use slider)" role="img" aria-label="Musical staff showing pitch detection"></canvas>
       </article>
 
-      <section id="panel-settings" class="panel" role="tabpanel" aria-labelledby="tab-settings" style="display:block">
-        <fieldset>
-          <legend>Setup • Tuning</legend>
-          <div class="grid2">
-            <div>
-              <label for="a4">A4 reference (Hz)</label>
-              <input id="a4" type="number" value="440" min="400" max="460" step="0.1" aria-label="A4 reference frequency in hertz" />
-            </div>
-            <div>
-              <label for="doNote">Movable‑Do (note)</label>
-              <select id="doNote" aria-label="Select movable Do note"></select>
-            </div>
-          </div>
-          <div class="grid2">
-            <div>
-              <label for="minNote">Lowest note</label>
-              <select id="minNote" aria-label="Select minimum note"></select>
-            </div>
-            <div>
-              <label for="maxNote">Highest note</label>
-              <select id="maxNote" aria-label="Select maximum note"></select>
-            </div>
-          </div>
-          <div class="grid2">
-            <div>
-              <label for="zoom">Staff zoom</label>
-              <input id="zoom" type="range" min="0.7" max="1.8" value="1.5" step="0.05" aria-label="Staff zoom level" />
-            </div>
-            <div>
-              <label class="flex" style="justify-content:space-between">
-                Play aim tone
-                <input id="playAim" type="checkbox" checked aria-label="Play aim tone when selected" />
-              </label>
-            </div>
-          </div>
-          <div class="help">
-            Set your key and vocal range. Use <b>Zoom</b> if notes feel cramped.
-            <b>Play aim tone</b> is optional (it “beeps” the chosen target).
-            The mic line shows your pitch on the staff; <b>Tolerance</b> (top slider) reduces jitter.
-          </div>
-        </fieldset>
-      </section>
+      <!-- Settings tab removed; controls are now in the header ribbon -->
 
       <section id="panel-chord-quality" class="panel" role="tabpanel" aria-labelledby="tab-chord-quality" style="display:none">
         <fieldset>
@@ -175,7 +185,7 @@
       <section id="panel-cluster" class="panel" role="tabpanel" aria-labelledby="tab-cluster" style="display:none">
         <fieldset>
           <legend>Hidden Cluster</legend>
-          <div class="help">Listen for 2–3 hidden tones. Hum each tone you hear. Use Reveal only after you’ve tried to find them.</div>
+          <div class="help">Listen for 2–3 hidden tones. Hum each tone you hear. Use Reveal only after you've tried to find them.</div>
           <label class="flex" style="justify-content:space-between; margin:8px 0">
             Hide staff answers (until Reveal)
             <input id="hideAnswers-cluster" type="checkbox" checked aria-label="Hide staff answers until Reveal is clicked" />
@@ -190,6 +200,8 @@
             Constrain to scale notes (diatonic)
             <input id="onScaleOnly-cluster" type="checkbox" checked aria-label="Constrain to scale notes" />
           </label>
+          <label for="clusterThinkTime">Thinking time: <span id="clusterThinkTimeValue">3</span> seconds</label>
+          <input id="clusterThinkTime" type="range" min="1" max="10" value="3" step="1" aria-label="Thinking time in seconds" />
           <div class="row">
             <button id="playHidden2" aria-label="Play 2 hidden tones">Play 2</button>
             <button id="playHidden3" aria-label="Play 3 hidden tones">Play 3</button>
@@ -267,9 +279,8 @@
           <div class="flashcard" role="group" aria-label="Flashcard">
             <div id="flashcardPrompt" class="flashcardPrompt" aria-live="polite">—</div>
             <div class="flashcardFace">
-              <span id="flashcardGlyph" aria-hidden="true"></span>
+              <span id="flashcardGlyph"></span>
             </div>
-            <div id="flashcardAnswer" class="flashcardAnswer" aria-live="polite" style="display:none">—</div>
           </div>
 
           <div class="row" style="margin-top:10px">
@@ -311,10 +322,35 @@
             <label for="satbTempo">Tempo: <span id="satbTempoValue">60</span> BPM</label>
             <input id="satbTempo" type="range" min="40" max="120" value="60" aria-label="Tempo in BPM" />
           </div>
+
+          <!-- Transpose Control -->
+          <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap">
+            <span>Key: <span id="satbKeyLabel">—</span></span>
+            <button id="btnSatbTransposeDown" aria-label="Transpose down 1 semitone">−</button>
+            <button id="btnSatbTransposeUp" aria-label="Transpose up 1 semitone">+</button>
+          </div>
+          
+          <!-- Key Signature Display -->
+          <div style="margin-bottom:12px">
+            <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px">
+              <input id="showKeySignature" type="checkbox" aria-label="Show key signature on staff" />
+              Show key signature on staff
+            </label>
+          </div>
+          
+          <!-- Accidentals Display -->
+          <div style="margin-bottom:12px">
+            <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px">
+              <input id="showAccidentals" type="checkbox" aria-label="Show accidentals on notes" />
+              Show accidentals on notes (♯ ♭ ♮)
+            </label>
+          </div>
           
           <!-- Play Controls -->
           <div class="row" style="margin-bottom:12px">
             <button id="btnSatbPlay" class="primary" aria-label="Play SATB exercise">Play</button>
+            <button id="btnSatbPause" aria-label="Pause SATB exercise" style="display:none">Pause</button>
+            <button id="btnSatbResume" class="primary" aria-label="Resume SATB exercise" style="display:none">Resume</button>
             <button id="btnSatbStop" class="bad" aria-label="Stop SATB exercise" style="display:none">Stop</button>
             <span id="satbBadge" class="chip" aria-live="polite">—</span>
           </div>
@@ -342,6 +378,9 @@
     </main>
   </div>
 
+  <!-- Tone.js for instrument sounds -->
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
+  
   <script type="module">
     // Error handling for module loading
     window.addEventListener('error', (event) => {

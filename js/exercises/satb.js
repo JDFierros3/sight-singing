@@ -60,7 +60,8 @@ export async function playSATBExercise() {
   const exerciseSelect = getElementById('satbExercise');
   const exerciseIndex = parseInt(exerciseSelect.value) || 0;
   const exercises = getAllSATBExercises(); // Include MIDI exercises
-  const exercise = exercises[exerciseIndex];
+  const baseExercise = exercises[exerciseIndex];
+  const exercise = getTransposedExercise(baseExercise, appState.satb.transposeSemis);
   
   if (!exercise) {
     appState.satb.isPlaying = false;
@@ -69,7 +70,7 @@ export async function playSATBExercise() {
     return;
   }
   
-  appState.satb.currentExercise = exercise;
+  appState.satb.currentExercise = baseExercise;
   
   // Convert to stanza format
   const stanza = convertSATBToStanza(exercise);
@@ -172,6 +173,11 @@ export function stopSATBExercise() {
   }
   
   stanzaSequencePlayer.stopSequence();
+
+  // Restore the current exercise on the staff so it stays visible after stopping
+  if (appState.satb.currentExercise) {
+    displaySATBExerciseOnStaff(appState.satb.currentExercise);
+  }
 }
 
 /**
@@ -185,10 +191,36 @@ function stopAllSATBOscillators() {
 }
 
 /**
+ * Pause SATB exercise
+ */
+export function pauseSATBExercise() {
+  if (!appState.satb.isPlaying || stanzaSequencePlayer.isPaused) {
+    return;
+  }
+  
+  stanzaSequencePlayer.pauseSequence();
+  updateSatbButton(true, true);
+}
+
+/**
+ * Resume SATB exercise
+ */
+export function resumeSATBExercise() {
+  if (!appState.satb.isPlaying || !stanzaSequencePlayer.isPaused) {
+    return;
+  }
+  
+  stanzaSequencePlayer.resumeSequence();
+  updateSatbButton(true, false);
+}
+
+/**
  * Update SATB button state
  */
-function updateSatbButton(isPlaying) {
+function updateSatbButton(isPlaying, isPaused = false) {
   const playButton = getElementById('btnSatbPlay');
+  const pauseButton = getElementById('btnSatbPause');
+  const resumeButton = getElementById('btnSatbResume');
   const stopButton = getElementById('btnSatbStop');
   
   if (playButton) {
@@ -196,6 +228,22 @@ function updateSatbButton(isPlaying) {
       playButton.style.display = 'none';
     } else {
       playButton.style.display = '';
+    }
+  }
+  
+  if (pauseButton) {
+    if (isPlaying && !isPaused) {
+      pauseButton.style.display = '';
+    } else {
+      pauseButton.style.display = 'none';
+    }
+  }
+  
+  if (resumeButton) {
+    if (isPlaying && isPaused) {
+      resumeButton.style.display = '';
+    } else {
+      resumeButton.style.display = 'none';
     }
   }
   
@@ -212,32 +260,51 @@ function updateSatbButton(isPlaying) {
  * Display an exercise on the staff (without playing)
  * Exported so handlers and tabs can use it
  */
-export function displaySATBExerciseOnStaff(exercise) {
+export async function displaySATBExerciseOnStaff(exercise) {
   if (!exercise) return;
   
-  // Store the exercise so getDoMidiForDisplay() can access it
+  // Store the base exercise so getDoMidiForDisplay() can access it
   appState.satb.currentExercise = exercise;
+
+  const transposed = getTransposedExercise(exercise, appState.satb.transposeSemis);
   
   // Convert SATB exercise to notes format for display
   const allNotes = [];
-  Object.values(exercise.parts).forEach(partNotes => {
+  Object.values(transposed.parts).forEach(partNotes => {
     allNotes.push(...partNotes);
   });
   allNotes.sort((a, b) => a.startTime - b.startTime);
   
+  // Annotate notes with accidental information
+  const { getAccidentalForNote } = await import('../utils/keySignature.js');
+  const tonic = transposed.midiKeyMidi;
+  const mode = transposed.midiKeyMode || 'major';
+  
+  const annotatedNotes = allNotes.map(note => ({
+    ...note,
+    accidental: getAccidentalForNote(note.midi, tonic, mode)
+  }));
+  
   // Set notes for display (scrolling mode off, so they show statically)
-  appState.staff.notes = allNotes;
+  appState.staff.notes = annotatedNotes;
   appState.staff.scrollingMode = false;
   appState.staff.isPlaying = false;
   appState.staff.currentTime = 0;
   appState.staff.playheadX = 0;
   appState.staff.satbPreviewMode = true; // Mark as SATB preview mode
   
+  // Store key info for staff rendering
+  appState.staff.keyTonic = tonic;
+  appState.staff.keyMode = mode;
+  
   // Re-render staff to show the exercise
   renderStaff();
   
   // Update panning cursor (panning not available in preview mode)
   updatePanningCursor();
+
+  // Update key label
+  updateSatbKeyLabel(exercise, appState.satb.transposeSemis);
 }
 
 /**
@@ -257,14 +324,12 @@ export async function initializeSATBControls() {
   const exercises = getAllSATBExercises();
   buildExerciseSelection(exercises);
   
-  // Display the default (first) exercise on the staff
-  // Use setTimeout to ensure this happens after the tab system is initialized
+  // Store the default exercise but don't display it yet
+  // It will be displayed when the user switches to the SATB tab
   if (exercises.length > 0) {
     appState.satb.currentExercise = exercises[0];
-    // Delay slightly to ensure DOM is ready and tab system is initialized
-    setTimeout(() => {
-      displaySATBExerciseOnStaff(exercises[0]);
-    }, 10);
+    // Don't call displaySATBExerciseOnStaff here - let the tab system handle it
+    // when the user switches to the SATB tab
   }
 }
 
@@ -290,11 +355,11 @@ export function getCurrentSATBExercise() {
  * @param {ArrayBuffer} arrayBuffer - MIDI file data
  * @param {string} label - Exercise label
  */
-export async function loadMidiExercise(arrayBuffer, label) {
+export async function loadMidiExercise(arrayBuffer, label, options = {}) {
   const { parseMidiToExercise } = await import('../utils/midiParser.js');
   
   try {
-    const midiExercise = await parseMidiToExercise(arrayBuffer, label);
+    const { exercise: midiExercise } = await parseMidiToExercise(arrayBuffer, label, options);
     const exercise = createExerciseFromMidi(midiExercise);
     
     // Add to MIDI exercises array
@@ -321,9 +386,11 @@ export async function preloadAmazingGrace() {
       console.warn('Could not load Amazing Grace MIDI file');
       return;
     }
-    
+
     const arrayBuffer = await response.arrayBuffer();
-    await loadMidiExercise(arrayBuffer, 'Amazing Grace');
+    await loadMidiExercise(arrayBuffer, 'Amazing Grace', {
+      forceKey: { tonic: 7, mode: 'major' } // G major
+    });
   } catch (error) {
     console.warn('Error preloading Amazing Grace:', error);
     // Don't throw - this is optional
@@ -337,5 +404,59 @@ export function getAllSATBExercises() {
   const manualExercises = getAllSATBExercisesFromData();
   const midiExercises = appState.satb.midiExercises || [];
   return [...manualExercises, ...midiExercises];
+}
+
+export function setSatbTranspose(semis) {
+  appState.satb.transposeSemis = Math.max(-12, Math.min(12, semis));
+  if (appState.satb.currentExercise) {
+    displaySATBExerciseOnStaff(appState.satb.currentExercise);
+  }
+}
+
+function getTransposedExercise(exercise, semis) {
+  if (!exercise) return exercise;
+  if (!semis) return exercise;
+
+  const cloneParts = {};
+  Object.entries(exercise.parts || {}).forEach(([part, notes]) => {
+    cloneParts[part] = (notes || []).map(n => ({
+      ...n,
+      midi: n.midi + semis
+    }));
+  });
+
+  const clone = {
+    ...exercise,
+    parts: cloneParts
+  };
+
+  if (Number.isFinite(exercise.midiKeyMidi)) {
+    clone.midiKeyMidi = (exercise.midiKeyMidi + semis + 12) % 12;
+  }
+  if (exercise.midiKeyMode) {
+    clone.midiKeyMode = exercise.midiKeyMode;
+  }
+
+  return clone;
+}
+
+export function changeSatbTranspose(delta) {
+  const next = (appState.satb.transposeSemis || 0) + delta;
+  setSatbTranspose(next);
+}
+
+function updateSatbKeyLabel(baseExercise, semis) {
+  const labelEl = document.getElementById('satbKeyLabel');
+  if (!labelEl) return;
+  const pc = baseExercise?.midiKeyMidi;
+  const mode = baseExercise?.midiKeyMode || 'major';
+  if (!Number.isFinite(pc)) {
+    labelEl.textContent = '—';
+    return;
+  }
+  const transposedPc = ((pc + semis) % 12 + 12) % 12;
+  const names = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+  const modeLabel = mode === 'minor' ? 'min' : 'maj';
+  labelEl.textContent = `${names[transposedPc]} ${modeLabel}`;
 }
 

@@ -7,6 +7,7 @@ import { createOscillator, startOscillator, stopOscillator, connectOscillatorToD
 import { isValidSequence } from './sequenceManager.js';
 import { midiToFrequency } from '../utils/audioMath.js';
 import { appState } from '../state/appState.js';
+import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from '../audio/instruments.js';
 
 // Track active oscillators by sequence ID
 const activeOscillators = new Map(); // Map<sequenceId, Set<oscillator>>
@@ -40,6 +41,34 @@ export async function playNote(note, sequenceId, baseGain = 0.15, partVolumes = 
     gain = note.volume;
   }
   
+  // Try to use soundfont instrument if available
+  if (isUsingSoundfont()) {
+    const instrumentNote = playInstrumentNote(note.midi, note.duration, gain);
+    if (instrumentNote) {
+      // Track this note
+      if (!activeOscillators.has(sequenceId)) {
+        activeOscillators.set(sequenceId, new Set());
+      }
+      activeOscillators.get(sequenceId).add(instrumentNote);
+      
+      // Auto-cleanup after duration
+      setTimeout(() => {
+        if (isValidSequence(sequenceId)) {
+          const oscillators = activeOscillators.get(sequenceId);
+          if (oscillators) {
+            oscillators.delete(instrumentNote);
+            if (oscillators.size === 0) {
+              activeOscillators.delete(sequenceId);
+            }
+          }
+        }
+      }, note.duration * 1000);
+      
+      return instrumentNote;
+    }
+  }
+  
+  // Fall back to oscillator (sine wave)
   const frequency = midiToFrequency(note.midi, appState.tuning.a4);
   const oscillator = createOscillator(frequency, 'sine', gain);
   
@@ -87,7 +116,7 @@ export async function playMultiPart(notes, sequenceId, baseGain = 0.15, partVolu
 
 /**
  * Stop a single note/oscillator
- * @param {Object} oscillator - Oscillator object to stop
+ * @param {Object} oscillator - Oscillator or instrument note object to stop
  * @param {number} sequenceId - The sequence ID this oscillator belongs to
  */
 export function stopNote(oscillator, sequenceId) {
@@ -95,7 +124,12 @@ export function stopNote(oscillator, sequenceId) {
     return;
   }
   
-  stopOscillator(oscillator);
+  // Check if it's an instrument note or oscillator
+  if (oscillator.stop) {
+    stopInstrumentNote(oscillator);
+  } else {
+    stopOscillator(oscillator);
+  }
   
   // Remove from tracking
   const oscillators = activeOscillators.get(sequenceId);
@@ -115,7 +149,11 @@ export function stopAllNotes(sequenceId) {
   const oscillators = activeOscillators.get(sequenceId);
   if (oscillators) {
     oscillators.forEach(oscillator => {
-      stopOscillator(oscillator);
+      if (oscillator.stop) {
+        stopInstrumentNote(oscillator);
+      } else {
+        stopOscillator(oscillator);
+      }
     });
     activeOscillators.delete(sequenceId);
   }
@@ -127,7 +165,11 @@ export function stopAllNotes(sequenceId) {
 export function stopAllNotesForAllSequences() {
   activeOscillators.forEach((oscillators, sequenceId) => {
     oscillators.forEach(oscillator => {
-      stopOscillator(oscillator);
+      if (oscillator.stop) {
+        stopInstrumentNote(oscillator);
+      } else {
+        stopOscillator(oscillator);
+      }
     });
   });
   activeOscillators.clear();

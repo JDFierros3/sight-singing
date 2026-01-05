@@ -5,6 +5,9 @@
 
 import { PART_RANGES } from '../config/constants.js';
 
+const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
+const NAT_MINOR_STEPS = [0, 2, 3, 5, 7, 8, 10];
+
 /**
  * Parse MIDI file from ArrayBuffer
  * @param {ArrayBuffer} arrayBuffer - MIDI file data
@@ -221,6 +224,11 @@ export function mapMidiToExerciseFormat(notes, partMapping = null) {
     // Separate by pitch ranges
     parts = separatePartsByRange(notes);
   }
+
+  // Coalesce exact-duplicate pitches at the same start time within each part
+  Object.keys(parts).forEach(part => {
+    parts[part] = coalescePartNotes(parts[part]);
+  });
   
   // Calculate total duration
   const allEndTimes = notes.map(n => n.endTime);
@@ -230,6 +238,21 @@ export function mapMidiToExerciseFormat(notes, partMapping = null) {
     duration: maxEndTime,
     parts: parts
   };
+}
+
+function coalescePartNotes(partNotes) {
+  if (!Array.isArray(partNotes)) return partNotes;
+  const out = [];
+  partNotes.forEach(note => {
+    const existing = out.find(n =>
+      n.midi === note.midi &&
+      Math.abs(n.startTime - note.startTime) < 1e-6
+    );
+    if (!existing) {
+      out.push(note);
+    }
+  });
+  return out;
 }
 
 /**
@@ -254,15 +277,63 @@ function detectKeyFromNotes(notes) {
   return keyMidi;
 }
 
+function scoreScaleFit(notes, tonicPc, steps) {
+  const diatonic = new Set(steps.map(s => (s + tonicPc) % 12));
+  let score = 0;
+  notes.forEach(n => {
+    const pc = n.midi % 12;
+    if (diatonic.has(pc)) {
+      score += 2; // in-scale
+    } else {
+      // penalize distance to nearest diatonic tone
+      const distances = Array.from(diatonic).map(d => {
+        const diff = ((pc - d + 12) % 12);
+        return Math.min(diff, 12 - diff);
+      });
+      const minDist = Math.min(...distances);
+      score -= (1 + minDist);
+    }
+  });
+  return score;
+}
+
+function pickKey(notes, headerKeyMidi) {
+  const candidates = [];
+  for (let tonic = 0; tonic < 12; tonic++) {
+    candidates.push({
+      tonic,
+      mode: 'major',
+      score: scoreScaleFit(notes, tonic, MAJOR_STEPS)
+    });
+    candidates.push({
+      tonic,
+      mode: 'minor',
+      score: scoreScaleFit(notes, tonic, NAT_MINOR_STEPS)
+    });
+  }
+
+  // If header key exists, give it a slight bias
+  if (Number.isFinite(headerKeyMidi)) {
+    candidates.forEach(c => {
+      if (c.tonic === headerKeyMidi) {
+        c.score += 1.5;
+      }
+    });
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0] || { tonic: headerKeyMidi || 0, mode: 'major' };
+}
+
 /**
  * Parse MIDI file and convert to exercise format
  * @param {ArrayBuffer} arrayBuffer - MIDI file data
  * @param {string} label - Exercise label
  * @returns {Object} Exercise in format { label, duration, parts: { S, A, T, B }, midiKeyMidi, isMidiExercise }
  */
-export async function parseMidiToExercise(arrayBuffer, label) {
+export async function parseMidiToExercise(arrayBuffer, label, options = {}) {
   const midiData = await parseMidiFile(arrayBuffer);
-  const noteEvents = extractNoteEvents(midiData.tracks);
+  let noteEvents = extractNoteEvents(midiData.tracks);
   
   // Try to detect parts from tracks first
   let partMapping = null;
@@ -275,30 +346,41 @@ export async function parseMidiToExercise(arrayBuffer, label) {
     }
   }
   
+  // Key detection: only trust explicit MIDI key signatures
+  // If caller provides a forced key (e.g., user confirmed), use it.
+  let keyGuess;
+  if (options.forceKey && Number.isFinite(options.forceKey.tonic)) {
+    keyGuess = { tonic: options.forceKey.tonic, mode: options.forceKey.mode || 'major' };
+  } else {
+    // Only use explicit key signature from MIDI header
+    if (Number.isFinite(midiData.keyMidi)) {
+      keyGuess = { tonic: midiData.keyMidi, mode: 'major' };
+    } else {
+      // No explicit key - will need user prompt
+      keyGuess = null;
+    }
+  }
+
   const exercise = mapMidiToExerciseFormat(noteEvents, partMapping);
   exercise.label = label;
   
-  // Determine the key for this MIDI file
-  // Use key signature if available, otherwise detect from notes
-  let keyMidi = midiData.keyMidi;
-  if (!Number.isFinite(keyMidi)) {
-    // Fallback: detect key from notes
-    keyMidi = detectKeyFromNotes(noteEvents);
-  }
-  
-  // Store the MIDI file's key (as pitch class 0-11, where 0=C, 7=G)
-  // This will be used for solfege display
-  exercise.midiKeyMidi = keyMidi;
+  // Store key info for solfege display and transpose
+  exercise.midiKeyMidi = keyGuess.tonic;
+  exercise.midiKeyMode = keyGuess.mode;
   exercise.isMidiExercise = true; // Flag to indicate this is a MIDI exercise
   
   // Debug logging
   console.log(`MIDI file "${label}" key detected:`, {
     keySignature: midiData.keyMidi,
-    keyPitchClass: keyMidi,
-    keyName: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][keyMidi],
+    keyPitchClass: keyGuess.tonic,
+    keyMode: keyGuess.mode,
+    keyName: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][keyGuess.tonic],
     noteCount: noteEvents.length
   });
   
-  return exercise;
+  return {
+    exercise,
+    keyGuess
+  };
 }
 

@@ -17,7 +17,8 @@ import { runWarmupSequence, stopWarmupSequence } from '../../exercises/warmup.js
 import { setTempo } from '../../rendering/scrollingStaff.js';
 import { playHiddenCluster, revealClusterNotes } from '../../exercises/cluster.js';
 import { playIntervalExercise, revealIntervalSolution } from '../../exercises/intervals.js';
-import { playSATBExercise, stopSATBExercise, handlePartSelection, getAllSATBExercises, displaySATBExerciseOnStaff, loadMidiExercise } from '../../exercises/satb.js';
+import { playSATBExercise, stopSATBExercise, pauseSATBExercise, resumeSATBExercise, handlePartSelection, getAllSATBExercises, displaySATBExerciseOnStaff, loadMidiExercise, setSatbTranspose } from '../../exercises/satb.js';
+import * as transport from '../components/transport.js';
 import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode, setFlashcardAccidentalsEnabled } from '../../exercises/flashcards.js';
 import { buildExerciseSelection } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
@@ -25,6 +26,40 @@ import { getCurrentPitch } from '../../pitch/detection.js';
 export function handleA4TuningChange(event) {
   const value = Number(event.target.value) || 440;
   updateTuningSetting('a4', value);
+  transport.stopAllPlayback?.();
+}
+
+export async function handleInstrumentChange(event) {
+  const value = event.target.value;
+  updateTuningSetting('instrument', value);
+  
+  // Stop any currently playing sounds first
+  transport.stopAllPlayback?.();
+  
+  // Load the new instrument
+  if (value !== 'sine') {
+    const select = event.target;
+    const originalText = select.options[select.selectedIndex].text;
+    select.options[select.selectedIndex].text = 'Loading...';
+    select.disabled = true;
+    
+    try {
+      const { loadInstrument } = await import('../../audio/instruments.js');
+      await loadInstrument(value);
+      select.options[select.selectedIndex].text = originalText + ' ✓';
+    } catch (error) {
+      console.error('Failed to load instrument:', error);
+      select.options[select.selectedIndex].text = originalText + ' (failed)';
+      // Revert to sine
+      updateTuningSetting('instrument', 'sine');
+    } finally {
+      select.disabled = false;
+      // Reset text after 2 seconds
+      setTimeout(() => {
+        select.options[select.selectedIndex].text = originalText;
+      }, 2000);
+    }
+  }
 }
 
 export function handleDoNoteChange(event) {
@@ -35,29 +70,35 @@ export function handleDoNoteChange(event) {
   if (appState.drone.on) {
     restartDrone();
   }
+
+  transport.stopAllPlayback?.();
 }
 
 export function handleMinNoteChange(event) {
   const value = Number(event.target.value);
   updateTuningSetting('minMidi', value);
   renderStaff();
+  transport.stopAllPlayback?.();
 }
 
 export function handleMaxNoteChange(event) {
   const value = Number(event.target.value);
   updateTuningSetting('maxMidi', value);
   renderStaff();
+  transport.stopAllPlayback?.();
 }
 
 export function handleToleranceChange(event) {
   const value = Number(event.target.value);
   updateDisplaySetting('tolerance', value);
+  transport.stopAllPlayback?.();
 }
 
 export function handleZoomChange(event) {
   const value = Number(event.target.value);
   updateDisplaySetting('zoom', value);
   renderStaff();
+  transport.stopAllPlayback?.();
 }
 
 export function handlePlayAimChange(event) {
@@ -65,11 +106,26 @@ export function handlePlayAimChange(event) {
   updateDisplaySetting('playAim', value);
 }
 
+export function handleShowKeySignatureChange(event) {
+  const value = event.target.checked;
+  updateDisplaySetting('showKeySignature', value);
+  // Re-render the staff to show/hide key signature
+  import('../rendering/staff.js').then(staff => staff.renderStaff());
+}
+
+export function handleShowAccidentalsChange(event) {
+  const value = event.target.checked;
+  updateDisplaySetting('showAccidentals', value);
+  // Re-render the staff to show/hide accidentals
+  import('../rendering/staff.js').then(staff => staff.renderStaff());
+}
+
 export function handleScaleOnlyChange(event) {
   const value = event.target.checked;
   appState.exercise.onScaleOnly = value;
   // Sync all checkboxes to the same value
   syncScaleOnlyCheckboxes(value);
+  transport.stopAllPlayback?.();
 }
 
 export function handleHideAnswersIntervalsChange(event) {
@@ -95,14 +151,31 @@ export function handleHideAnswersClusterChange(event) {
   renderStaff();
 }
 
-function revealAnswersBriefly(kind, ms = 3000) {
+export function handleClusterThinkTimeChange(event) {
+  const value = Number(event.target.value);
+  appState.exercise.clusterThinkTime = value;
+  const label = getElementById('clusterThinkTimeValue');
+  if (label) {
+    label.textContent = value;
+  }
+}
+
+function revealAnswersBriefly(kind, ms = null) {
   const timeouts = appState.exercise._answerHideTimeouts || {};
   if (timeouts[kind]) {
     clearTimeout(timeouts[kind]);
   }
 
+  // Always show answers on staff when revealing
   appState.exercise.showAnswers[kind] = true;
   renderStaff();
+
+  // Use the appropriate timeout duration
+  let duration = ms;
+  if (duration === null) {
+    // Use cluster think time for cluster, default 3s for intervals
+    duration = kind === 'cluster' ? (appState.exercise.clusterThinkTime * 1000) : 3000;
+  }
 
   timeouts[kind] = setTimeout(() => {
     // Only auto-hide if hideAnswers is still enabled
@@ -110,7 +183,7 @@ function revealAnswersBriefly(kind, ms = 3000) {
       appState.exercise.showAnswers[kind] = false;
       renderStaff();
     }
-  }, ms);
+  }, duration);
 
   appState.exercise._answerHideTimeouts = timeouts;
 }
@@ -149,6 +222,8 @@ export function handleChordRootChange(event) {
   if (appState.drone.on) {
     restartDrone();
   }
+
+  transport.stopAllPlayback?.();
 }
 
 export function handleChordTypeChange(event) {
@@ -162,6 +237,8 @@ export function handleChordTypeChange(event) {
   if (appState.drone.on) {
     restartDrone();
   }
+
+  transport.stopAllPlayback?.();
 }
 
 function handleDroneSemisChange(newSemis) {
@@ -255,6 +332,7 @@ export function handleWarmupTempoChange(event) {
   
   appState.staff.tempo = tempo;
   setTempo(tempo);
+  transport.stopAllPlayback?.();
 }
 
 export function handlePlayHidden2Click() {
@@ -271,7 +349,7 @@ export function handlePlayHidden3Click() {
 export function handleRevealHiddenClick() {
   revealClusterNotes();
   if (appState.exercise.hideAnswers.cluster) {
-    revealAnswersBriefly('cluster', 3000);
+    revealAnswersBriefly('cluster');
   } else {
     appState.exercise.showAnswers.cluster = true;
     renderStaff();
@@ -286,7 +364,7 @@ export function handlePlayIntervalClick() {
 export function handleShowIntervalClick() {
   revealIntervalSolution();
   if (appState.exercise.hideAnswers.intervals) {
-    revealAnswersBriefly('intervals', 3000);
+    revealAnswersBriefly('intervals');
   } else {
     appState.exercise.showAnswers.intervals = true;
     renderStaff();
@@ -295,6 +373,14 @@ export function handleShowIntervalClick() {
 
 export function handleSATBPlayClick() {
   playSATBExercise();
+}
+
+export function handleSATBPauseClick() {
+  pauseSATBExercise();
+}
+
+export function handleSATBResumeClick() {
+  resumeSATBExercise();
 }
 
 export function handleSATBStopClick() {
@@ -332,11 +418,140 @@ export function handleSATBExerciseChange(event) {
   const exerciseIndex = parseInt(event.target.value) || 0;
   const exercises = getAllSATBExercises();
   if (exercises[exerciseIndex]) {
+    // Reset transposition when switching exercises
+    setSatbTranspose(0);
     appState.satb.currentExercise = exercises[exerciseIndex];
     
     // Display the exercise on the staff immediately (but don't play it)
     displaySATBExerciseOnStaff(exercises[exerciseIndex]);
   }
+
+  transport.stopAllPlayback?.();
+}
+
+export function handleSATBTransposeChange(event) {
+  const semis = parseInt(event.target.value) || 0;
+  setSatbTranspose(semis);
+  transport.stopAllPlayback?.();
+}
+
+/**
+ * Load MIDI exercise with key prompt if key signature is not explicit
+ */
+async function loadMidiExerciseWithKeyPrompt(arrayBuffer, label) {
+  const { parseMidiFile } = await import('../../utils/midiParser.js');
+
+  // First, check if the MIDI file has an explicit key signature
+  const midiData = await parseMidiFile(arrayBuffer);
+
+  let keyOptions = {};
+  if (Number.isFinite(midiData.keyMidi)) {
+    // Explicit key signature found - use it
+    keyOptions.forceKey = { tonic: midiData.keyMidi, mode: 'major' };
+  } else {
+    // No explicit key signature - prompt user
+    const userKey = await promptForKey(label);
+    if (!userKey) {
+      throw new Error('Key selection cancelled');
+    }
+    keyOptions.forceKey = userKey;
+  }
+
+  // Load the exercise with the chosen key
+  return await loadMidiExercise(arrayBuffer, label, keyOptions);
+}
+
+/**
+ * Prompt user to select a key for MIDI file without explicit key signature
+ */
+function promptForKey(label) {
+  const keyNames = ['C', 'C#/Db', 'D', 'D#/Eb', 'E', 'F', 'F#/Gb', 'G', 'G#/Ab', 'A', 'A#/Bb', 'B'];
+  const keyValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+  return new Promise((resolve) => {
+    // Create modal dialog
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      max-width: 450px;
+      width: 90%;
+    `;
+
+    dialog.innerHTML = `
+      <h3 style="margin-top: 0; color: #333;">Select Key for "${label}"</h3>
+      <p style="margin: 10px 0; color: #666;">This MIDI file doesn't specify a key signature. Please select the correct key:</p>
+      <div style="display: flex; gap: 10px; margin: 15px 0;">
+        <div style="flex: 1;">
+          <label style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Key:</label>
+          <select id="keySelect" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            ${keyNames.map((name, i) => 
+              `<option value="${keyValues[i]}"${i === 7 ? ' selected' : ''}>${name}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div style="flex: 1;">
+          <label style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Mode:</label>
+          <select id="modeSelect" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="major" selected>Major</option>
+            <option value="minor">Minor</option>
+          </select>
+        </div>
+      </div>
+      <div style="text-align: right; margin-top: 20px;">
+        <button id="cancelBtn" style="margin-right: 10px; padding: 8px 16px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Cancel</button>
+        <button id="okBtn" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+      </div>
+    `;
+
+    modal.appendChild(dialog);
+    document.body.appendChild(modal);
+
+    const keySelect = dialog.querySelector('#keySelect');
+    const modeSelect = dialog.querySelector('#modeSelect');
+    const cancelBtn = dialog.querySelector('#cancelBtn');
+    const okBtn = dialog.querySelector('#okBtn');
+
+    cancelBtn.onclick = () => {
+      document.body.removeChild(modal);
+      resolve(null);
+    };
+
+    okBtn.onclick = () => {
+      const selectedKey = parseInt(keySelect.value);
+      const selectedMode = modeSelect.value;
+      document.body.removeChild(modal);
+      resolve({ tonic: selectedKey, mode: selectedMode });
+    };
+
+    // Handle Enter key
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        okBtn.click();
+      } else if (e.key === 'Escape') {
+        cancelBtn.click();
+      }
+    });
+
+    // Focus the key select element
+    keySelect.focus();
+  });
 }
 
 export async function handleMidiFileSelect(event) {
@@ -352,7 +567,9 @@ export async function handleMidiFileSelect(event) {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const label = file.name.replace(/\.(mid|midi)$/i, '');
-    const exercise = await loadMidiExercise(arrayBuffer, label);
+
+    // Load MIDI file and prompt for key if not explicitly stated
+    const exercise = await loadMidiExerciseWithKeyPrompt(arrayBuffer, label);
     
     // Update exercise selection to show new exercise
     const exercises = getAllSATBExercises();
@@ -420,6 +637,7 @@ export function handleIntervalDifficultyPreset(difficulty) {
   }
   
   updateDifficultyButtonStates('interval', difficulty);
+  transport.stopAllPlayback?.();
 }
 
 export function handleClusterDifficultyPreset(difficulty) {
@@ -439,6 +657,7 @@ export function handleClusterDifficultyPreset(difficulty) {
   }
   
   updateDifficultyButtonStates('cluster', difficulty);
+  transport.stopAllPlayback?.();
 }
 
 function updateDifficultyButtonStates(exerciseType, activeDifficulty) {

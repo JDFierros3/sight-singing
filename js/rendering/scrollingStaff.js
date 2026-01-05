@@ -214,3 +214,47 @@ export function setTempo(tempo) {
   }
 }
 
+export function handleStaffViewportResize() {
+  const canvas = document.getElementById('staff');
+  if (!canvas) return;
+
+  const notes = appState.staff.notes || [];
+  if (notes.length === 0) return;
+
+  const viewportWidth = canvas.clientWidth || canvas.width;
+  const startX = 80;
+  const basePixelsPerSecond = 80;
+
+  // Calculate rightmost note position (in note coordinate space)
+  const lastNote = notes[notes.length - 1];
+  const firstNoteTime = notes[0].startTime || 0;
+  const lastNoteTime = (lastNote.startTime || 0) + (lastNote.duration || 0);
+  const timeDiff = lastNoteTime - firstNoteTime;
+  const rightmostX = startX + timeDiff * basePixelsPerSecond;
+
+  const maxOffset = Math.max(0, rightmostX - viewportWidth + 100);
+
+  // If we're playing, re-derive the desired offset so the playhead stays at a stable viewport position.
+  if (appState.staff.isPlaying) {
+    const playheadX = appState.staff.playheadX || 0;
+    const playheadFixedPosition = viewportWidth * 0.4;
+    let desired = 0;
+
+    if (playheadX > playheadFixedPosition) {
+      desired = playheadX - playheadFixedPosition;
+    }
+
+    const clamped = Math.max(0, Math.min(maxOffset, desired));
+    appState.staff.viewportOffset = clamped;
+    appState.staff.maxPanReached = clamped >= maxOffset && maxOffset > 0;
+  } else {
+    // Not playing: preserve user panning, but clamp to the new valid range.
+    const current = appState.staff.viewportOffset || 0;
+    const clamped = Math.max(0, Math.min(maxOffset, current));
+    appState.staff.viewportOffset = clamped;
+    appState.staff.maxPanReached = false;
+  }
+
+  updatePanningCursor();
+}
+

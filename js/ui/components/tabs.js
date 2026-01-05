@@ -6,8 +6,10 @@ import { getElementById } from '../../utils/dom.js';
 import { appState } from '../../state/appState.js';
 import { displaySATBExerciseOnStaff, getAllSATBExercises } from '../../exercises/satb.js';
 import { initializeFlashcards } from '../../exercises/flashcards.js';
+import { stopAllPlayback } from '../components/transport.js';
+import { renderStaff } from '../../rendering/staff.js';
 
-const TAB_NAMES = ['settings', 'chord-quality', 'warmup', 'cluster', 'intervals', 'flashcards', 'satb', 'theory'];
+const TAB_NAMES = ['warmup', 'cluster', 'intervals', 'flashcards', 'satb', 'chord-quality', 'theory'];
 
 export function initializeTabSystem() {
   const tabButtons = document.querySelectorAll('.tab');
@@ -17,19 +19,34 @@ export function initializeTabSystem() {
       switchToTab(tabName);
     });
   });
+
+  initializeTabSelectDropdown();
   
   // Initialize with the default tab from appState
-  const defaultTab = appState.exercise.currentTab || 'settings';
+  const defaultTab = appState.exercise.currentTab || 'warmup';
   switchToTab(defaultTab);
 }
 
 export function switchToTab(tabName) {
+  stopAllPlayback();
   appState.exercise.currentTab = tabName;
+  
+  // Clear SATB-specific key signature info when switching away from SATB
+  if (tabName !== 'satb') {
+    appState.staff.keyTonic = undefined;
+    appState.staff.keyMode = undefined;
+    appState.staff.notes = [];
+    appState.staff.satbPreviewMode = false;
+    // Re-render staff to clear SATB-specific rendering
+    renderStaff();
+  }
   
   TAB_NAMES.forEach(tab => {
     updateTabButtonState(tab, tab === tabName);
     updateTabPanelVisibility(tab, tab === tabName);
   });
+
+  syncTabSelectValue(tabName);
   
   // If switching to SATB tab, ensure the current exercise is displayed
   if (tabName === 'satb') {
@@ -65,6 +82,7 @@ function updateTabButtonState(tabName, isActive) {
   const button = findTabButton(tabName);
   if (button) {
     button.classList.toggle('active', isActive);
+    button.setAttribute('aria-selected', isActive ? 'true' : 'false');
   }
 }
 
@@ -78,6 +96,40 @@ function updateTabPanelVisibility(tabName, isVisible) {
 function findTabButton(tabName) {
   const buttons = document.querySelectorAll('.tab');
   return Array.from(buttons).find(btn => btn.dataset.tab === tabName);
+}
+
+function initializeTabSelectDropdown() {
+  const select = getElementById('tabSelect');
+  if (!select) {
+    return;
+  }
+
+  // Build options from the existing tab buttons so labels stay in sync with the UI.
+  select.innerHTML = '';
+  const buttons = Array.from(document.querySelectorAll('.tab'));
+  buttons.forEach(btn => {
+    const tabName = btn.dataset.tab;
+    if (!tabName) return;
+    const opt = document.createElement('option');
+    opt.value = tabName;
+    opt.textContent = btn.textContent || tabName;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener('change', (e) => {
+    const value = e.target.value;
+    if (value) {
+      switchToTab(value);
+    }
+  });
+}
+
+function syncTabSelectValue(tabName) {
+  const select = getElementById('tabSelect');
+  if (!select) return;
+  if (select.value !== tabName) {
+    select.value = tabName;
+  }
 }
 
 export function showTabPanel(tabName) {
