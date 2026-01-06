@@ -43,7 +43,7 @@ export async function playNote(note, sequenceId, baseGain = 0.15, partVolumes = 
   
   // Try to use soundfont instrument if available
   if (isUsingSoundfont()) {
-    const instrumentNote = playInstrumentNote(note.midi, note.duration, gain);
+    const instrumentNote = playInstrumentNote(note.midi, note.duration, gain, note.part || null);
     if (instrumentNote) {
       // Track this note
       if (!activeOscillators.has(sequenceId)) {

@@ -14,6 +14,7 @@ import { getAllSATBExercises as getAllSATBExercisesFromData, createExerciseFromM
 import { buildPartSelectionButtons, buildPartVolumeControls, buildExerciseSelection, updatePartSelection } from '../ui/builders/satbControls.js';
 import { renderStaff } from '../rendering/staff.js';
 import { updatePanningCursor } from '../rendering/staffPanning.js';
+import { getAccidentalForNote } from '../utils/keySignature.js';
 
 // Track active SATB oscillators
 let activeSATBOscillators = [];
@@ -31,11 +32,19 @@ function convertSATBToStanza(exercise) {
   
   // Sort by startTime
   allNotes.sort((a, b) => a.startTime - b.startTime);
+
+  // Annotate with accidentals so playback rendering matches preview rendering.
+  const tonic = exercise.midiKeyMidi;
+  const mode = exercise.midiKeyMode || 'major';
+  const annotated = allNotes.map(n => ({
+    ...n,
+    accidental: getAccidentalForNote(n.midi, tonic, mode)
+  }));
   
   return {
     label: exercise.label,
     duration: exercise.duration,
-    notes: allNotes,
+    notes: annotated,
     parts: exercise.parts // Keep parts structure for rendering
   };
 }
@@ -71,6 +80,13 @@ export async function playSATBExercise() {
   }
   
   appState.satb.currentExercise = baseExercise;
+
+  // Ensure staff key context exists during playback (used for solfege mapping + key signature spacing)
+  if (Number.isFinite(exercise.midiKeyMidi)) {
+    appState.staff.keyTonic = exercise.midiKeyMidi;
+    appState.staff.keyMode = exercise.midiKeyMode || 'major';
+    appState.staff.satbPreviewMode = true;
+  }
   
   // Convert to stanza format
   const stanza = convertSATBToStanza(exercise);

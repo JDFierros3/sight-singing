@@ -73,6 +73,104 @@ export function getKeySignature(tonic, mode) {
   }
 }
 
+// --- Key-aware spelling helpers (shared by rendering + accidental detection) ---
+const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const NATURAL_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const SOLFEGE_DEGREES = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Ti'];
+
+function buildLetterAccidentals(keyInfo) {
+  const SHARP_LETTERS = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
+  const FLAT_LETTERS = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
+  const letterAcc = { C: 0, D: 0, E: 0, F: 0, G: 0, A: 0, B: 0 };
+  if ((keyInfo.sharps?.length || 0) > 0) {
+    for (let i = 0; i < keyInfo.sharps.length; i++) letterAcc[SHARP_LETTERS[i]] = 1;
+  } else if ((keyInfo.flats?.length || 0) > 0) {
+    for (let i = 0; i < keyInfo.flats.length; i++) letterAcc[FLAT_LETTERS[i]] = -1;
+  }
+  return letterAcc;
+}
+
+function diatonicPcByLetter(letterAcc) {
+  const out = {};
+  LETTERS.forEach(L => {
+    out[L] = (NATURAL_PC[L] + letterAcc[L] + 12) % 12;
+  });
+  return out;
+}
+
+function findTonicLetter(tonicPc, diatonicMap) {
+  const pc = ((tonicPc % 12) + 12) % 12;
+  for (const L of LETTERS) {
+    if (diatonicMap[L] === pc) return L;
+  }
+  // fallback; shouldn't happen for normal keys
+  return 'C';
+}
+
+function inferLetterForPitchClass(pc, ctx) {
+  const { diatonicMap, letterAcc, preference } = ctx;
+
+  // 1) Exact diatonic match
+  for (const L of LETTERS) {
+    if (diatonicMap[L] === pc) return L;
+  }
+
+  // 2) If this pitch is the NATURAL version of a key-signature-altered letter,
+  // keep that letter (e.g., G major: F♮ stays on F with ♮, not E#).
+  for (const L of LETTERS) {
+    if (letterAcc[L] !== 0 && NATURAL_PC[L] === pc) return L;
+  }
+
+  // 3) Otherwise choose sharp/flat spelling by key preference
+  const sharpCandidates = [];
+  const flatCandidates = [];
+  for (const L of LETTERS) {
+    const base = diatonicMap[L];
+    if (((base + 1) % 12) === pc) sharpCandidates.push(L);
+    if (((base + 11) % 12) === pc) flatCandidates.push(L);
+  }
+
+  if (preference === 'sharp' && sharpCandidates.length) return sharpCandidates[0];
+  if (preference === 'flat' && flatCandidates.length) return flatCandidates[0];
+  return sharpCandidates[0] || flatCandidates[0] || 'C';
+}
+
+export function spellMidiInKey(noteMidi, tonicPc, mode = 'major') {
+  if (!Number.isFinite(noteMidi) || !Number.isFinite(tonicPc)) return null;
+
+  const pc = ((Math.round(noteMidi) % 12) + 12) % 12;
+  const keyInfo = getKeySignature(tonicPc, mode);
+  const letterAcc = buildLetterAccidentals(keyInfo);
+  const diatonicMap = diatonicPcByLetter(letterAcc);
+  const tonicLetter = findTonicLetter(tonicPc, diatonicMap);
+  const ctx = { diatonicMap, letterAcc, preference: keyInfo.preference };
+
+  const letter = inferLetterForPitchClass(pc, ctx);
+  const basePc = diatonicMap[letter];
+  const natPc = NATURAL_PC[letter];
+
+  let accidental = null;
+  // Natural note in a key-signature-altered letter needs a natural sign (e.g., F natural in G major).
+  if (pc === natPc && letterAcc[letter] !== 0) {
+    accidental = 'natural';
+  } else if (pc === basePc) {
+    accidental = null;
+  } else if (((basePc + 1) % 12) === pc) {
+    accidental = 'sharp';
+  } else if (((basePc + 11) % 12) === pc) {
+    accidental = 'flat';
+  } else {
+    accidental = keyInfo.preference === 'sharp' ? 'sharp' : 'flat';
+  }
+
+  const tonicIdx = LETTERS.indexOf(tonicLetter);
+  const noteIdx = LETTERS.indexOf(letter);
+  const degreeIndex = ((noteIdx - tonicIdx) + 7) % 7;
+  const solfege = SOLFEGE_DEGREES[degreeIndex] || null;
+
+  return { letter, pitchClass: pc, degreeIndex, solfege, accidental };
+}
+
 /**
  * Get number of sharps (positive) or flats (negative) for a major key
  * @param {number} tonic - Pitch class (0-11)
@@ -143,44 +241,7 @@ function findNearestDiatonicAbove(pitchClass, diatonicPCs) {
  * @returns {string|null} 'sharp', 'flat', 'natural', or null
  */
 export function getAccidentalForNote(noteMidi, tonic, mode = 'major') {
-  // Handle invalid inputs
-  if (!Number.isFinite(noteMidi) || !Number.isFinite(tonic)) {
-    return null;
-  }
-  
-  const pitchClass = noteMidi % 12;
-  const diatonicPCs = getDiatonicPitchClasses(tonic, mode);
-  
-  // If note is in the diatonic scale, no accidental needed
-  if (diatonicPCs.includes(pitchClass)) {
-    return null;
-  }
-  
-  // Note is chromatic - determine if it's sharp, flat, or natural
-  const keyInfo = getKeySignature(tonic, mode);
-  const preference = keyInfo.preference;
-  
-  // Find the nearest diatonic notes
-  const belowPC = findNearestDiatonicBelow(pitchClass, diatonicPCs);
-  const abovePC = findNearestDiatonicAbove(pitchClass, diatonicPCs);
-  
-  const distBelow = (pitchClass - belowPC + 12) % 12;
-  const distAbove = (abovePC - pitchClass + 12) % 12;
-  
-  // If exactly one semitone above a diatonic note, it's a sharp
-  if (distBelow === 1) {
-    return 'sharp';
-  }
-  
-  // If exactly one semitone below a diatonic note, it's a flat
-  if (distAbove === 1) {
-    return 'flat';
-  }
-  
-  // For chromatic notes that aren't adjacent to diatonic notes,
-  // check if this is a natural version of a note in the key signature
-  // For now, we'll use key preference for other chromatic notes
-  // Natural signs are complex and require note letter analysis beyond pitch class
-  return preference === 'sharp' ? 'sharp' : 'flat';
+  const spelled = spellMidiInKey(noteMidi, tonic, mode);
+  return spelled ? spelled.accidental : null;
 }
 

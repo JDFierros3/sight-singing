@@ -25,11 +25,23 @@ export function initializeTabSystem() {
   // Initialize with the default tab from appState
   const defaultTab = appState.exercise.currentTab || 'warmup';
   switchToTab(defaultTab);
+  
+  // Also update reveal buttons on initial load
+  updateHeaderRevealButtons(defaultTab);
 }
 
 export function switchToTab(tabName) {
   stopAllPlayback();
   appState.exercise.currentTab = tabName;
+  
+  // Set data attribute on body for CSS targeting
+  document.body.setAttribute('data-active-tab', tabName);
+
+  // Always clear one-shot exercise display when changing tabs
+  appState.exercise.display.midis = [];
+  appState.exercise.display.label = '';
+  appState.exercise.showAnswers.intervals = false;
+  appState.exercise.showAnswers.cluster = false;
   
   // Clear SATB-specific key signature info when switching away from SATB
   if (tabName !== 'satb') {
@@ -37,9 +49,10 @@ export function switchToTab(tabName) {
     appState.staff.keyMode = undefined;
     appState.staff.notes = [];
     appState.staff.satbPreviewMode = false;
-    // Re-render staff to clear SATB-specific rendering
-    renderStaff();
   }
+
+  // Re-render staff to clear previous tab context immediately
+  renderStaff();
   
   TAB_NAMES.forEach(tab => {
     updateTabButtonState(tab, tab === tabName);
@@ -47,6 +60,9 @@ export function switchToTab(tabName) {
   });
 
   syncTabSelectValue(tabName);
+  
+  // Show/hide reveal buttons in header based on active tab
+  updateHeaderRevealButtons(tabName);
   
   // If switching to SATB tab, ensure the current exercise is displayed
   if (tabName === 'satb') {
@@ -129,6 +145,34 @@ function syncTabSelectValue(tabName) {
   if (!select) return;
   if (select.value !== tabName) {
     select.value = tabName;
+  }
+}
+
+function updateHeaderRevealButtons(tabName) {
+  const revealButtonsBlock = getElementById('revealButtonsBlock');
+  const revealHiddenHeader = getElementById('revealHiddenHeader');
+  const showIntervalHeader = getElementById('showIntervalHeader');
+  
+  if (!revealButtonsBlock || !revealHiddenHeader || !showIntervalHeader) return;
+  
+  // Check if we're in mobile mode with header collapsed
+  const isMobileCollapsed = window.matchMedia('(max-width: 480px)').matches && 
+                            document.body.classList.contains('mobile-header-hidden');
+  
+  if (tabName === 'cluster') {
+    revealButtonsBlock.style.display = 'flex';
+    revealHiddenHeader.style.display = 'inline-flex';
+    revealHiddenHeader.style.visibility = 'visible';
+    showIntervalHeader.style.display = 'none';
+  } else if (tabName === 'intervals') {
+    revealButtonsBlock.style.display = 'flex';
+    revealHiddenHeader.style.display = 'none';
+    showIntervalHeader.style.display = 'inline-flex';
+    showIntervalHeader.style.visibility = 'visible';
+  } else {
+    revealButtonsBlock.style.display = 'none';
+    revealHiddenHeader.style.display = 'none';
+    showIntervalHeader.style.display = 'none';
   }
 }
 

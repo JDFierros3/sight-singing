@@ -31,7 +31,7 @@ function initializeDisplay() {
     zoom: 1.5,
     playAim: true,
     showKeySignature: false,
-    showAccidentals: false
+    showAccidentals: true
   };
 }
 

@@ -36,29 +36,37 @@ export async function handleInstrumentChange(event) {
   // Stop any currently playing sounds first
   transport.stopAllPlayback?.();
   
-  // Load the new instrument
-  if (value !== 'sine') {
-    const select = event.target;
-    const originalText = select.options[select.selectedIndex].text;
-    select.options[select.selectedIndex].text = 'Loading...';
-    select.disabled = true;
-    
+  const select = event.target;
+
+  // Switch back to sine immediately by unloading the sampler.
+  if (value === 'sine') {
     try {
-      const { loadInstrument } = await import('../../audio/instruments.js');
-      await loadInstrument(value);
-      select.options[select.selectedIndex].text = originalText + ' ✓';
+      const { unloadInstrument } = await import('../../audio/instruments.js');
+      unloadInstrument();
     } catch (error) {
-      console.error('Failed to load instrument:', error);
-      select.options[select.selectedIndex].text = originalText + ' (failed)';
-      // Revert to sine
-      updateTuningSetting('instrument', 'sine');
-    } finally {
-      select.disabled = false;
-      // Reset text after 2 seconds
-      setTimeout(() => {
-        select.options[select.selectedIndex].text = originalText;
-      }, 2000);
+      // ignore; oscillator mode will be used if sampler isn't available
     }
+    return;
+  }
+
+  // Load the new instrument (sampled)
+  select.disabled = true;
+  try {
+    const { loadInstrument } = await import('../../audio/instruments.js');
+    await loadInstrument(value);
+  } catch (error) {
+    console.error('Failed to load instrument:', error);
+    // Revert to sine
+    updateTuningSetting('instrument', 'sine');
+    select.value = 'sine';
+    try {
+      const { unloadInstrument } = await import('../../audio/instruments.js');
+      unloadInstrument();
+    } catch (e) {
+      // ignore
+    }
+  } finally {
+    select.disabled = false;
   }
 }
 
@@ -113,13 +121,6 @@ export function handleShowKeySignatureChange(event) {
   import('../rendering/staff.js').then(staff => staff.renderStaff());
 }
 
-export function handleShowAccidentalsChange(event) {
-  const value = event.target.checked;
-  updateDisplaySetting('showAccidentals', value);
-  // Re-render the staff to show/hide accidentals
-  import('../rendering/staff.js').then(staff => staff.renderStaff());
-}
-
 export function handleScaleOnlyChange(event) {
   const value = event.target.checked;
   appState.exercise.onScaleOnly = value;
@@ -161,31 +162,10 @@ export function handleClusterThinkTimeChange(event) {
 }
 
 function revealAnswersBriefly(kind, ms = null) {
-  const timeouts = appState.exercise._answerHideTimeouts || {};
-  if (timeouts[kind]) {
-    clearTimeout(timeouts[kind]);
-  }
-
-  // Always show answers on staff when revealing
+  // Always show answers on staff when revealing. Do not auto-hide; answers persist
+  // until the next play or a tab switch clears the staff.
   appState.exercise.showAnswers[kind] = true;
   renderStaff();
-
-  // Use the appropriate timeout duration
-  let duration = ms;
-  if (duration === null) {
-    // Use cluster think time for cluster, default 3s for intervals
-    duration = kind === 'cluster' ? (appState.exercise.clusterThinkTime * 1000) : 3000;
-  }
-
-  timeouts[kind] = setTimeout(() => {
-    // Only auto-hide if hideAnswers is still enabled
-    if (appState.exercise.hideAnswers[kind]) {
-      appState.exercise.showAnswers[kind] = false;
-      renderStaff();
-    }
-  }, duration);
-
-  appState.exercise._answerHideTimeouts = timeouts;
 }
 
 function syncScaleOnlyCheckboxes(value) {
@@ -439,7 +419,7 @@ export function handleSATBTransposeChange(event) {
  * Load MIDI exercise with key prompt if key signature is not explicit
  */
 async function loadMidiExerciseWithKeyPrompt(arrayBuffer, label) {
-  const { parseMidiFile } = await import('../../utils/midiParser.js');
+  const { parseMidiFile, analyzeKeyFromMidiData } = await import('../../utils/midiParser.js');
 
   // First, check if the MIDI file has an explicit key signature
   const midiData = await parseMidiFile(arrayBuffer);
@@ -450,7 +430,8 @@ async function loadMidiExerciseWithKeyPrompt(arrayBuffer, label) {
     keyOptions.forceKey = { tonic: midiData.keyMidi, mode: 'major' };
   } else {
     // No explicit key signature - prompt user
-    const userKey = await promptForKey(label);
+    const guess = analyzeKeyFromMidiData ? analyzeKeyFromMidiData(midiData) : null;
+    const userKey = await promptForKey(label, guess);
     if (!userKey) {
       throw new Error('Key selection cancelled');
     }
@@ -464,9 +445,14 @@ async function loadMidiExerciseWithKeyPrompt(arrayBuffer, label) {
 /**
  * Prompt user to select a key for MIDI file without explicit key signature
  */
-function promptForKey(label) {
+function promptForKey(label, guess = null) {
   const keyNames = ['C', 'C#/Db', 'D', 'D#/Eb', 'E', 'F', 'F#/Gb', 'G', 'G#/Ab', 'A', 'A#/Bb', 'B'];
   const keyValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  const guessKey = guess && Number.isFinite(guess.tonic) ? guess.tonic : 7;
+  const guessMode = guess && (guess.mode === 'minor' || guess.mode === 'major') ? guess.mode : 'major';
+  const guessPctRaw = guess && typeof guess.confidence === 'number' ? Math.round(guess.confidence * 100) : null;
+  const guessPct = guessPctRaw === null ? null : Math.max(1, Math.min(99, guessPctRaw));
+  const guessLabel = guessPct === null ? '' : (guessPct < 15 ? ' (low confidence)' : '');
 
   return new Promise((resolve) => {
     // Create modal dialog
@@ -497,20 +483,21 @@ function promptForKey(label) {
     dialog.innerHTML = `
       <h3 style="margin-top: 0; color: #333;">Select Key for "${label}"</h3>
       <p style="margin: 10px 0; color: #666;">This MIDI file doesn't specify a key signature. Please select the correct key:</p>
+      ${guessPct === null ? '' : `<p style="margin: 6px 0 0; color: #444;"><strong>Best guess:</strong> ${keyNames[guessKey]} ${guessMode} (${guessPct}%)${guessLabel}</p>`}
       <div style="display: flex; gap: 10px; margin: 15px 0;">
         <div style="flex: 1;">
           <label style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Key:</label>
           <select id="keySelect" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
             ${keyNames.map((name, i) => 
-              `<option value="${keyValues[i]}"${i === 7 ? ' selected' : ''}>${name}</option>`
+              `<option value="${keyValues[i]}"${i === guessKey ? ' selected' : ''}>${name}</option>`
             ).join('')}
           </select>
         </div>
         <div style="flex: 1;">
           <label style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Mode:</label>
           <select id="modeSelect" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-            <option value="major" selected>Major</option>
-            <option value="minor">Minor</option>
+            <option value="major"${guessMode === 'major' ? ' selected' : ''}>Major</option>
+            <option value="minor"${guessMode === 'minor' ? ' selected' : ''}>Minor</option>
           </select>
         </div>
       </div>

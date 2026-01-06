@@ -10,12 +10,31 @@ import { pitchState } from '../pitch/detection.js';
 import { drawShapeBadge, drawRoundedRect, drawNoteHeadWithShape } from './shapes.js';
 import { getSolfegeForMidi } from '../utils/musicTheory.js';
 import { getDroneFrequencies } from '../state/appState.js';
-import { drawSharp, drawFlat, drawNatural, drawKeySignature } from './accidentals.js';
-import { getAccidentalForNote } from '../utils/keySignature.js';
+import { drawSharp, drawFlat, drawNatural, drawKeySignature, ensureBravuraLoaded } from './accidentals.js';
+import { spellMidiInKey, getKeySignature, getAccidentalForNote } from '../utils/keySignature.js';
 
 let canvas = null;
 let ctx = null;
 let lastMicMidiForLine = null;
+
+export function getKeySignatureWidthPx() {
+  if (!(appState.display.showKeySignature && appState.staff.satbPreviewMode && Number.isFinite(appState.staff.keyTonic))) {
+    return 0;
+  }
+  const info = getKeySignature(appState.staff.keyTonic, appState.staff.keyMode || 'major');
+  const count = (info.sharps?.length || 0) + (info.flats?.length || 0);
+  // Must match drawKeySignature spacing in accidentals.js (12px) plus a little padding
+  return Math.max(0, count * 12 + 18);
+}
+
+export function getStaffStartX() {
+  return 80 + getKeySignatureWidthPx();
+}
+
+function getDegreeSolfegeForMidiInKey(midi, tonicPc, mode) {
+  const spelled = spellMidiInKey(midi, tonicPc, mode);
+  return spelled ? spelled.solfege : null;
+}
 
 function getCanvas() {
   if (!canvas) {
@@ -31,6 +50,16 @@ export function renderStaff() {
   const canvasElement = getCanvas();
   if (!canvasElement || !ctx) {
     return;
+  }
+
+  // Ensure SMuFL font is available for ♯ ♭ ♮. If it loads async, rerender once ready.
+  // This avoids the “H/box” fallback glyphs on first render.
+  if (!renderStaff._bravuraRequested) {
+    renderStaff._bravuraRequested = true;
+    ensureBravuraLoaded().then(() => {
+      // One extra render after font loads (idempotent)
+      renderStaff();
+    });
   }
   
   resizeCanvasForDisplay();
@@ -189,6 +218,7 @@ function drawStaffLines(dimensions) {
     const keySignatureDimensions = {
       width: dimensions.width,
       height: dimensions.height,
+      marginX: dimensions.marginX,
       trebleStaffTop: dimensions.trebleStaffTop,
       bassStaffTop: dimensions.bassStaffTop,
       lineSpacing: dimensions.spacing
@@ -382,10 +412,12 @@ function createNotePositionMapper(dimensions) {
   const halfStepPx = staffSpacing / 2;
   const middleCY = dimensions.middleCY;
 
-  // Pitch class → diatonic step index relative to C within an octave.
-  // C=0, D=1, E=2, F=3, G=4, A=5, B=6.
-  // Accidentals map to their natural letter slot.
-  const pitchClassToDiatonic = [
+  // Pitch class → diatonic step index relative to C within an octave (C=0..B=6).
+  // We need key-aware spelling so flat keys (Db/Eb/...) don't render on sharp spellings (C#/D#/...).
+  const naturalPc = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const letters = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+
+  let pitchClassToDiatonic = [
     0, // C
     0, // C#
     1, // D
@@ -399,6 +431,20 @@ function createNotePositionMapper(dimensions) {
     5, // A#
     6  // B
   ];
+
+  // If we're in SATB preview mode and have a key, compute a key-aware mapping.
+  if (appState.staff?.satbPreviewMode && Number.isFinite(appState.staff?.keyTonic)) {
+    const pcMap = new Array(12).fill(0);
+
+    for (let pc = 0; pc < 12; pc++) {
+      // spellMidiInKey expects a midi note; passing `pc` is fine for pitch-class spelling decisions.
+      const spelled = spellMidiInKey(pc, appState.staff.keyTonic, appState.staff.keyMode || 'major');
+      const letter = spelled?.letter || 'C';
+      pcMap[pc] = letters.indexOf(letter);
+    }
+
+    pitchClassToDiatonic = pcMap;
+  }
 
   function staffStepFromMiddleC(midi) {
     const midiInt = Math.round(midi);
@@ -697,8 +743,7 @@ function drawScrollingNotes(noteMapper, dimensions) {
   const notes = appState.staff.notes;
   const currentTime = appState.staff.currentTime;
   // Add extra space when key signature is shown
-  const keySignatureWidth = (appState.display.showKeySignature && appState.staff.satbPreviewMode) ? 50 : 0;
-  const startX = 80 + keySignatureWidth;
+  const startX = getStaffStartX();
   // Fixed spacing: 80 pixels per second
   // Note startTimes are already scaled by tempo, so we use fixed pixelsPerSecond
   // This ensures notes stay in fixed positions regardless of tempo
@@ -737,8 +782,9 @@ function drawScrollingNotes(noteMapper, dimensions) {
     // Only draw notes that are visible on screen (with wider padding to prevent wrapping)
     if (x >= -100 && x <= dimensions.width + 100) {
         // Use MIDI file's key for solfege if it's a MIDI exercise, otherwise use settings key
-        const doMidi = getDoMidiForDisplay();
-        const solfege = getSolfegeForMidi(note.midi, doMidi);
+        const solfege = (appState.staff.satbPreviewMode && Number.isFinite(appState.staff.keyTonic))
+          ? getDegreeSolfegeForMidiInKey(note.midi, appState.staff.keyTonic, appState.staff.keyMode || 'major')
+          : getSolfegeForMidi(note.midi, getDoMidiForDisplay());
         
         // Draw ledger lines if needed (at the note's X position)
         drawLedgerLinesForNote(ctx, x, y, dimensions);
@@ -761,8 +807,7 @@ function drawStaticNotes(noteMapper, dimensions) {
   if (notes.length === 0) return;
   
   // Add extra space when key signature is shown
-  const keySignatureWidth = (appState.display.showKeySignature && appState.staff.satbPreviewMode) ? 50 : 0;
-  const startX = 80 + keySignatureWidth;
+  const startX = getStaffStartX();
   const pixelsPerSecond = 80; // Same spacing as scrolling notes
   
   // Get viewport offset for panning (when not playing)
@@ -796,8 +841,9 @@ function drawStaticNotes(noteMapper, dimensions) {
     // Only draw notes that are visible on screen (with wider padding to prevent wrapping)
     if (x >= -100 && x <= dimensions.width + 100) {
       // Use MIDI file's key for solfege if it's a MIDI exercise, otherwise use settings key
-      const doMidi = getDoMidiForDisplay();
-      const solfege = getSolfegeForMidi(note.midi, doMidi);
+      const solfege = (appState.staff.satbPreviewMode && Number.isFinite(appState.staff.keyTonic))
+        ? getDegreeSolfegeForMidiInKey(note.midi, appState.staff.keyTonic, appState.staff.keyMode || 'major')
+        : getSolfegeForMidi(note.midi, getDoMidiForDisplay());
       
       // Draw ledger lines if needed (at the note's X position)
       drawLedgerLinesForNote(ctx, x, y, dimensions);

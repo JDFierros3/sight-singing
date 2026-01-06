@@ -14,6 +14,13 @@
   --bad: #f87171;
 }
 
+/* Music font for proper ♯ ♭ ♮ (SMuFL) */
+@font-face {
+  font-family: "Bravura";
+  src: url("./assets/fonts/Bravura.otf") format("opentype");
+  font-display: swap;
+}
+
 /* Base styles */
 * {
   box-sizing: border-box;
@@ -27,6 +34,19 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+}
+
+.showHeaderFab {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 10001;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid #1f2336;
+  background: rgba(15, 20, 38, 0.95);
+  color: var(--text);
+  font-weight: 650;
 }
 
 .appHeader {
@@ -122,6 +142,12 @@ body {
 
 .controls-collapsed .appHeaderControls {
   padding-bottom: 4px;
+}
+
+.revealButtonsBlock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .appHeader h1 {
@@ -449,6 +475,67 @@ canvas {
 
 /* Responsive */
 @media (max-width: 480px) {
+  /* When header is collapsed, hide most content but keep essential controls */
+  body.mobile-header-hidden .appHeader {
+    padding: 8px 12px;
+  }
+
+  body.mobile-header-hidden .appHeaderRow:first-child {
+    display: none; /* Hide title/badges row */
+  }
+
+  body.mobile-header-hidden .controlRibbon {
+    display: none; /* Hide control ribbon */
+  }
+
+  body.mobile-header-hidden .appHeaderControls .rowCompact > *:not(#btnGlobalPlay):not(#btnGlobalStop) {
+    display: none; /* Hide everything in controls row except play/stop buttons */
+  }
+
+  /* Keep tab select visible */
+  body.mobile-header-hidden .tabSelectBlock {
+    display: flex !important;
+  }
+
+  /* Only show reveal buttons block when on cluster or intervals tab */
+  body.mobile-header-hidden[data-active-tab="cluster"] .appHeaderControls .revealButtonsBlock,
+  body.mobile-header-hidden[data-active-tab="intervals"] .appHeaderControls .revealButtonsBlock {
+    display: flex !important;
+  }
+
+  /* Hide reveal buttons block on all other tabs */
+  body.mobile-header-hidden:not([data-active-tab="cluster"]):not([data-active-tab="intervals"]) .appHeaderControls .revealButtonsBlock {
+    display: none !important;
+  }
+
+  /* Show cluster reveal button when on cluster tab */
+  body.mobile-header-hidden[data-active-tab="cluster"] .revealButtonsBlock #revealHiddenHeader {
+    display: inline-flex !important;
+  }
+
+  /* Show interval reveal button when on intervals tab */
+  body.mobile-header-hidden[data-active-tab="intervals"] .revealButtonsBlock #showIntervalHeader {
+    display: inline-flex !important;
+  }
+
+  /* Hide the other button when not on its tab */
+  body.mobile-header-hidden[data-active-tab="cluster"] .revealButtonsBlock #showIntervalHeader {
+    display: none !important;
+  }
+
+  body.mobile-header-hidden[data-active-tab="intervals"] .revealButtonsBlock #revealHiddenHeader {
+    display: none !important;
+  }
+
+  body.mobile-header-hidden .showHeaderFab {
+    display: inline-flex !important;
+  }
+
+  /* When header is hidden, reclaim space */
+  body.mobile-header-hidden main {
+    padding-top: 0;
+  }
+
   .appHeader {
     padding: 10px 12px;
   }
@@ -474,6 +561,47 @@ canvas {
 
   .controlRibbon {
     overflow-x: auto;
+  }
+
+  /* Hide reveal buttons in panels on mobile (they're in header instead) */
+  #panel-cluster #revealHidden,
+  #panel-intervals #showInterval {
+    display: none;
+  }
+
+  /* Style header reveal buttons block */
+  .revealButtonsBlock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Keep reveal buttons visible when header is collapsed */
+  body.mobile-header-hidden .revealButtonsBlock {
+    display: flex !important;
+  }
+
+  /* Override inline display:none on reveal buttons when header is collapsed */
+  body.mobile-header-hidden #revealHiddenHeader[style*="display: none"],
+  body.mobile-header-hidden #revealHiddenHeader[style*="display:none"],
+  body.mobile-header-hidden #showIntervalHeader[style*="display: none"],
+  body.mobile-header-hidden #showIntervalHeader[style*="display:none"] {
+    display: inline-flex !important;
+  }
+
+  /* Ensure the reveal button is easily tappable */
+  #revealHiddenHeader,
+  #showIntervalHeader {
+    min-height: 44px; /* iOS recommended touch target */
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+
+  /* Style the show controls button */
+  .showHeaderFab {
+    white-space: pre-line;
+    text-align: center;
+    line-height: 1.2;
+    padding: 8px 12px;
   }
 }
 

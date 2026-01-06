@@ -8,6 +8,7 @@ import { DIATONIC_ST, DEGREE_SEMITONES, SOLFEGE } from '../config/constants.js';
 import { getDegreeForMidi, getIntervalName } from '../utils/musicTheory.js';
 import { randomInRange, normalizeModulo } from '../utils/math.js';
 import { pickRandomNoteInRange, filterNoteByScale, playTonesForDuration } from './core.js';
+import { renderStaff } from '../rendering/staff.js';
 
 // Lightweight history to avoid annoying repeats.
 const intervalHistory = {
@@ -17,6 +18,9 @@ const intervalHistory = {
 };
 
 export function playIntervalExercise() {
+  // Reset reveal state when starting a new exercise
+  appState.exercise.showAnswers.intervals = false;
+  
   const direction = getIntervalDirection();
   const range = getIntervalRange();
   const validSpans = buildValidIntervalSpans(range.min, range.max);
@@ -53,6 +57,9 @@ export function playIntervalExercise() {
   intervalHistory.lastStartMidi = noteA;
   intervalHistory.lastEndMidi = noteB;
   updateIntervalBadge('?');
+  
+  // Re-render staff to clear any previously revealed answers
+  renderStaff();
   
   playTonesForDuration([noteA], 1.2, 'Interval A');
   setTimeout(() => {

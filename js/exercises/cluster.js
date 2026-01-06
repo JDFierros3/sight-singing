@@ -8,13 +8,21 @@ import { DEGREE_SEMITONES, CLUSTER_DIFFICULTY_PRESETS } from '../config/constant
 import { randomInRange, normalizeModulo } from '../utils/math.js';
 import { getSolfegeForMidi, getIntervalName } from '../utils/musicTheory.js';
 import { playTonesForDuration } from './core.js';
+import { renderStaff } from '../rendering/staff.js';
 
 export function playHiddenCluster(count) {
+  // Reset reveal state when starting a new exercise
+  appState.exercise.showAnswers.cluster = false;
+  
   const selectedNotes = buildClusterNotes(count);
   
   storeClusterNotes(selectedNotes);
   updateClusterBadge(count);
-  playTonesForDuration(selectedNotes, 2.5, `Hidden cluster (${count})`);
+  const duration = Number(appState.exercise.clusterThinkTime) || 3;
+  playTonesForDuration(selectedNotes, duration, `Hidden cluster (${count})`);
+  
+  // Re-render staff to clear any previously revealed answers
+  renderStaff();
 }
 
 function buildClusterNotes(count) {

@@ -37,7 +37,6 @@ const {
   handleZoomChange = () => {},
   handlePlayAimChange = () => {},
   handleShowKeySignatureChange = () => {},
-  handleShowAccidentalsChange = () => {},
   handleScaleOnlyChange = () => {},
   handleHideAnswersIntervalsChange = () => {},
   handleHideAnswersClusterChange = () => {},
@@ -147,6 +146,7 @@ function setupHeaderControls() {
   const btnPlayDo = getElementById('btnPlayDo');
   const btnMicToggle = getElementById('btnMicToggle');
   const toggleRibbon = getElementById('toggleRibbon');
+  const showHeaderFab = getElementById('showHeaderFab');
 
   if (btnPlay) {
     btnPlay.onclick = async () => {
@@ -175,12 +175,51 @@ function setupHeaderControls() {
     };
   }
 
+  const mobileMql = window.matchMedia('(max-width: 480px)');
+  const MOBILE_HEADER_STORAGE_KEY = 'mobileHeaderHidden';
+  const applyMobileHeaderState = () => {
+    const isMobile = !!mobileMql.matches;
+    if (!isMobile) {
+      document.body.classList.remove('mobile-header-hidden');
+      if (showHeaderFab) showHeaderFab.style.display = 'none';
+      return;
+    }
+    const hidden = localStorage.getItem(MOBILE_HEADER_STORAGE_KEY) === '1';
+    document.body.classList.toggle('mobile-header-hidden', hidden);
+    if (showHeaderFab) showHeaderFab.style.display = hidden ? 'inline-flex' : 'none';
+  };
+
+  // Apply on load and when crossing breakpoint/orientation change
+  applyMobileHeaderState();
+  if (mobileMql && typeof mobileMql.addEventListener === 'function') {
+    mobileMql.addEventListener('change', applyMobileHeaderState);
+  } else {
+    window.addEventListener('resize', applyMobileHeaderState);
+  }
+
   if (toggleRibbon) {
     toggleRibbon.onclick = () => {
+      // On phones, hide the entire header; on desktop, only collapse the ribbon.
+      if (mobileMql.matches) {
+        const next = !document.body.classList.contains('mobile-header-hidden');
+        document.body.classList.toggle('mobile-header-hidden', next);
+        localStorage.setItem(MOBILE_HEADER_STORAGE_KEY, next ? '1' : '0');
+        if (showHeaderFab) showHeaderFab.style.display = next ? 'inline-flex' : 'none';
+        return;
+      }
+
       document.body.classList.toggle('controls-collapsed');
       toggleRibbon.textContent = document.body.classList.contains('controls-collapsed')
         ? 'Show controls'
         : 'Hide controls';
+    };
+  }
+
+  if (showHeaderFab) {
+    showHeaderFab.onclick = () => {
+      document.body.classList.remove('mobile-header-hidden');
+      localStorage.setItem(MOBILE_HEADER_STORAGE_KEY, '0');
+      showHeaderFab.style.display = 'none';
     };
   }
 
@@ -207,7 +246,6 @@ function setupDisplayControls() {
   getElementById('zoom').addEventListener('input', handleZoomChange);
   getElementById('playAim').addEventListener('change', handlePlayAimChange);
   getElementById('showKeySignature')?.addEventListener('change', handleShowKeySignatureChange);
-  getElementById('showAccidentals')?.addEventListener('change', handleShowAccidentalsChange);
   
   // Setup diatonic toggles for each exercise panel
   const scaleOnlyCheckboxes = ['onScaleOnly-cluster', 'onScaleOnly-intervals', 'onScaleOnly-satb'];
@@ -240,6 +278,16 @@ function setupExerciseControls() {
   getElementById('revealHidden').onclick = handleRevealHiddenClick;
   getElementById('playInterval').onclick = handlePlayIntervalClick;
   getElementById('showInterval').onclick = handleShowIntervalClick;
+  
+  // Wire up header reveal buttons (for mobile collapsed header)
+  const revealHiddenHeader = getElementById('revealHiddenHeader');
+  const showIntervalHeader = getElementById('showIntervalHeader');
+  if (revealHiddenHeader) {
+    revealHiddenHeader.onclick = handleRevealHiddenClick;
+  }
+  if (showIntervalHeader) {
+    showIntervalHeader.onclick = handleShowIntervalClick;
+  }
 
   const hideIntervals = getElementById('hideAnswers-intervals');
   if (hideIntervals) {

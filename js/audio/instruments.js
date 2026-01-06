@@ -4,10 +4,54 @@
  */
 
 import { getAudioContext, ensureAudioContext } from './context.js';
+import { midiToNoteName } from '../utils/musicTheory.js';
 
-let currentSampler = null;
+let currentSampler = null; // legacy single sampler (kept for non-part playback)
+let partSamplers = null; // Map<string, Tone.Sampler>
 let currentInstrumentName = 'sine';
 let isLoading = false;
+let currentSoundfont = null;
+let currentBackend = 'none'; // 'none' | 'toneSampler' | 'soundfont'
+let activeSoundfontNotes = new Set();
+
+export function unloadInstrument() {
+  try {
+    if (partSamplers) {
+      for (const sampler of partSamplers.values()) {
+        try {
+          sampler.releaseAll?.();
+        } catch (e) {}
+        try {
+          sampler.dispose();
+        } catch (e) {}
+      }
+    }
+    if (currentSampler) {
+      try {
+        currentSampler.releaseAll?.();
+      } catch (e) {}
+      try {
+        currentSampler.dispose();
+      } catch (e) {}
+    }
+    if (currentSoundfont) {
+      try {
+        activeSoundfontNotes.forEach(n => {
+          try { n.stop?.(); } catch (e) {}
+        });
+      } finally {
+        activeSoundfontNotes = new Set();
+      }
+      currentSoundfont = null;
+    }
+  } finally {
+    currentSampler = null;
+    partSamplers = null;
+    currentInstrumentName = 'sine';
+    isLoading = false;
+    currentBackend = 'none';
+  }
+}
 
 // Map of instrument names to their sample URLs
 const INSTRUMENT_SAMPLES = {
@@ -33,16 +77,11 @@ const INSTRUMENT_SAMPLES = {
  */
 export async function loadInstrument(instrumentName) {
   if (instrumentName === 'sine') {
-    console.log('✅ Switching to sine wave (oscillator mode)');
-    if (currentSampler) {
-      currentSampler.dispose();
-      currentSampler = null;
-    }
-    currentInstrumentName = 'sine';
+    unloadInstrument();
     return;
   }
   
-  if (currentInstrumentName === instrumentName && currentSampler) {
+  if (currentInstrumentName === instrumentName && (currentSampler || partSamplers || currentSoundfont)) {
     console.log(`✅ Instrument ${instrumentName} already loaded`);
     return;
   }
@@ -56,6 +95,23 @@ export async function loadInstrument(instrumentName) {
   await ensureAudioContext();
   
   try {
+    // Choir uses soundfont-player (more reliable than trying to find Tone sampler assets)
+    if (instrumentName === 'choir_aahs' || instrumentName === 'choir_oohs') {
+      unloadInstrument();
+      const ctx = getAudioContext();
+      if (!ctx) throw new Error('AudioContext not available');
+
+      const Soundfont = (await import('https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/+esm')).default;
+      // Use FluidR3_GM hosted at gleitz (soundfont-player defaults to this host, but we set soundfont explicitly).
+      currentSoundfont = await Soundfont.instrument(ctx, instrumentName, {
+        soundfont: 'FluidR3_GM',
+        format: 'mp3'
+      });
+      currentInstrumentName = instrumentName;
+      currentBackend = 'soundfont';
+      return;
+    }
+
     // Check if Tone.js is available
     if (typeof Tone === 'undefined') {
       throw new Error('Tone.js library not loaded');
@@ -71,10 +127,8 @@ export async function loadInstrument(instrumentName) {
     
     console.log(`🎵 Loading ${instrumentConfig.name}...`);
     
-    // Dispose of old sampler
-    if (currentSampler) {
-      currentSampler.dispose();
-    }
+    // Dispose of old samplers
+    unloadInstrument();
     
     // Create new sampler with instrument samples
     const urls = {};
@@ -82,7 +136,7 @@ export async function loadInstrument(instrumentName) {
       urls[note] = filename;
     }
     
-    currentSampler = new Tone.Sampler({
+    const makeSampler = () => new Tone.Sampler({
       urls: urls,
       baseUrl: instrumentConfig.baseUrl,
       onload: () => {
@@ -92,8 +146,17 @@ export async function loadInstrument(instrumentName) {
         console.error(`❌ Error loading ${instrumentConfig.name}:`, error);
       }
     }).toDestination();
+
+    // For SATB (and any part-based playback), use one sampler per part so volumes can differ.
+    partSamplers = new Map();
+    ['S', 'A', 'T', 'B'].forEach(p => {
+      partSamplers.set(p, makeSampler());
+    });
+    // Also keep a default sampler for non-part playback (warmups/intervals/etc).
+    currentSampler = makeSampler();
     
     currentInstrumentName = instrumentName;
+    currentBackend = 'toneSampler';
     
     // Wait for samples to load
     await Tone.loaded();
@@ -101,11 +164,11 @@ export async function loadInstrument(instrumentName) {
     
   } catch (error) {
     console.error(`❌ Failed to load instrument ${instrumentName}:`, error);
-    if (currentSampler) {
-      currentSampler.dispose();
-    }
-    currentSampler = null;
+    unloadInstrument();
+    currentSoundfont = null;
+    activeSoundfontNotes = new Set();
     currentInstrumentName = 'sine';
+    currentBackend = 'none';
     throw error;
   } finally {
     isLoading = false;
@@ -119,27 +182,35 @@ export async function loadInstrument(instrumentName) {
  * @param {number} gain - Volume (0-1)
  * @returns {Object|null} - Note object with stop method, or null
  */
-export function playInstrumentNote(midiNote, duration, gain = 0.5) {
-  if (!currentSampler) {
-    return null; // Fall back to oscillator
-  }
-  
+export function playInstrumentNote(midiNote, duration, gain = 0.5, part = null) {
   try {
-    // Convert MIDI number to note name (e.g., 60 -> "C4")
-    const noteName = Tone.Frequency(midiNote, 'midi').toNote();
-    
-    // Set volume
-    currentSampler.volume.value = Tone.gainToDb(gain);
-    
-    // Trigger attack and release
-    currentSampler.triggerAttackRelease(noteName, duration);
-    
-    // Return a simple object with a stop method for compatibility
-    return {
-      stop: () => {
-        currentSampler.triggerRelease(noteName);
-      }
-    };
+    if (currentBackend === 'toneSampler') {
+      const sampler = (partSamplers && part && partSamplers.get(part)) ? partSamplers.get(part) : currentSampler;
+      if (!sampler) return null;
+      const noteName = Tone.Frequency(midiNote, 'midi').toNote();
+      sampler.volume.value = Tone.gainToDb(gain);
+      sampler.triggerAttackRelease(noteName, duration);
+      return {
+        stop: () => {
+          sampler?.triggerRelease(noteName);
+        }
+      };
+    }
+
+    if (currentBackend === 'soundfont') {
+      if (!currentSoundfont) return null;
+      const noteName = midiToNoteName(midiNote);
+      const node = currentSoundfont.play(noteName, 0, { gain, duration });
+      if (node) activeSoundfontNotes.add(node);
+      return {
+        stop: () => {
+          try { node?.stop?.(); } catch (e) {}
+          activeSoundfontNotes.delete(node);
+        }
+      };
+    }
+
+    return null; // fall back to oscillator
   } catch (error) {
     console.error('Error playing instrument note:', error);
     return null;
@@ -173,18 +244,34 @@ export function getCurrentInstrument() {
  * @returns {boolean}
  */
 export function isUsingSoundfont() {
-  return currentInstrumentName !== 'sine' && currentSampler !== null;
+  return currentInstrumentName !== 'sine' && (currentSampler !== null || partSamplers !== null || currentSoundfont !== null);
 }
 
 /**
  * Stop all currently playing instrument notes
  */
 export function stopAllInstrumentNotes() {
+  if (partSamplers) {
+    for (const sampler of partSamplers.values()) {
+      try {
+        sampler.releaseAll();
+      } catch (error) {}
+    }
+  }
   if (currentSampler) {
     try {
       currentSampler.releaseAll();
     } catch (error) {
       console.error('Error stopping all notes:', error);
+    }
+  }
+  if (currentSoundfont) {
+    try {
+      activeSoundfontNotes.forEach(n => {
+        try { n.stop?.(); } catch (e) {}
+      });
+    } finally {
+      activeSoundfontNotes = new Set();
     }
   }
 }

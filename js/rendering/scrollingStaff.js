@@ -5,6 +5,7 @@
 import { appState } from '../state/appState.js';
 import { renderStaff } from './staff.js';
 import { updatePanningCursor } from './staffPanning.js';
+import { getStaffStartX } from './staff.js';
 
 let animationFrameId = null;
 
@@ -102,7 +103,7 @@ function updateCurrentTime() {
 
 function updatePlayheadPosition() {
   const tempo = appState.staff.tempo;
-  const startX = 80;
+  const startX = getStaffStartX();
   // Base spacing: 80 pixels per second (for note positioning)
   // Notes are positioned using base (unscaled) startTimes, so they stay fixed
   // Audio plays using scaled startTimes (faster/slower based on tempo)
@@ -129,16 +130,20 @@ function updatePlayheadPosition() {
   // If stanza has a duration, limit playhead to not go beyond the last note's end
   if (appState.staff.stanzaDuration !== null && appState.staff.stanzaDuration !== undefined) {
     // Duration is in base (unscaled) time, same as note startTimes
-    // currentTime is real elapsed time, which equals base time
-    // We compare currentTime directly against stanzaDuration (both in base time)
-    const currentBaseTime = appState.staff.currentTime;
-    const maxBaseTime = appState.staff.stanzaDuration;
+    // When tempo changes, audio duration scales: slower tempo = longer playback
+    // We need to compare real elapsed time against tempo-scaled duration
+    const currentRealTime = appState.staff.currentTime;
+    const baseDuration = appState.staff.stanzaDuration;
+    // At slower tempo (e.g., 30 BPM), audio takes 2x longer: duration * (60 / tempo)
+    // So we compare currentRealTime against scaled duration
+    const tempoScale = 60 / tempo; // At 30 BPM: 2.0 (2x longer), at 120 BPM: 0.5 (2x shorter)
+    const scaledDuration = baseDuration * tempoScale;
     
-    // If we've exceeded the duration in base time, stop the playhead
-    if (currentBaseTime >= maxBaseTime) {
+    // If we've exceeded the tempo-scaled duration, stop the playhead
+    if (currentRealTime >= scaledDuration) {
       // Calculate the max playhead position based on base duration
       // Use base time for positioning since notes are positioned in base time
-      const maxRelativeTime = maxBaseTime - firstNoteTime;
+      const maxRelativeTime = baseDuration - firstNoteTime;
       const maxPlayheadX = startX + maxRelativeTime * basePixelsPerSecond;
       playheadX = maxPlayheadX;
       
@@ -222,7 +227,7 @@ export function handleStaffViewportResize() {
   if (notes.length === 0) return;
 
   const viewportWidth = canvas.clientWidth || canvas.width;
-  const startX = 80;
+  const startX = getStaffStartX();
   const basePixelsPerSecond = 80;
 
   // Calculate rightmost note position (in note coordinate space)

@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
+  <button id="showHeaderFab" class="showHeaderFab" aria-label="Show controls" title="Show controls" style="display:none">Show<br>controls</button>
   <header class="appHeader" role="banner">
     <div class="appHeaderRow">
       <div class="appTitle">
@@ -37,6 +38,11 @@
         <select id="tabSelect" aria-label="Choose tab"></select>
       </div>
 
+      <div class="revealButtonsBlock" style="display:none">
+        <button id="revealHiddenHeader" aria-label="Reveal hidden cluster" style="display:none">Reveal</button>
+        <button id="showIntervalHeader" aria-label="Reveal interval solution" style="display:none">Reveal</button>
+      </div>
+
       <div class="controlRibbon">
         <div id="solfegeGuide" class="controlGroup" aria-label="Solfege reference"></div>
 
@@ -61,6 +67,8 @@
           <select id="instrument" aria-label="Select instrument voice">
             <option value="sine" selected>Sine Wave</option>
             <option value="acoustic_grand_piano">Piano</option>
+            <option value="choir_aahs">Choir (Aahs)</option>
+            <option value="choir_oohs">Choir (Oohs)</option>
           </select>
         </div>
 
@@ -200,8 +208,8 @@
             Constrain to scale notes (diatonic)
             <input id="onScaleOnly-cluster" type="checkbox" checked aria-label="Constrain to scale notes" />
           </label>
-          <label for="clusterThinkTime">Thinking time: <span id="clusterThinkTimeValue">3</span> seconds</label>
-          <input id="clusterThinkTime" type="range" min="1" max="10" value="3" step="1" aria-label="Thinking time in seconds" />
+          <label for="clusterThinkTime">Duration: <span id="clusterThinkTimeValue">3</span> seconds</label>
+          <input id="clusterThinkTime" type="range" min="1" max="10" value="3" step="1" aria-label="Cluster playback duration in seconds" />
           <div class="row">
             <button id="playHidden2" aria-label="Play 2 hidden tones">Play 2</button>
             <button id="playHidden3" aria-label="Play 3 hidden tones">Play 3</button>
@@ -214,7 +222,7 @@
       <section id="panel-intervals" class="panel" role="tabpanel" aria-labelledby="tab-intervals" style="display:none">
         <fieldset>
           <legend>Interval Training</legend>
-          <div class="help">Press Play Interval, then identify the second pitch relative to the first. Use Show only after you decide.</div>
+          <div class="help">Press Play Interval, then identify the second pitch relative to the first. Use Reveal only after you decide.</div>
           <div class="row" style="margin-bottom:8px">
             <button class="difficulty-btn" data-difficulty="easy" data-exercise="interval" aria-label="Easy difficulty">Easy</button>
             <button class="difficulty-btn" data-difficulty="medium" data-exercise="interval" aria-label="Medium difficulty">Medium</button>
@@ -222,8 +230,8 @@
             <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="interval" aria-label="Extra hard difficulty">Extra Hard</button>
           </div>
           <label class="flex" style="justify-content:space-between; margin-bottom:8px">
-            Hide staff answers (until Show)
-            <input id="hideAnswers-intervals" type="checkbox" checked aria-label="Hide staff answers until Show is clicked" />
+            Hide staff answers (until Reveal)
+            <input id="hideAnswers-intervals" type="checkbox" checked aria-label="Hide staff answers until Reveal is clicked" />
           </label>
           <label class="flex" style="justify-content:space-between; margin-bottom:8px">
             Constrain to scale notes (diatonic)
@@ -249,7 +257,7 @@
           </div>
           <div class="row">
             <button id="playInterval" aria-label="Play interval exercise">Play Interval</button>
-            <button id="showInterval" aria-label="Show interval solution">Show</button>
+            <button id="showInterval" aria-label="Reveal interval solution">Reveal</button>
             <span id="intervalBadge" class="chip" aria-live="polite">—</span>
           </div>
         </fieldset>
@@ -335,14 +343,6 @@
             <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px">
               <input id="showKeySignature" type="checkbox" aria-label="Show key signature on staff" />
               Show key signature on staff
-            </label>
-          </div>
-          
-          <!-- Accidentals Display -->
-          <div style="margin-bottom:12px">
-            <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px">
-              <input id="showAccidentals" type="checkbox" aria-label="Show accidentals on notes" />
-              Show accidentals on notes (♯ ♭ ♮)
             </label>
           </div>
           

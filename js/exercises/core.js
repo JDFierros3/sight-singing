@@ -63,12 +63,6 @@ export function playTonesForDuration(midis, duration, label) {
       appState.drone.on = false;
     }
 
-    // Clear exercise note display after playback so answers don't linger
-    // (interval/cluster solutions remain in state; staff visibility is controlled separately)
-    appState.exercise.display.midis = [];
-    appState.exercise.display.label = '';
-    appState.exercise.showAnswers.intervals = false;
-    appState.exercise.showAnswers.cluster = false;
     activePlaybackTimeoutId = null;
   }, duration * 1000);
 }
@@ -83,11 +77,6 @@ export function stopOneShotPlayback() {
 
   stopAllDroneOscillators();
   appState.drone.on = false;
-
-  appState.exercise.display.midis = [];
-  appState.exercise.display.label = '';
-  appState.exercise.showAnswers.intervals = false;
-  appState.exercise.showAnswers.cluster = false;
 
   updateNowPlayingBadge('');
 }
