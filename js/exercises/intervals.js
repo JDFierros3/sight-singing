@@ -85,7 +85,21 @@ function getIntervalRange() {
 function buildValidIntervalSpans(min, max) {
   const spans = [];
   
+  // Include 1 semitone (minor 2nd) if it's within the min-max range
+  // This allows Do->Ti descending (1 semitone down) which is a common interval to practice
+  // Note: 1 semitone is not in DIATONIC_ST (diatonic intervals are 0, 2, 4, 5, 7, 9, 11, 12)
+  // However, Ti->Do ascending (11 semitones) IS diatonic, so we allow 1 semitone as a special case
+  // when onScaleOnly is true, since it represents the same interval relationship (just inverted)
+  if (min <= 1 && 1 <= max) {
+    if (!appState.exercise.onScaleOnly || true) { // Always allow 1 semitone when in range
+      spans.push(1);
+    }
+  }
+  
   for (let span = min; span <= max; span++) {
+    // Skip 1 since we already handled it above
+    if (span === 1) continue;
+    
     if (!appState.exercise.onScaleOnly || DIATONIC_ST.has(span)) {
       spans.push(span);
     }
