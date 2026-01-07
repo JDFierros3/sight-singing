@@ -448,12 +448,8 @@ export function handleSATBTempoChange(event) {
     setTextContent(tempoValue, tempo.toString());
   }
   
-  // Disable tempo slider during playback
-  if (appState.satb.isPlaying) {
-    event.target.disabled = true;
-  } else {
-    event.target.disabled = false;
-  }
+  // Note: Tempo slider enable/disable is now handled in satb.js updateSatbButton()
+  // which is called when playback starts/stops
 }
 
 export function handleSATBExerciseChange(event) {

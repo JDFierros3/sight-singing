@@ -238,6 +238,7 @@ function updateSatbButton(isPlaying, isPaused = false) {
   const pauseButton = getElementById('btnSatbPause');
   const resumeButton = getElementById('btnSatbResume');
   const stopButton = getElementById('btnSatbStop');
+  const tempoSlider = getElementById('satbTempo');
   
   if (playButton) {
     if (isPlaying) {
@@ -269,6 +270,12 @@ function updateSatbButton(isPlaying, isPaused = false) {
     } else {
       stopButton.style.display = 'none';
     }
+  }
+  
+  // Enable/disable tempo slider based on playback state
+  // Disable during playback to prevent timing issues
+  if (tempoSlider) {
+    tempoSlider.disabled = isPlaying;
   }
 }
 
