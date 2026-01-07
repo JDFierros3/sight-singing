@@ -1214,16 +1214,64 @@ function getSubLesson2_2() {
             <li>The staff will confirm your solfege guess when revealed</li>
           </ul>
         </li>
+        <li><strong>Now Practice Descending Intervals:</strong>
+          <ul>
+            <li>Once you're comfortable with ascending intervals, it's time to learn <strong>descending</strong> intervals</li>
+            <li><strong>What is a descending interval?</strong>
+              <ul>
+                <li><strong>Ascending</strong> = second note is <strong>higher</strong> than the first (going UP)</li>
+                <li><strong>Descending</strong> = second note is <strong>lower</strong> than the first (going DOWN)</li>
+              </ul>
+            </li>
+            <li>In the <strong>"Interval Training"</strong> tab, change the <strong>"Direction"</strong> dropdown to <strong>"Down"</strong></li>
+            <li>Keep the same settings: Min 2, Max 7, diatonic checked</li>
+            <li>Click <strong>"Play Interval"</strong></li>
+            <li>Now you'll hear the first note, then a <strong>lower</strong> second note</li>
+          </ul>
+        </li>
+        <li><strong>Understand the Descending "Feel":</strong>
+          <ul>
+            <li>Descending intervals have a different character than ascending:
+              <ul>
+                <li><strong>Descending 2nds</strong> (Do→Ti, Re→Do): Feel like "stepping down" or "settling"</li>
+                <li><strong>Descending 3rds</strong> (Do→La, Mi→Do): Feel like "falling gently"</li>
+                <li><strong>Descending 4ths</strong> (Do→So below, Fa→Do): Feel like "dropping down"</li>
+                <li><strong>Descending 5ths</strong> (Do→Fa below, So→Do): Feel like a "big drop"</li>
+              </ul>
+            </li>
+            <li>Practice identifying the <strong>size</strong> of the interval (2nd, 3rd, 4th, 5th) even when it goes down</li>
+            <li>The interval name stays the same - a 3rd is a 3rd whether ascending or descending</li>
+          </ul>
+        </li>
+        <li><strong>Practice Descending Intervals:</strong>
+          <ul>
+            <li>Play 10 descending intervals</li>
+            <li>For each one: Listen → Identify the interval size → Reveal → Check</li>
+            <li>Aim for 10/10 correct on descending before moving on</li>
+            <li>If struggling, use the warmup <strong>"Intervals from Do ↓"</strong> to hear descending examples</li>
+          </ul>
+        </li>
+        <li><strong>Mix Ascending and Descending:</strong>
+          <ul>
+            <li>Once comfortable with both, change <strong>"Direction"</strong> to <strong>"Either"</strong></li>
+            <li>Now intervals can go up OR down - you won't know which until you hear it</li>
+            <li>First identify: Is it ascending or descending?</li>
+            <li>Then identify: What size interval is it?</li>
+            <li>Practice until you can identify both direction and size correctly</li>
+          </ul>
+        </li>
       </ol>
     </div>
 
     <div class="what-to-look-for">
       <h4>What to Look For:</h4>
       <ul>
-        <li>2nds feel "close" (Do→Re, Re→Mi)</li>
-        <li>3rds feel "sweet" or "harmonious" (Do→Mi, Re→Fa)</li>
-        <li>4ths feel "open" (Do→Fa, Re→So)</li>
-        <li>5ths feel "stable" or "strong" (Do→So, Re→La)</li>
+        <li><strong>Ascending intervals:</strong> Second note appears <strong>higher</strong> on the staff</li>
+        <li><strong>Descending intervals:</strong> Second note appears <strong>lower</strong> on the staff</li>
+        <li>2nds feel "close" (Do→Re ascending, Do→Ti descending)</li>
+        <li>3rds feel "sweet" or "harmonious" (Do→Mi ascending, Do→La descending)</li>
+        <li>4ths feel "open" (Do→Fa ascending, Do→So-below descending)</li>
+        <li>5ths feel "stable" or "strong" (Do→So ascending, Do→Fa-below descending)</li>
         <li>The staff shows the exact interval when revealed</li>
         <li>The badge shows the technical name (Major 2nd, Minor 3rd, etc.)</li>
       </ul>
@@ -1241,8 +1289,13 @@ function getSubLesson2_2() {
     </div>
 
     <div class="benchmark">
-      <p><strong>Benchmark:</strong> 10/10 correct on Interval Training Easy mode (intervals 2-7 semitones, direction up)</p>
-      <p><strong>Progression:</strong> Move to 2.3 when benchmark achieved</p>
+      <p><strong>Benchmark:</strong> 10/10 correct on Interval Training with intervals 2-7 semitones in EACH direction:</p>
+      <ul>
+        <li>10/10 with Direction: Up (ascending)</li>
+        <li>10/10 with Direction: Down (descending)</li>
+        <li>10/10 with Direction: Either (mixed)</li>
+      </ul>
+      <p><strong>Progression:</strong> Move to 2.3 when all three benchmarks achieved</p>
     </div>
   `;
 }
@@ -1253,8 +1306,8 @@ function getSubLesson2_3() {
       <h4>Learning Objectives:</h4>
       <ul>
         <li>Recognize larger intervals (6th, 7th, octave)</li>
-        <li>Understand intervals can go up or down</li>
-        <li>Identify intervals from any starting note</li>
+        <li>Identify intervals from any starting note (not just Do)</li>
+        <li>Master the full range of diatonic intervals</li>
       </ul>
     </div>
 
@@ -1265,7 +1318,7 @@ function getSubLesson2_3() {
           <ul>
             <li>Click <strong>"Interval Training"</strong> tab</li>
             <li>Click the <strong>"Medium"</strong> difficulty button (upgrade from Easy)</li>
-            <li>Find <strong>"Direction"</strong> dropdown - set to <strong>"Either"</strong> (this includes both up and down)</li>
+            <li>Find <strong>"Direction"</strong> dropdown - keep it on <strong>"Either"</strong> (you mastered this in 2.2)</li>
             <li>Find <strong>"Min (semitones)"</strong> - set to <strong>1</strong></li>
             <li>Find <strong>"Max (semitones)"</strong> - set to <strong>12</strong> (this includes octaves)</li>
             <li>Make sure <strong>"Constrain to scale notes (diatonic)"</strong> is <strong>CHECKED</strong></li>
@@ -1284,13 +1337,8 @@ function getSubLesson2_3() {
           <ul>
             <li>Go back to <strong>"Interval Training"</strong> tab</li>
             <li>Click <strong>"Play Interval"</strong></li>
-            <li>Listen carefully - the interval might go <strong>up</strong> or <strong>down</strong> now</li>
-            <li>Try to identify:
-              <ul>
-                <li>Is it ascending (second note higher) or descending (second note lower)?</li>
-                <li>What's the interval size? (2nd, 3rd, 4th, 5th, 6th, 7th, or octave?)</li>
-              </ul>
-            </li>
+            <li>Remember: intervals can go up or down (you practiced this in 2.2)</li>
+            <li>Now focus on identifying the <strong>larger intervals</strong>: 6th, 7th, octave</li>
             <li>Click <strong>"Reveal"</strong> to check</li>
             <li>Study the staff and badge for feedback</li>
           </ul>
@@ -1329,11 +1377,10 @@ function getSubLesson2_3() {
     <div class="what-to-look-for">
       <h4>What to Look For:</h4>
       <ul>
-        <li>6ths feel "wide" - like a big jump (Do→La)</li>
+        <li>6ths feel "wide" - like a big jump (Do→La ascending, Do→Mi-below descending)</li>
         <li>7ths feel "unresolved" - want to go to the octave (Do→Ti wants to resolve to Do)</li>
-        <li>Octaves feel "familiar" - same note, different register</li>
-        <li>Descending intervals have a different "feel" than ascending</li>
-        <li>The staff clearly shows whether the interval goes up or down</li>
+        <li>Octaves feel "familiar" - same note, different register (Do→Do)</li>
+        <li>You should already be comfortable with ascending vs. descending from Lesson 2.2</li>
       </ul>
     </div>
 
@@ -1342,7 +1389,7 @@ function getSubLesson2_3() {
       <ul>
         <li>If you're confusing 6ths and 7ths, practice those two specifically</li>
         <li>If octaves are hard, practice Do→Do (octave) vs. Do→Ti (7th) to feel the difference</li>
-        <li>If descending intervals are confusing, practice with Direction set to "Down" only first</li>
+        <li>If direction (ascending/descending) is still confusing, review Lesson 2.2</li>
         <li>If starting from different notes is hard, that's normal - keep practicing</li>
       </ul>
     </div>
