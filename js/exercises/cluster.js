@@ -120,10 +120,10 @@ function buildPool({ anchor, direction, diatonic, excludeDoPitchClass }) {
 
     if (diatonic) {
       const rel = normalizeModulo(midi - doMidi, 12);
-      // Allow 1 semitone (minor 2nd) as a special case when diatonic is true
-      // This allows Ti when descending from Do (1 semitone down), since Ti->Do ascending (11 semitones) IS diatonic
-      // The same interval relationship should be allowed in both directions
-      const isDiatonic = DEGREE_SEMITONES.includes(rel) || rel === 1;
+      // Check if note is a standard diatonic degree
+      // DEGREE_SEMITONES = [0, 2, 4, 5, 7, 9, 11] = Do, Re, Mi, Fa, Sol, La, Ti
+      // Ti (rel === 11) is already included, so no special case needed
+      const isDiatonic = DEGREE_SEMITONES.includes(rel);
       if (!isDiatonic) continue;
       if (excludeDoPitchClass && rel === 0) continue; // avoid octave-Do duplicates in easy/medium
     }

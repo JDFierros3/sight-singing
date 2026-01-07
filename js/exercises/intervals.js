@@ -84,14 +84,16 @@ function getIntervalRange() {
 
 function buildValidIntervalSpans(min, max) {
   const spans = [];
+  const direction = getIntervalDirection();
   
-  // Include 1 semitone (minor 2nd) if it's within the min-max range
-  // This allows Do->Ti descending (1 semitone down) which is a common interval to practice
-  // Note: 1 semitone is not in DIATONIC_ST (diatonic intervals are 0, 2, 4, 5, 7, 9, 11, 12)
-  // However, Ti->Do ascending (11 semitones) IS diatonic, so we allow 1 semitone as a special case
-  // when onScaleOnly is true, since it represents the same interval relationship (just inverted)
+  // 1 semitone (minor 2nd) handling:
+  // - Ascending 1 semitone from Do = Di (chromatic) - NOT allowed when onScaleOnly
+  // - Descending 1 semitone from Do = Ti (diatonic) - allowed
+  // So we only include 1 semitone when direction allows descending
   if (min <= 1 && 1 <= max) {
-    if (!appState.exercise.onScaleOnly || true) { // Always allow 1 semitone when in range
+    // Only allow 1 semitone for descending or either (when it can be descending)
+    // When onScaleOnly is true, only allow if direction is 'down' or 'either'
+    if (!appState.exercise.onScaleOnly || direction === 'down' || direction === 'either') {
       spans.push(1);
     }
   }
@@ -140,7 +142,15 @@ function pickRandomStartingNote(avoidMidi = null) {
 }
 
 function calculateIntervalNote(startNote, span, direction) {
-  const directionMultiplier = getDirectionMultiplier(direction);
+  let effectiveDirection = direction;
+  
+  // Force descending for 1-semitone intervals when onScaleOnly is true
+  // This ensures we get Do->Ti (diatonic) and not Do->Di (chromatic)
+  if (span === 1 && appState.exercise.onScaleOnly && direction === 'either') {
+    effectiveDirection = 'down';
+  }
+  
+  const directionMultiplier = getDirectionMultiplier(effectiveDirection);
   return startNote + directionMultiplier * span;
 }
 

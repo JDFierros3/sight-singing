@@ -96,20 +96,46 @@ export async function loadInstrument(instrumentName) {
   
   try {
     // Choir uses soundfont-player (more reliable than trying to find Tone sampler assets)
-    if (instrumentName === 'choir_aahs' || instrumentName === 'choir_oohs') {
+    if (instrumentName === 'choir_aahs' || instrumentName === 'voice_oohs') {
       unloadInstrument();
       const ctx = getAudioContext();
       if (!ctx) throw new Error('AudioContext not available');
 
-      const Soundfont = (await import('https://cdn.jsdelivr.net/npm/soundfont-player@0.15.7/+esm')).default;
-      // Use FluidR3_GM hosted at gleitz (soundfont-player defaults to this host, but we set soundfont explicitly).
-      currentSoundfont = await Soundfont.instrument(ctx, instrumentName, {
-        soundfont: 'FluidR3_GM',
-        format: 'mp3'
-      });
-      currentInstrumentName = instrumentName;
-      currentBackend = 'soundfont';
-      return;
+      console.log(`🎵 Loading ${instrumentName} via soundfont-player...`);
+      
+      try {
+        // Try to load soundfont-player from global (if loaded via script tag) or dynamic import
+        let Soundfont = window.Soundfont;
+        if (!Soundfont) {
+          // Try unpkg as alternative CDN
+          try {
+            const module = await import('https://unpkg.com/soundfont-player@0.12.0/dist/soundfont-player.min.js');
+            Soundfont = window.Soundfont;
+          } catch (e) {
+            console.warn('Dynamic import failed, checking for global Soundfont...');
+          }
+        }
+        
+        if (!Soundfont) {
+          throw new Error('Soundfont-player library not available. Add <script src="https://unpkg.com/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script> to your HTML.');
+        }
+        
+        // Use FluidR3_GM hosted at gleitz
+        currentSoundfont = await Soundfont.instrument(ctx, instrumentName, {
+          soundfont: 'FluidR3_GM',
+          format: 'mp3'
+        });
+        currentInstrumentName = instrumentName;
+        currentBackend = 'soundfont';
+        console.log(`✅ ${instrumentName} loaded successfully via soundfont-player!`);
+        return;
+      } catch (soundfontError) {
+        console.error(`❌ Failed to load ${instrumentName} via soundfont-player:`, soundfontError);
+        console.log('⚠️ Falling back to piano...');
+        // Fall back to piano if choir fails
+        isLoading = false;
+        return await loadInstrument('acoustic_grand_piano');
+      }
     }
 
     // Check if Tone.js is available
