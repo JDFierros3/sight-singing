@@ -7,7 +7,7 @@ import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionBut
 import { initializeTabSystem } from './ui/components/tabs.js';
 import { renderStaff } from './rendering/staff.js';
 import { getCurrentPitch } from './pitch/detection.js';
-import { appState } from './state/appState.js';
+import { appState, updateTuningSetting } from './state/appState.js';
 import { CHORDS, DEGREE_SEMITONES } from './config/constants.js';
 import { getElementById } from './utils/dom.js';
 import { getRomanNumeral } from './utils/musicTheory.js';
@@ -77,6 +77,7 @@ function initializeApplication() {
   setupApplicationState();
   buildUserInterface();
   wireUpEventHandlers();
+  initializeDefaultInstrument();
   setupKeyboardShortcuts();
   setupCustomEvents();
   startRenderLoop();
@@ -86,6 +87,30 @@ function initializeApplication() {
 function setupApplicationState() {
   // State is initialized in appState.js module
   // This function is a placeholder for any runtime state setup
+}
+
+async function initializeDefaultInstrument() {
+  // Load the default instrument if it's not 'sine'
+  const defaultInstrument = appState.tuning.instrument;
+  if (defaultInstrument && defaultInstrument !== 'sine') {
+    const instrumentSelect = getElementById('instrument');
+    if (instrumentSelect && instrumentSelect.value === defaultInstrument) {
+      try {
+        const { loadInstrument } = await import('./audio/instruments.js');
+        instrumentSelect.disabled = true;
+        await loadInstrument(defaultInstrument);
+        instrumentSelect.disabled = false;
+      } catch (error) {
+        console.error('Failed to load default instrument:', error);
+        // Revert to sine if loading fails
+        updateTuningSetting('instrument', 'sine');
+        if (instrumentSelect) {
+          instrumentSelect.value = 'sine';
+          instrumentSelect.disabled = false;
+        }
+      }
+    }
+  }
 }
 
 function buildUserInterface() {
@@ -152,6 +177,19 @@ function setupHeaderControls() {
 
   const mobileMql = window.matchMedia('(max-width: 480px)');
   const MOBILE_HEADER_STORAGE_KEY = 'mobileHeaderHidden';
+  const updateShowHeaderFabText = () => {
+    if (!showHeaderFab) return;
+    const isHidden = document.body.classList.contains('mobile-header-hidden');
+    if (isHidden) {
+      showHeaderFab.textContent = 'Show\ncontrols';
+      showHeaderFab.setAttribute('aria-label', 'Show controls');
+      showHeaderFab.setAttribute('title', 'Show controls');
+    } else {
+      showHeaderFab.textContent = 'Hide\ncontrols';
+      showHeaderFab.setAttribute('aria-label', 'Hide controls');
+      showHeaderFab.setAttribute('title', 'Hide controls');
+    }
+  };
   const applyMobileHeaderState = () => {
     const isMobile = !!mobileMql.matches;
     if (!isMobile) {
@@ -159,9 +197,11 @@ function setupHeaderControls() {
       if (showHeaderFab) showHeaderFab.style.display = 'none';
       return;
     }
+    // On mobile, always show the floating button
+    if (showHeaderFab) showHeaderFab.style.display = 'inline-flex';
     const hidden = localStorage.getItem(MOBILE_HEADER_STORAGE_KEY) === '1';
     document.body.classList.toggle('mobile-header-hidden', hidden);
-    if (showHeaderFab) showHeaderFab.style.display = hidden ? 'inline-flex' : 'none';
+    updateShowHeaderFabText();
   };
 
   // Apply on load and when crossing breakpoint/orientation change
@@ -189,9 +229,17 @@ function setupHeaderControls() {
 
   if (showHeaderFab) {
     showHeaderFab.onclick = () => {
-      document.body.classList.remove('mobile-header-hidden');
-      localStorage.setItem(MOBILE_HEADER_STORAGE_KEY, '0');
-      showHeaderFab.style.display = 'none';
+      const isHidden = document.body.classList.contains('mobile-header-hidden');
+      if (isHidden) {
+        // Show header
+        document.body.classList.remove('mobile-header-hidden');
+        localStorage.setItem(MOBILE_HEADER_STORAGE_KEY, '0');
+      } else {
+        // Hide header
+        document.body.classList.add('mobile-header-hidden');
+        localStorage.setItem(MOBILE_HEADER_STORAGE_KEY, '1');
+      }
+      updateShowHeaderFabText();
     };
   }
 

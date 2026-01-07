@@ -696,7 +696,8 @@ canvas {
     display: none !important;
   }
 
-  body.mobile-header-hidden .showHeaderFab {
+  /* On mobile, always show the floating button */
+  .showHeaderFab {
     display: inline-flex !important;
   }
 
