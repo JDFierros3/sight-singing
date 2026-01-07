@@ -639,6 +639,11 @@ canvas {
 
 /* Responsive */
 @media (max-width: 480px) {
+  /* Hide the toggleRibbon button on mobile - we use floating showHeaderFab instead */
+  #toggleRibbon {
+    display: none !important;
+  }
+
   /* When header is collapsed, hide most content but keep essential controls */
   body.mobile-header-hidden .appHeader {
     padding: 8px 12px;
@@ -698,6 +703,11 @@ canvas {
   /* When header is hidden, reclaim space */
   body.mobile-header-hidden main {
     padding-top: 0;
+  }
+
+  /* Add bottom padding to account for browser/phone controls */
+  main {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
   }
 
   .appHeader {

@@ -27,7 +27,7 @@ export function startOscillator(oscillator) {
     const ctx = oscillator.osc.context;
     const currentTime = ctx.currentTime;
     const targetGain = oscillator.g._targetGain || 0.15;
-    const fadeInTime = 0.03; // 30ms fade in for smoother transition
+    const fadeInTime = 0.05; // 50ms fade in for smoother transition (increased to reduce clicks)
     
     // Ensure gain starts at 0
     oscillator.g.gain.cancelScheduledValues(currentTime);
@@ -50,7 +50,7 @@ export function stopOscillator(oscillator) {
     if (oscillator.osc && oscillator.g) {
       const ctx = oscillator.osc.context;
       const currentTime = ctx.currentTime;
-      const fadeOutTime = 0.03; // 30ms fade out for smoother transition
+      const fadeOutTime = 0.05; // 50ms fade out for smoother transition (increased to reduce clicks)
       const minGain = 0.0001; // Minimum gain for exponential ramp (can't go to exactly 0)
       
       // Get current gain value

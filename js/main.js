@@ -173,16 +173,13 @@ function setupHeaderControls() {
   }
 
   if (toggleRibbon) {
+    // Hide toggleRibbon button on mobile - we use the floating showHeaderFab instead
+    if (mobileMql.matches) {
+      toggleRibbon.style.display = 'none';
+    }
+    
     toggleRibbon.onclick = () => {
-      // On phones, hide the entire header; on desktop, only collapse the ribbon.
-      if (mobileMql.matches) {
-        const next = !document.body.classList.contains('mobile-header-hidden');
-        document.body.classList.toggle('mobile-header-hidden', next);
-        localStorage.setItem(MOBILE_HEADER_STORAGE_KEY, next ? '1' : '0');
-        if (showHeaderFab) showHeaderFab.style.display = next ? 'inline-flex' : 'none';
-        return;
-      }
-
+      // On desktop, only collapse the ribbon (not the entire header)
       document.body.classList.toggle('controls-collapsed');
       toggleRibbon.textContent = document.body.classList.contains('controls-collapsed')
         ? 'Show controls'

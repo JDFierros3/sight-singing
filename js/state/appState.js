@@ -21,7 +21,7 @@ function initializeTuning() {
     doMidi: 60,
     minMidi: 48,
     maxMidi: 72,
-    instrument: 'sine' // Current instrument (sine for oscillator, or soundfont name)
+    instrument: 'acoustic_grand_piano' // Current instrument (sine for oscillator, or soundfont name)
   };
 }
 
