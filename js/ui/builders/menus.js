@@ -16,6 +16,7 @@ export function buildNoteSelectionMenus() {
 
 function buildDoNoteMenu() {
   const menu = getElementById('doNote');
+  if (!menu) return;
   clearMenu(menu);
   populateMenuWithMidiRange(menu, 36, 84);
   selectMenuOption(menu, appState.tuning.doMidi);
@@ -23,6 +24,7 @@ function buildDoNoteMenu() {
 
 function buildMinNoteMenu() {
   const menu = getElementById('minNote');
+  if (!menu) return;
   clearMenu(menu);
   populateMenuWithMidiRange(menu, 36, 84);
   selectMenuOption(menu, appState.tuning.minMidi);
@@ -30,12 +32,14 @@ function buildMinNoteMenu() {
 
 function buildMaxNoteMenu() {
   const menu = getElementById('maxNote');
+  if (!menu) return;
   clearMenu(menu);
   populateMenuWithMidiRange(menu, 36, 84);
   selectMenuOption(menu, appState.tuning.maxMidi);
 }
 
 function populateMenuWithMidiRange(menu, minMidi, maxMidi) {
+  if (!menu) return;
   for (let midi = minMidi; midi <= maxMidi; midi++) {
     const noteLabel = midiToNoteName(midi);
     const option = createMenuOption(noteLabel, midi);
@@ -52,6 +56,7 @@ function createMenuOption(label, value) {
 }
 
 function selectMenuOption(menu, value) {
+  if (!menu) return;
   for (let option of menu.options) {
     option.selected = Number(option.value) === value;
   }
