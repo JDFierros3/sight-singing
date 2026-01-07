@@ -143,13 +143,9 @@ function getDirectionMultiplier(direction) {
 function constrainNoteToRange(note) {
   const min = appState.tuning.minMidi;
   const max = appState.tuning.maxMidi;
-  
-  if (note < min || note > max) {
-    const direction = note < min ? 1 : -1;
-    const span = Math.abs(note - (note < min ? min : max));
-    return note + direction * span;
-  }
-  
+  // Simple clamp: if out of range, move to nearest boundary
+  if (note < min) return min;
+  if (note > max) return max;
   return note;
 }
 
@@ -158,13 +154,39 @@ function constrainToScaleIfNeeded(note) {
     return note;
   }
   
-  if (getDegreeForMidi(note, appState.tuning.doMidi) === null) {
-    const randomDegreeIndex = randomInRange(0, DEGREE_SEMITONES.length - 1);
-    const degree = DEGREE_SEMITONES[randomDegreeIndex];
-    return appState.tuning.doMidi + degree;
+  // Don't modify Do note in easy/medium mode - it's explicitly set to Do and must stay Do
+  const isEasyOrMedium = appState.exercise.intervalDifficulty === 'easy' || 
+                         appState.exercise.intervalDifficulty === 'medium';
+  if (isEasyOrMedium && note === appState.tuning.doMidi) {
+    return note; // Always keep Do as Do in easy/medium mode
   }
   
-  return note;
+  // Check if note is already diatonic
+  if (getDegreeForMidi(note, appState.tuning.doMidi) !== null) {
+    return note; // Already diatonic, no change needed
+  }
+  
+  // Note is not diatonic - snap to nearest diatonic note
+  // Find the closest diatonic note by checking all degrees in the same octave range
+  const doMidi = appState.tuning.doMidi;
+  const minMidi = appState.tuning.minMidi;
+  const maxMidi = appState.tuning.maxMidi;
+  
+  let closestNote = note;
+  let minDistance = Infinity;
+  
+  // Check all diatonic notes within the allowed range
+  for (let testMidi = minMidi; testMidi <= maxMidi; testMidi++) {
+    if (getDegreeForMidi(testMidi, doMidi) !== null) {
+      const distance = Math.abs(testMidi - note);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestNote = testMidi;
+      }
+    }
+  }
+  
+  return closestNote;
 }
 
 function storeInterval(noteA, noteB) {

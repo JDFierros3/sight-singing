@@ -2,9 +2,8 @@
  * Application entry point with clear initialization steps
  */
 
-import { buildNoteSelectionMenus, buildChordRootMenu, buildChordTypeMenu } from './ui/builders/menus.js';
-import { buildChordQuickButtons, buildDroneDegreeButtons, buildTargetButtons } from './ui/builders/buttons.js';
-import { buildSolfegeGuide } from './ui/builders/solfegeGuide.js';
+import { buildNoteSelectionMenus } from './ui/builders/menus.js';
+import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionButtons } from './ui/builders/chordButtons.js';
 import { initializeTabSystem } from './ui/components/tabs.js';
 import { renderStaff } from './rendering/staff.js';
 import { getCurrentPitch } from './pitch/detection.js';
@@ -35,14 +34,16 @@ const {
   handleMaxNoteChange = () => {},
   handleToleranceChange = () => {},
   handleZoomChange = () => {},
+  handleShowAccidentalsChange = () => {},
   handlePlayAimChange = () => {},
   handleShowKeySignatureChange = () => {},
   handleScaleOnlyChange = () => {},
   handleHideAnswersIntervalsChange = () => {},
   handleHideAnswersClusterChange = () => {},
   handleClusterThinkTimeChange = () => {},
-  handleChordRootChange = () => {},
-  handleChordTypeChange = () => {},
+  handleChordRootButtonClick = () => {},
+  handleChordQualityButtonClick = () => {},
+  handleChordInversionButtonClick = () => {},
   handleDroneGainChange = () => {},
   handleStartDroneClick = () => {},
   handleStopDroneClick = () => {},
@@ -88,14 +89,10 @@ function setupApplicationState() {
 }
 
 function buildUserInterface() {
-  buildSolfegeGuide();
   buildNoteSelectionMenus();
-  buildChordRootMenu();
-  buildChordTypeMenu();
-  
-  buildChordQuickButtons(handleChordQuickButtonClick);
-  buildDroneDegreeButtons(handleDroneDegreeToggle);
-  buildTargetButtons();
+  buildChordRootButtons();
+  buildChordQualityButtons();
+  buildChordInversionButtons();
   
   initializeTabSystem();
   
@@ -106,28 +103,6 @@ function buildUserInterface() {
   initializeStaffPanning();
   
   renderStaff();
-}
-
-function handleChordQuickButtonClick(chordName) {
-  appState.drone.chord = chordName;
-  appState.drone.semis = CHORDS[chordName];
-  
-  buildDroneDegreeButtons(handleDroneDegreeToggle);
-  buildTargetButtons();
-  
-  if (appState.drone.on) {
-    restartDrone();
-  }
-}
-
-function handleDroneDegreeToggle(newSemis) {
-  appState.drone.semis = newSemis;
-  
-  if (appState.drone.on) {
-    restartDrone();
-  }
-  
-  buildTargetButtons();
 }
 
 
@@ -244,7 +219,12 @@ function setupTuningControls() {
 function setupDisplayControls() {
   getElementById('tolerance').addEventListener('input', handleToleranceChange);
   getElementById('zoom').addEventListener('input', handleZoomChange);
-  getElementById('playAim').addEventListener('change', handlePlayAimChange);
+  const showAccidentalsCheckbox = getElementById('showAccidentals');
+  if (showAccidentalsCheckbox) {
+    showAccidentalsCheckbox.addEventListener('change', handleShowAccidentalsChange);
+    // Initialize checkbox state from appState
+    showAccidentalsCheckbox.checked = appState.display.showAccidentals;
+  }
   getElementById('showKeySignature')?.addEventListener('change', handleShowKeySignatureChange);
   
   // Setup diatonic toggles for each exercise panel
@@ -260,8 +240,35 @@ function setupDisplayControls() {
 }
 
 function setupDroneControls() {
-  getElementById('chordRoot').addEventListener('change', handleChordRootChange);
-  getElementById('chordSelect').addEventListener('change', handleChordTypeChange);
+  // Wire up radio button handlers using event delegation
+  // Use event delegation for chord buttons (they're dynamically created)
+  const rootButtonGroup = getElementById('chordRootButtonGroup');
+  if (rootButtonGroup) {
+    rootButtonGroup.addEventListener('click', (event) => {
+      if (event.target.hasAttribute('data-chord-root')) {
+        handleChordRootButtonClick(event);
+      }
+    });
+  }
+  
+  const qualityButtonGroup = getElementById('chordQualityButtonGroup');
+  if (qualityButtonGroup) {
+    qualityButtonGroup.addEventListener('click', (event) => {
+      if (event.target.hasAttribute('data-chord-quality')) {
+        handleChordQualityButtonClick(event);
+      }
+    });
+  }
+  
+  const inversionButtonGroup = getElementById('chordInversionButtonGroup');
+  if (inversionButtonGroup) {
+    inversionButtonGroup.addEventListener('click', (event) => {
+      if (event.target.hasAttribute('data-chord-inversion')) {
+        handleChordInversionButtonClick(event);
+      }
+    });
+  }
+  
   getElementById('droneGain').addEventListener('input', handleDroneGainChange);
   getElementById('startDrone').onclick = handleStartDroneClick;
   getElementById('stopDrone').onclick = handleStopDroneClick;
@@ -357,6 +364,13 @@ function setupExerciseControls() {
   }
   
   setupDifficultyButtons();
+  // Initialize difficulty to 'easy' for both exercises
+  if (appState.exercise.intervalDifficulty === 'easy') {
+    handleIntervalDifficultyPreset('easy');
+  }
+  if (appState.exercise.clusterDifficulty === 'easy') {
+    handleClusterDifficultyPreset('easy');
+  }
   getElementById('btnWarmup').onclick = handleWarmupClick;
   getElementById('warmupTempo').addEventListener('input', handleWarmupTempoChange);
 
@@ -364,12 +378,10 @@ function setupExerciseControls() {
   const flashNext = getElementById('flashcardNext');
   const flashFlip = getElementById('flashcardFlip');
   const flashMode = getElementById('flashcardMode');
-  const flashAcc = getElementById('flashcardAccidentals');
 
   if (flashNext) flashNext.onclick = handleFlashcardNextClick;
   if (flashFlip) flashFlip.onclick = handleFlashcardFlipClick;
   if (flashMode) flashMode.addEventListener('change', handleFlashcardModeChange);
-  if (flashAcc) flashAcc.addEventListener('change', handleFlashcardAccidentalsChange);
 }
 
 function setupDifficultyButtons() {

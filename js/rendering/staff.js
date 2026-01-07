@@ -94,6 +94,11 @@ export function renderStaff() {
     ) {
       drawStaticNotes(noteMapper, dimensions);
     }
+    
+    // Draw chord quality notes when Chord Quality tab is active
+    if (appState.exercise.currentTab === 'chord-quality') {
+      drawChordQualityNotes(noteMapper, dimensions);
+    }
   }
 }
 
@@ -414,7 +419,6 @@ function createNotePositionMapper(dimensions) {
 
   // Pitch class → diatonic step index relative to C within an octave (C=0..B=6).
   // We need key-aware spelling so flat keys (Db/Eb/...) don't render on sharp spellings (C#/D#/...).
-  const naturalPc = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
   const letters = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
   let pitchClassToDiatonic = [
@@ -432,13 +436,29 @@ function createNotePositionMapper(dimensions) {
     6  // B
   ];
 
-  // If we're in SATB preview mode and have a key, compute a key-aware mapping.
+  // Always use key-aware spelling based on movable Do (not just SATB mode)
+  // This ensures correct vertical positioning for all tabs (warmup, intervals, etc.)
+  let keyTonic = null;
+  let keyMode = 'major';
+  
+  // Priority: SATB exercise key > movable Do key
   if (appState.staff?.satbPreviewMode && Number.isFinite(appState.staff?.keyTonic)) {
+    // Use the MIDI file's key if in SATB mode
+    keyTonic = appState.staff.keyTonic;
+    keyMode = appState.staff.keyMode || 'major';
+  } else if (Number.isFinite(appState.tuning?.doMidi)) {
+    // Use movable Do as the key tonic
+    keyTonic = appState.tuning.doMidi % 12;
+    keyMode = 'major'; // Assume major for movable Do exercises
+  }
+  
+  // If we have a key, compute key-aware mapping
+  if (keyTonic !== null) {
     const pcMap = new Array(12).fill(0);
 
     for (let pc = 0; pc < 12; pc++) {
       // spellMidiInKey expects a midi note; passing `pc` is fine for pitch-class spelling decisions.
-      const spelled = spellMidiInKey(pc, appState.staff.keyTonic, appState.staff.keyMode || 'major');
+      const spelled = spellMidiInKey(pc, keyTonic, keyMode);
       const letter = spelled?.letter || 'C';
       pcMap[pc] = letters.indexOf(letter);
     }
@@ -854,6 +874,110 @@ function drawStaticNotes(noteMapper, dimensions) {
       const accidental = note.accidental || null;
       drawNoteAtPosition(x, y, note.midi, false, solfege, isAimPart, accidental);
     }
+  });
+  
+  ctx.restore();
+}
+
+function drawChordQualityNotes(noteMapper, dimensions) {
+  if (!ctx) return;
+  
+  const rootSemi = appState.drone.rootSemi;
+  const chordSemis = appState.drone.semis || [];
+  const inversion = appState.drone.inversion || 0;
+  const doMidi = appState.tuning.doMidi;
+  
+  if (chordSemis.length === 0) return;
+  
+  const startX = getStaffStartX();
+  const spacing = 30; // Horizontal spacing between notes
+  
+  ctx.save();
+  
+  // Calculate MIDI values for each chord tone based on inversion
+  let chordTones;
+  if (inversion === 0) {
+    // Root position: use chord tones as-is
+    chordTones = chordSemis.map(chordSemi => doMidi + rootSemi + chordSemi);
+  } else if (inversion === 1) {
+    // First inversion: move root up an octave, 3rd becomes bass
+    if (chordSemis.length >= 2) {
+      chordTones = [
+        doMidi + rootSemi + chordSemis[1], // 3rd becomes bass
+        ...chordSemis.slice(2).map(semi => doMidi + rootSemi + semi), // 5th, 7th, etc. stay
+        doMidi + rootSemi + chordSemis[0] + 12 // Root moves up an octave
+      ];
+    } else {
+      chordTones = chordSemis.map(chordSemi => doMidi + rootSemi + chordSemi);
+    }
+  } else if (inversion === 2) {
+    // Second inversion: move root and 3rd up an octave, 5th becomes bass
+    if (chordSemis.length >= 3) {
+      chordTones = [
+        doMidi + rootSemi + chordSemis[2], // 5th becomes bass
+        ...chordSemis.slice(3).map(semi => doMidi + rootSemi + semi), // 7th, etc. stay
+        doMidi + rootSemi + chordSemis[0] + 12, // Root moves up
+        doMidi + rootSemi + chordSemis[1] + 12  // 3rd moves up
+      ];
+    } else {
+      chordTones = chordSemis.map(chordSemi => doMidi + rootSemi + chordSemi);
+    }
+  } else {
+    // Fallback to root position
+    chordTones = chordSemis.map(chordSemi => doMidi + rootSemi + chordSemi);
+  }
+  
+  // Sort by MIDI value (low to high) for better visual arrangement
+  chordTones.sort((a, b) => a - b);
+  
+  // Get active drone frequencies to highlight which tones are playing
+  const activeFrequencies = getDroneFrequencies();
+  const activeMidis = activeFrequencies.map(freq => {
+    return Math.round(frequencyToMidi(freq, appState.tuning.a4));
+  });
+  
+  // Draw each chord tone
+  chordTones.forEach((midi, index) => {
+    const y = noteMapper(midi);
+    
+    if (!Number.isFinite(y) || y < -80 || y > dimensions.height + 80) {
+      return;
+    }
+    
+    const x = startX + index * spacing;
+    
+    // Check if this tone is active in the drone
+    const isActive = activeMidis.some(activeMidi => Math.abs(activeMidi - midi) < 1);
+    
+    // Get solfege for this MIDI note
+    const solfege = getSolfegeForMidi(midi, doMidi);
+    
+    // Draw ledger lines if needed
+    drawLedgerLinesForNote(ctx, x, y, dimensions);
+    
+    // Draw note with different styling for active vs. inactive
+    ctx.save();
+    
+    if (isActive && appState.drone.on) {
+      // Active tone: brighter, with glow
+      ctx.globalAlpha = 1.0;
+      ctx.shadowColor = '#8bd3ff';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      drawNoteHeadWithShape(ctx, x, y, solfege, 9);
+      ctx.restore();
+      ctx.save();
+      // Draw again for stronger glow
+      ctx.globalAlpha = 0.8;
+      drawNoteHeadWithShape(ctx, x, y, solfege, 9);
+    } else {
+      // Inactive tone: dimmer
+      ctx.globalAlpha = 0.6;
+      drawNoteHeadWithShape(ctx, x, y, solfege, 8);
+    }
+    
+    ctx.restore();
   });
   
   ctx.restore();

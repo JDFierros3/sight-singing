@@ -57,42 +57,4 @@ function selectMenuOption(menu, value) {
   }
 }
 
-export function buildChordRootMenu() {
-  const rootMenu = getElementById('chordRoot');
-  clearMenu(rootMenu);
-  
-  DEGREE_SEMITONES.forEach((semi, index) => {
-    const roman = getRomanNumeral(semi);
-    const solfege = SOLFEGE[index];
-    addSolfegeOptionToMenu(rootMenu, semi, solfege, roman);
-  });
-  
-  selectMenuOption(rootMenu, appState.drone.rootSemi);
-}
-
-function addSolfegeOptionToMenu(menu, semi, solfege, roman) {
-  const label = `${solfege} (${roman})`;
-  const option = createMenuOption(label, semi);
-  
-  if (semi === appState.drone.rootSemi) {
-    option.selected = true;
-  }
-  
-  menu.add(option);
-}
-
-export function buildChordTypeMenu() {
-  const chordMenu = getElementById('chordSelect');
-  clearMenu(chordMenu);
-  
-  Object.keys(CHORDS).forEach(chordName => {
-    const option = createMenuOption(chordName, chordName);
-    
-    if (chordName === appState.drone.chord) {
-      option.selected = true;
-    }
-    
-    chordMenu.add(option);
-  });
-}
 

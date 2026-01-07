@@ -28,16 +28,10 @@ export function setFlashcardMode(mode) {
   renderFlashcard();
 }
 
-export function setFlashcardAccidentalsEnabled(enabled) {
-  ensureState();
-  appState.exercise.flashcards.includeAccidentals = !!enabled;
-  // Generate a new card so user immediately sees the new pool.
-  nextFlashcard();
-}
 
 export function nextFlashcard() {
   ensureState();
-  const pool = buildFlashcardPool(appState.exercise.flashcards.includeAccidentals);
+  const pool = buildFlashcardPool();
   const prev = appState.exercise.flashcards.current?.solfege || null;
   const solfege = pickDifferent(pool, prev);
 
@@ -100,7 +94,6 @@ export function renderFlashcard() {
 function createDefaultFlashcardState() {
   return {
     mode: 'shapeToSolfege',
-    includeAccidentals: false,
     revealed: false,
     current: null
   };
@@ -112,9 +105,8 @@ function ensureState() {
   }
 }
 
-function buildFlashcardPool(includeAccidentals) {
-  if (!includeAccidentals) return SOLFEGE.slice();
-  return SEMITONE_TO_SOLFEGE.map(e => e.solfege);
+function buildFlashcardPool() {
+  return SOLFEGE.slice();
 }
 
 function pickDifferent(pool, prev) {

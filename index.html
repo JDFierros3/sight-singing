@@ -15,9 +15,6 @@
         <small class="subtitle">sing against drones • movable‑Do • no scoring</small>
       </div>
       <div class="appHeaderBadges">
-        <span class="chip">Now:</span>
-        <span id="nowBadge" class="chip" aria-live="polite">—</span>
-        <span class="pill" id="status" role="status" aria-live="polite">Idle</span>
       </div>
     </div>
 
@@ -44,8 +41,6 @@
       </div>
 
       <div class="controlRibbon">
-        <div id="solfegeGuide" class="controlGroup" aria-label="Solfege reference"></div>
-
         <div class="controlGroup">
           <label for="doNote">Do</label>
           <select id="doNote" aria-label="Select movable Do note"></select>
@@ -84,9 +79,11 @@
           <input id="zoom" type="range" min="0.7" max="1.8" value="1.5" step="0.05" aria-label="Staff zoom level" />
         </div>
 
-        <div class="controlGroup controlInline">
-          <label class="inlineLabel" for="playAim">Play aim</label>
-          <input id="playAim" type="checkbox" checked aria-label="Play aim tone when selected" />
+        <div class="controlGroup">
+          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px">
+            <input id="showAccidentals" type="checkbox" checked aria-label="Show accidentals on staff" />
+            Show accidentals
+          </label>
         </div>
 
         <div class="controlGroup controlInline">
@@ -98,46 +95,43 @@
   </header>
 
   <div class="wrap">
-    <main role="main">
-      <nav class="tabs" role="tablist" aria-label="Application tabs">
-        <button class="tab active" data-tab="warmup" role="tab" aria-selected="true" aria-controls="panel-warmup">Warmup</button>
-        <button class="tab" data-tab="cluster" role="tab" aria-selected="false" aria-controls="panel-cluster">Hidden Cluster</button>
-        <button class="tab" data-tab="intervals" role="tab" aria-selected="false" aria-controls="panel-intervals">Interval Training</button>
-        <button class="tab" data-tab="flashcards" role="tab" aria-selected="false" aria-controls="panel-flashcards">Flashcards</button>
-        <button class="tab" data-tab="satb" role="tab" aria-selected="false" aria-controls="panel-satb">SATB Practice</button>
-        <button class="tab" data-tab="chord-quality" role="tab" aria-selected="false" aria-controls="panel-chord-quality">Chord Quality</button>
-        <button class="tab" data-tab="theory" role="tab" aria-selected="false" aria-controls="panel-theory">Music Theory</button>
-      </nav>
+    <div class="main-content-wrapper">
+      <div class="main-content-left">
+        <main role="main">
+          <nav class="tabs" role="tablist" aria-label="Application tabs">
+            <button class="tab active" data-tab="warmup" role="tab" aria-selected="true" aria-controls="panel-warmup">Warmup</button>
+            <button class="tab" data-tab="cluster" role="tab" aria-selected="false" aria-controls="panel-cluster">Hidden Cluster</button>
+            <button class="tab" data-tab="intervals" role="tab" aria-selected="false" aria-controls="panel-intervals">Interval Training</button>
+            <button class="tab" data-tab="flashcards" role="tab" aria-selected="false" aria-controls="panel-flashcards">Flashcards</button>
+            <button class="tab" data-tab="satb" role="tab" aria-selected="false" aria-controls="panel-satb">SATB Practice</button>
+            <button class="tab" data-tab="chord-quality" role="tab" aria-selected="false" aria-controls="panel-chord-quality">Chord Quality</button>
+            <button class="tab" data-tab="theory" role="tab" aria-selected="false" aria-controls="panel-theory">Music Theory</button>
+          </nav>
 
-      <article class="panel staffPanel" style="padding-top:10px">
-        <canvas id="staff" title="Drag to pan; pinch/scroll to zoom (or use slider)" role="img" aria-label="Musical staff showing pitch detection"></canvas>
-      </article>
+          <article class="panel staffPanel" style="padding-top:10px">
+            <canvas id="staff" title="Drag to pan; pinch/scroll to zoom (or use slider)" role="img" aria-label="Musical staff showing pitch detection"></canvas>
+          </article>
 
       <!-- Settings tab removed; controls are now in the header ribbon -->
 
       <section id="panel-chord-quality" class="panel" role="tabpanel" aria-labelledby="tab-chord-quality" style="display:none">
         <fieldset>
           <legend>Chord Quality</legend>
-          <div class="grid2">
-            <div>
-              <label for="chordRoot">Chord root (relative to Do)</label>
-              <select id="chordRoot" aria-label="Select chord root"></select>
-            </div>
-            <div>
-              <label for="chordSelect">Chord type</label>
-              <select id="chordSelect" aria-label="Select chord type"></select>
-            </div>
+          <div>
+            <label>Chord root (relative to Do)</label>
+            <div class="row" id="chordRootButtonGroup" role="group" aria-label="Select chord root"></div>
           </div>
-          <div class="help">Pick a chord root in the key (Do/Re/Mi…), then choose a chord quality. Quick presets can override the quality. Degrees toggles are the actual drone chord tones.</div>
-          <div class="row" id="chordQuick" role="group" aria-label="Quick chord presets"></div>
-          <label>Degrees (relative to Do)</label>
-          <div class="row" id="droneNotes" role="group" aria-label="Drone degree toggles"></div>
+          <div style="margin-top:12px;">
+            <label>Chord quality</label>
+            <div class="row" id="chordQualityButtonGroup" role="group" aria-label="Select chord quality"></div>
+          </div>
+          <div style="margin-top:12px;">
+            <label>Inversion</label>
+            <div class="row" id="chordInversionButtonGroup" role="group" aria-label="Select chord inversion"></div>
+          </div>
+          <div class="help" style="margin-top:8px;">Select a chord root, quality, and inversion. The chord tones will be displayed on the staff. Clicking any button will preview the chord for ~0.5 seconds.</div>
 
-          <label style="margin-top:10px">Aim note (target)</label>
-          <div class="row" id="targetRow" role="group" aria-label="Target note selection"></div>
-          <div class="help">Target: <span id="targetLabel" aria-live="polite">(none)</span>. Click an Aim button to toggle the aim line on/off for that tone.</div>
-
-          <div class="row">
+          <div class="row" style="margin-top:16px;">
             <button id="startDrone" class="primary" aria-label="Start drone">Start Drone</button>
             <button id="stopDrone" aria-label="Stop drone">Stop Drone</button>
           </div>
@@ -194,9 +188,9 @@
         <fieldset>
           <legend>Hidden Cluster</legend>
           <div class="help">Listen for 2–3 hidden tones. Hum each tone you hear. Use Reveal only after you've tried to find them.</div>
-          <label class="flex" style="justify-content:space-between; margin:8px 0">
-            Hide staff answers (until Reveal)
+          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px; margin:8px 0">
             <input id="hideAnswers-cluster" type="checkbox" checked aria-label="Hide staff answers until Reveal is clicked" />
+            Hide staff answers (until Reveal)
           </label>
           <div class="row" style="margin-bottom:8px">
             <button class="difficulty-btn" data-difficulty="easy" data-exercise="cluster" aria-label="Easy difficulty">Easy</button>
@@ -204,9 +198,9 @@
             <button class="difficulty-btn" data-difficulty="hard" data-exercise="cluster" aria-label="Hard difficulty">Hard</button>
             <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="cluster" aria-label="Extra hard difficulty">Extra Hard</button>
           </div>
-          <label class="flex" style="justify-content:space-between; margin-bottom:8px">
-            Constrain to scale notes (diatonic)
+          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px; margin-bottom:8px">
             <input id="onScaleOnly-cluster" type="checkbox" checked aria-label="Constrain to scale notes" />
+            Constrain to scale notes (diatonic)
           </label>
           <label for="clusterThinkTime">Duration: <span id="clusterThinkTimeValue">3</span> seconds</label>
           <input id="clusterThinkTime" type="range" min="1" max="10" value="3" step="1" aria-label="Cluster playback duration in seconds" />
@@ -229,13 +223,13 @@
             <button class="difficulty-btn" data-difficulty="hard" data-exercise="interval" aria-label="Hard difficulty">Hard</button>
             <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="interval" aria-label="Extra hard difficulty">Extra Hard</button>
           </div>
-          <label class="flex" style="justify-content:space-between; margin-bottom:8px">
-            Hide staff answers (until Reveal)
+          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px; margin-bottom:8px">
             <input id="hideAnswers-intervals" type="checkbox" checked aria-label="Hide staff answers until Reveal is clicked" />
+            Hide staff answers (until Reveal)
           </label>
-          <label class="flex" style="justify-content:space-between; margin-bottom:8px">
-            Constrain to scale notes (diatonic)
+          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px; margin-bottom:8px">
             <input id="onScaleOnly-intervals" type="checkbox" checked aria-label="Constrain to scale notes" />
+            Constrain to scale notes (diatonic)
           </label>
           <div class="grid3">
             <div>
@@ -268,20 +262,12 @@
           <legend>Flashcards • Shape ↔ Solfege</legend>
           <div class="help">Train instant recognition. Hit <span class="kbd">N</span> for next and <span class="kbd">Space</span> to flip.</div>
 
-          <div class="grid2" style="margin-top:8px">
-            <div>
-              <label for="flashcardMode">Mode</label>
-              <select id="flashcardMode" aria-label="Flashcard mode">
-                <option value="shapeToSolfege" selected>Shape → Solfege</option>
-                <option value="solfegeToShape">Solfege → Shape</option>
-              </select>
-            </div>
-            <div>
-              <label class="flex" style="justify-content:space-between; margin-top:8px">
-                Include chromatic solfege (Di/Ri/Fi/Si/Li…)
-                <input id="flashcardAccidentals" type="checkbox" aria-label="Include solfege accidentals" />
-              </label>
-            </div>
+          <div style="margin-top:8px">
+            <label for="flashcardMode">Mode</label>
+            <select id="flashcardMode" aria-label="Flashcard mode">
+              <option value="shapeToSolfege" selected>Shape → Solfege</option>
+              <option value="solfegeToShape">Solfege → Shape</option>
+            </select>
           </div>
 
           <div class="flashcard" role="group" aria-label="Flashcard">
@@ -370,12 +356,16 @@
       </section>
 
       <section id="panel-theory" class="panel" role="tabpanel" aria-labelledby="tab-theory" style="display:none">
-        <fieldset>
-          <legend>Music Theory</legend>
-          <div class="help">(Placeholder) — we'll drop your write‑up in here unchanged.)</div>
-        </fieldset>
+        <!-- Theory content will be rendered here by theoryContent.js -->
       </section>
-    </main>
+        </main>
+      </div>
+      
+      <div id="theory-sidebar-resizer" class="theory-sidebar-resizer" aria-label="Resize theory sidebar" title="Drag to resize"></div>
+      <aside id="theory-sidebar" class="theory-sidebar" role="complementary" aria-label="Music Theory">
+        <!-- Theory content will be moved here on large screens via JavaScript -->
+      </aside>
+    </div>
   </div>
 
   <!-- Tone.js for instrument sounds -->

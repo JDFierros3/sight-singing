@@ -11,7 +11,7 @@ import { getDroneFrequencies } from '../../state/appState.js';
 import { startDroneWithFrequencies, stopAllDroneOscillators, updateDroneGain, updateIndividualDroneGain } from '../../audio/drone.js';
 import { ensureAudioContext } from '../../audio/context.js';
 import { startMicrophone, stopMicrophone } from '../../audio/microphone.js';
-import { buildDroneDegreeButtons, buildTargetButtons } from '../builders/buttons.js';
+import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionButtons } from '../builders/chordButtons.js';
 import { buildIndividualVolumeControls } from '../builders/volumeControls.js';
 import { runWarmupSequence, stopWarmupSequence } from '../../exercises/warmup.js';
 import { setTempo } from '../../rendering/scrollingStaff.js';
@@ -19,7 +19,7 @@ import { playHiddenCluster, revealClusterNotes } from '../../exercises/cluster.j
 import { playIntervalExercise, revealIntervalSolution } from '../../exercises/intervals.js';
 import { playSATBExercise, stopSATBExercise, pauseSATBExercise, resumeSATBExercise, handlePartSelection, getAllSATBExercises, displaySATBExerciseOnStaff, loadMidiExercise, setSatbTranspose } from '../../exercises/satb.js';
 import * as transport from '../components/transport.js';
-import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode, setFlashcardAccidentalsEnabled } from '../../exercises/flashcards.js';
+import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode } from '../../exercises/flashcards.js';
 import { buildExerciseSelection } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
 
@@ -94,6 +94,12 @@ export function handleMaxNoteChange(event) {
   updateTuningSetting('maxMidi', value);
   renderStaff();
   transport.stopAllPlayback?.();
+}
+
+export function handleShowAccidentalsChange(event) {
+  const value = event.target.checked;
+  updateDisplaySetting('showAccidentals', value);
+  renderStaff();
 }
 
 export function handleToleranceChange(event) {
@@ -178,8 +184,48 @@ function syncScaleOnlyCheckboxes(value) {
   });
 }
 
-export function handleChordRootChange(event) {
-  const value = Number(event.target.value);
+// Track preview timeout to prevent interference
+let dronePreviewTimeout = null;
+
+/**
+ * Preview drone briefly (~0.5 seconds) when buttons are clicked
+ */
+async function previewDroneBriefly() {
+  // Clear any existing preview
+  if (dronePreviewTimeout) {
+    clearTimeout(dronePreviewTimeout);
+    dronePreviewTimeout = null;
+  }
+  
+  // If drone is already on, don't preview (user manually started it)
+  if (appState.drone.on) {
+    return;
+  }
+  
+  await ensureAudioContext();
+  const frequencies = getDroneFrequencies();
+  startDroneWithFrequencies(frequencies, appState.drone.gain);
+  
+  // Stop after ~500ms
+  dronePreviewTimeout = setTimeout(() => {
+    stopAllDroneOscillators();
+    dronePreviewTimeout = null;
+  }, 500);
+}
+
+function restartDrone() {
+  if (appState.drone.on) {
+    const frequencies = getDroneFrequencies();
+    startDroneWithFrequencies(frequencies, appState.drone.gain);
+    updateIndividualVolumeControls();
+  }
+}
+
+export function handleChordRootButtonClick(event) {
+  const button = event.target.closest('[data-chord-root]');
+  if (!button) return;
+  
+  const value = Number(button.getAttribute('data-chord-root'));
   appState.drone.rootSemi = value;
   
   // Automatically set chord quality to natural quality for this scale degree
@@ -188,47 +234,67 @@ export function handleChordRootChange(event) {
     appState.drone.chord = naturalChord;
     appState.drone.semis = CHORDS[naturalChord];
     
-    // Update the chord type dropdown to reflect the change
-    const chordSelect = getElementById('chordSelect');
-    if (chordSelect) {
-      chordSelect.value = naturalChord;
-    }
+    // Rebuild all button groups to update selected states
+    buildChordRootButtons();
+    buildChordQualityButtons();
+    buildChordInversionButtons();
+  } else {
+    buildChordRootButtons();
   }
   
-  buildDroneDegreeButtons(handleDroneSemisChange);
-  buildTargetButtons();
   renderStaff();
   
   if (appState.drone.on) {
     restartDrone();
+  } else {
+    previewDroneBriefly();
   }
 
   transport.stopAllPlayback?.();
 }
 
-export function handleChordTypeChange(event) {
-  const chordName = event.target.value;
+export function handleChordQualityButtonClick(event) {
+  const button = event.target.closest('[data-chord-quality]');
+  if (!button) return;
+  
+  const chordName = button.getAttribute('data-chord-quality');
   appState.drone.chord = chordName;
   appState.drone.semis = CHORDS[chordName];
   
-  buildDroneDegreeButtons(handleDroneSemisChange);
-  buildTargetButtons();
+  // Rebuild button groups to update selected states
+  buildChordQualityButtons();
+  buildChordInversionButtons(); // Inversion buttons may need to update
+  
+  renderStaff();
   
   if (appState.drone.on) {
     restartDrone();
+  } else {
+    previewDroneBriefly();
   }
 
   transport.stopAllPlayback?.();
 }
 
-function handleDroneSemisChange(newSemis) {
-  appState.drone.semis = newSemis;
+export function handleChordInversionButtonClick(event) {
+  const button = event.target.closest('[data-chord-inversion]');
+  if (!button) return;
+  
+  const value = Number(button.getAttribute('data-chord-inversion'));
+  appState.drone.inversion = value;
+  
+  // Rebuild inversion buttons to update selected state
+  buildChordInversionButtons();
+  
+  renderStaff();
   
   if (appState.drone.on) {
     restartDrone();
+  } else {
+    previewDroneBriefly();
   }
-  
-  buildTargetButtons();
+
+  transport.stopAllPlayback?.();
 }
 
 export function handleDroneGainChange(event) {
@@ -293,9 +359,6 @@ export function handleFlashcardModeChange(event) {
   setFlashcardMode(event.target.value);
 }
 
-export function handleFlashcardAccidentalsChange(event) {
-  setFlashcardAccidentalsEnabled(!!event.target.checked);
-}
 
 // (Tab system calls initializeFlashcards() on tab switch)
 
@@ -585,13 +648,6 @@ export async function handleMidiFileSelect(event) {
   
   // Reset file input so same file can be selected again
   event.target.value = '';
-}
-
-
-function restartDrone() {
-  const frequencies = getDroneFrequencies();
-  const gain = appState.drone.gain;
-  startDroneWithFrequencies(frequencies, gain);
 }
 
 export function handleIntervalDifficultyPreset(difficulty) {
