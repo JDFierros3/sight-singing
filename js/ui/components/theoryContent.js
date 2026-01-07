@@ -178,7 +178,7 @@ function renderLesson1() {
         <p class="lesson-goal"><strong>Goal:</strong> Master shape note recognition and basic solfege understanding</p>
 
         ${renderSubLesson('1.1', 'Shape Notes and Solfege Syllables', getSubLesson1_1())}
-        ${renderSubLesson('1.2', 'The Staff and Note Reading', getSubLesson1_2())}
+        ${renderSubLesson('1.2', 'Understanding the Staff Structure', getSubLesson1_2())}
         ${renderSubLesson('1.3', 'Movable Do System', getSubLesson1_3())}
         ${renderSubLesson('1.4', 'Basic Intervals (Whole Steps and Half Steps)', getSubLesson1_4())}
         ${renderSubLesson('1.5', 'Key Signatures and Accidentals', getSubLesson1_5())}
@@ -198,7 +198,7 @@ function renderLesson2() {
         <p class="lesson-goal"><strong>Goal:</strong> Develop the ability to recognize intervals and pitches by ear</p>
 
         ${renderSubLesson('2.0', 'Finding Your Comfortable Do', getSubLesson2_0())}
-        ${renderSubLesson('2.1', 'Recognizing Individual Pitches', getSubLesson2_1())}
+        ${renderSubLesson('2.1', 'Visual and Audio Pitch Matching', getSubLesson2_1())}
         ${renderSubLesson('2.2', 'Interval Recognition (2nds, 3rds, 4ths, 5ths)', getSubLesson2_2())}
         ${renderSubLesson('2.3', 'Larger Intervals (6ths, 7ths, Octaves)', getSubLesson2_3())}
         ${renderSubLesson('2.4', 'Identifying Multiple Tones (Clusters)', getSubLesson2_4())}
@@ -336,67 +336,54 @@ function getSubLesson1_2() {
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
       <ul>
-        <li>Understand how shape notes appear on treble and bass clefs</li>
-        <li>Learn vertical position = pitch height</li>
-        <li>Recognize the same shape in different octaves</li>
+        <li>Understand the structure of a musical staff (5 lines, 4 spaces)</li>
+        <li>Learn about treble clef and bass clef</li>
+        <li>Understand ledger lines for notes outside the staff</li>
+        <li>Know where notes can appear (on lines or in spaces)</li>
       </ul>
     </div>
 
     <div class="app-instructions">
       <h4>Detailed App Instructions:</h4>
       <ol>
-        <li><strong>Navigate to Warmup Tab:</strong>
+        <li><strong>Observe the Staff Structure:</strong>
+          <ul>
+            <li>Look at the large canvas above the tabs - this is the <strong>staff</strong></li>
+            <li>Count the horizontal lines: there are <strong>5 lines</strong></li>
+            <li>Count the spaces between lines: there are <strong>4 spaces</strong></li>
+            <li>Notes can be placed <strong>on a line</strong> (the line goes through the middle of the note)</li>
+            <li>Notes can be placed <strong>in a space</strong> (the note sits between two lines)</li>
+          </ul>
+        </li>
+        <li><strong>Understand the Clefs:</strong>
+          <ul>
+            <li>At the left side of the staff, you'll see a symbol called a <strong>clef</strong></li>
+            <li><strong>Treble clef</strong> (𝄞) - used for higher-pitched instruments and voices (Soprano, Alto)</li>
+            <li><strong>Bass clef</strong> (𝄢) - used for lower-pitched instruments and voices (Tenor, Bass)</li>
+            <li>The clef tells you which notes correspond to which lines and spaces</li>
+          </ul>
+        </li>
+        <li><strong>Navigate to Warmup Tab to See Notes:</strong>
           <ul>
             <li>Click the <strong>"Warmup"</strong> tab</li>
-            <li>In the "Select stanzas to play" section:
-              <ul>
-                <li>Check <strong>"Major scale ↑"</strong> (should be checked by default)</li>
-                <li>Uncheck other stanzas for now</li>
-              </ul>
-            </li>
+            <li>Check <strong>"Major scale ↑"</strong></li>
+            <li>Click <strong>"Play Warm Up"</strong> to see shape notes appear on the staff</li>
+            <li>Notice how notes are placed on different lines and spaces</li>
           </ul>
         </li>
-        <li><strong>Observe the Staff Visualization:</strong>
+        <li><strong>Observe Ledger Lines:</strong>
           <ul>
-            <li>Look at the large canvas above the tabs (the staff)</li>
-            <li>Click the <strong>"Play Warm Up"</strong> button</li>
-            <li>Watch the staff as the scale plays - you'll see shape notes appear on the staff</li>
-            <li>Notice how the same shape (e.g., Do) appears at different vertical positions as the scale moves through different octaves</li>
-            <li>Higher on the staff = higher pitch (even if same shape)</li>
-            <li>The red play line moves across the staff showing which note is currently playing</li>
-          </ul>
-        </li>
-        <li><strong>Practice Recognizing Shapes at Different Positions:</strong>
-          <ul>
-            <li>Play the warmup scale multiple times (click <strong>"Play Warm Up"</strong> repeatedly)</li>
-            <li>As you watch the staff, pay attention to:
-              <ul>
-                <li>The shape itself (which solfege syllable?)</li>
-                <li>The vertical position on the staff (which octave?)</li>
-              </ul>
-            </li>
-            <li>Notice how Do appears at different vertical positions - one for each octave</li>
-            <li>Try to identify both the shape AND its approximate position as the scale plays</li>
-            <li>All the notes are visible on the staff simultaneously, so you can study the relationship between shapes and positions</li>
+            <li>When notes go beyond the 5 lines, short additional lines appear</li>
+            <li>These are called <strong>ledger lines</strong></li>
+            <li>Ledger lines extend the staff upward or downward for very high or very low notes</li>
+            <li>You may see ledger lines above the treble staff or below the bass staff</li>
           </ul>
         </li>
         <li><strong>Use Zoom Control</strong> (if needed):
           <ul>
             <li>In the header controls, find the <strong>"Zoom"</strong> slider</li>
             <li>Adjust it to make the staff larger (move slider right) or smaller (move slider left)</li>
-            <li>This helps see note positions more clearly</li>
-          </ul>
-        </li>
-        <li><strong>Practice Across Octaves:</strong>
-          <ul>
-            <li>Continue playing the warmup scale and observing until you can identify:
-              <ul>
-                <li>The shape correctly (Do, Re, Mi, etc.)</li>
-                <li>Whether notes are in a higher or lower octave (by staff position)</li>
-              </ul>
-            </li>
-            <li>The same shape appears multiple times - one per octave</li>
-            <li>Watch how the red play line moves across, highlighting each note as it plays</li>
+            <li>This helps see staff details more clearly</li>
           </ul>
         </li>
       </ol>
@@ -405,24 +392,26 @@ function getSubLesson1_2() {
     <div class="what-to-look-for">
       <h4>What to Look For:</h4>
       <ul>
-        <li>Staff has 5 lines and 4 spaces</li>
-        <li>Notes can appear on lines, spaces, or with ledger lines above/below</li>
-        <li>Same shape = same solfege syllable, regardless of octave</li>
-        <li>Higher position = higher pitch</li>
+        <li><strong>5 lines</strong> make up the staff</li>
+        <li><strong>4 spaces</strong> exist between the lines</li>
+        <li>Notes can be <strong>on lines</strong> or <strong>in spaces</strong></li>
+        <li><strong>Ledger lines</strong> extend the staff for very high or very low notes</li>
+        <li>The <strong>clef symbol</strong> at the left indicates treble or bass</li>
+        <li>The same shape note (e.g., Do) represents the same solfege syllable wherever it appears</li>
       </ul>
     </div>
 
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
-        <li>If staff is too small, use the Zoom slider</li>
-        <li>If you can't see the staff, make sure you're not in a different tab</li>
+        <li>If staff is too small to see details, use the Zoom slider</li>
+        <li>If you can't see the staff, make sure you're on a tab that displays music (Warmup, SATB, etc.)</li>
         <li>Drag the staff canvas to pan if notes are off-screen</li>
       </ul>
     </div>
 
     <div class="benchmark">
-      <p><strong>Benchmark:</strong> Successfully observe and identify shape notes at different octaves on the staff while playing warmup scales, understanding that the same shape appears at different vertical positions</p>
+      <p><strong>Benchmark:</strong> Be able to identify: the 5 lines and 4 spaces of the staff, where notes appear (on lines vs. in spaces), what ledger lines are, and the difference between treble and bass clef</p>
       <p><strong>Progression:</strong> Move to 1.3 when benchmark achieved</p>
     </div>
   `;
@@ -1609,15 +1598,12 @@ function getSubLesson3_2() {
     <div class="app-instructions">
       <h4>Detailed App Instructions:</h4>
       <ol>
-        <li><strong>Determine Your Vocal Range:</strong>
+        <li><strong>Know Your Vocal Range:</strong>
           <ul>
-            <li>Click <strong>"Start Mic"</strong> in the header (if not already on)</li>
-            <li>In the header controls, find the <strong>"Do"</strong> control group</li>
-            <li>Click the <strong>"Play Do"</strong> button to hear Do</li>
-            <li><strong>Sing "Do"</strong> and check the staff - note which octave you're comfortable in</li>
-            <li>Try changing Do to a higher note (e.g., D or E), click "Play Do", and sing "Do" again</li>
-            <li>Try changing Do to a lower note (e.g., A or Bb), click "Play Do", and sing "Do" again</li>
-            <li>Determine: Are you more comfortable in the higher range (Soprano/Alto) or lower range (Tenor/Bass)?</li>
+            <li>If you haven't already, complete <strong>Lesson 2.0 (Finding Your Comfortable Do)</strong> to determine your vocal range</li>
+            <li>Based on your comfortable Do setting from that lesson, determine if you're more comfortable in the higher range (Soprano/Alto) or lower range (Tenor/Bass)</li>
+            <li>Higher voices (comfortable with Do around D4, E4, F4): likely Soprano or Alto</li>
+            <li>Lower voices (comfortable with Do around A3, Bb3, C4): likely Tenor or Bass</li>
           </ul>
         </li>
         <li><strong>Select Your Target Part:</strong>
@@ -1943,8 +1929,9 @@ function getSubLesson3_4() {
         <li><strong>Practice with Chord Quality Tab</strong> (optional):
           <ul>
             <li>Go to <strong>"Chord Quality"</strong> tab</li>
-            <li>Set up a chord (e.g., I chord: click Do, Mi, So buttons)</li>
-            <li>Click <strong>"Start Drone"</strong></li>
+            <li>Click the <strong>"Do (I)"</strong> button for chord root</li>
+            <li>Click the <strong>"Major (1-3-5)"</strong> button for chord quality</li>
+            <li>Click <strong>"Start Drone"</strong> to hear the I chord (Do-Mi-So)</li>
             <li><strong>Sing individual chord tones</strong> against the drone:
               <ul>
                 <li>Sing Do while drone plays Do-Mi-So</li>
@@ -2798,7 +2785,7 @@ function getSubLesson5_2() {
         </li>
         <li><strong>Enable Microphone (Optional but Recommended):</strong>
           <ul>
-            <li>Click the <strong>"Mic"</strong> button in the header to enable microphone input</li>
+            <li>Click the <strong>"Start Mic"</strong> button in the header to enable microphone input</li>
             <li>Allow microphone access when prompted by your browser</li>
             <li>The app will show your detected pitch on the staff in real-time</li>
             <li>This gives you visual feedback on whether you're singing the correct pitch</li>
