@@ -85,10 +85,10 @@ export const INTERVAL_DIFFICULTY_PRESETS = {
   medium: {
     startingNote: 'do', // Always Do
     direction: 'either',
-    minInterval: 2,
+    minInterval: 1,
     maxInterval: 12,
     onScaleOnly: true,
-    description: 'Intervals from Do (up or down), diatonic only'
+    description: 'Intervals from Do (up or down), diatonic only (includes minor 2nd)'
   },
   hard: {
     startingNote: 'any',
