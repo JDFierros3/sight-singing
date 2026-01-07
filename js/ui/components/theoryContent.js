@@ -197,6 +197,7 @@ function renderLesson2() {
       <div class="lesson-content" data-lesson-content="2">
         <p class="lesson-goal"><strong>Goal:</strong> Develop the ability to recognize intervals and pitches by ear</p>
 
+        ${renderSubLesson('2.0', 'Finding Your Comfortable Do', getSubLesson2_0())}
         ${renderSubLesson('2.1', 'Recognizing Individual Pitches', getSubLesson2_1())}
         ${renderSubLesson('2.2', 'Interval Recognition (2nds, 3rds, 4ths, 5ths)', getSubLesson2_2())}
         ${renderSubLesson('2.3', 'Larger Intervals (6ths, 7ths, Octaves)', getSubLesson2_3())}
@@ -265,7 +266,6 @@ function getSubLesson1_1() {
       <ul>
         <li>Memorize all 7 shape note symbols (Do, Re, Mi, Fa, So, La, Ti)</li>
         <li>Understand the relationship between shapes and solfege syllables</li>
-        <li>Recognize shapes on the staff</li>
       </ul>
     </div>
 
@@ -283,16 +283,6 @@ function getSubLesson1_1() {
           <ul>
             <li>In the Flashcards panel, find the <strong>"Mode"</strong> dropdown</li>
             <li>Select <strong>"Shape → Solfege"</strong> (this should be the default)</li>
-            <li>Find the checkbox <strong>"Include chromatic solfege (Di/Ri/Fi/Si/Li…)"</strong></li>
-            <li>Make sure this checkbox is <strong>UNCHECKED</strong> (we're starting with basic shapes only)</li>
-          </ul>
-        </li>
-        <li><strong>Use the Solfege Guide Reference:</strong>
-          <ul>
-            <li>Look at the header controls (top of the page)</li>
-            <li>Find the <strong>solfege guide</strong> section (shows all 7 shapes with their syllables)</li>
-            <li>Keep this visible as a reference while practicing</li>
-            <li>The guide shows: Do (diamond), Re (oval), Mi (rectangle), Fa (triangle), So (oval), La (diamond), Ti (rectangle)</li>
           </ul>
         </li>
         <li><strong>Practice with Flashcards:</strong>
@@ -328,9 +318,9 @@ function getSubLesson1_1() {
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
-        <li>If shapes look unfamiliar, check the solfege guide in the header</li>
         <li>If "Flip" adds text instead of replacing, that's a bug - refresh the page</li>
         <li>If you're struggling, slow down and study each shape-syllable pair</li>
+        <li>Remember: Do (diamond), Re (oval), Mi (rectangle), Fa (triangle), So (oval), La (diamond), Ti (rectangle)</li>
       </ul>
     </div>
 
@@ -355,36 +345,39 @@ function getSubLesson1_2() {
     <div class="app-instructions">
       <h4>Detailed App Instructions:</h4>
       <ol>
-        <li><strong>Navigate to Flashcards Tab</strong> (if not already there):
+        <li><strong>Navigate to Warmup Tab:</strong>
           <ul>
-            <li>Click the <strong>"Flashcards"</strong> tab</li>
-          </ul>
-        </li>
-        <li><strong>Configure for Staff Reading Practice:</strong>
-          <ul>
-            <li>Mode should still be <strong>"Shape → Solfege"</strong></li>
-            <li>Chromatic solfege checkbox should still be <strong>UNCHECKED</strong></li>
+            <li>Click the <strong>"Warmup"</strong> tab</li>
+            <li>In the "Select stanzas to play" section:
+              <ul>
+                <li>Check <strong>"Major scale ↑"</strong> (should be checked by default)</li>
+                <li>Uncheck other stanzas for now</li>
+              </ul>
+            </li>
           </ul>
         </li>
         <li><strong>Observe the Staff Visualization:</strong>
           <ul>
             <li>Look at the large canvas above the tabs (the staff)</li>
-            <li>When you click <strong>"Next"</strong> on a flashcard, the shape note may appear on the staff</li>
-            <li>Notice how the same shape (e.g., Do) appears at different vertical positions</li>
+            <li>Click the <strong>"Play Warm Up"</strong> button</li>
+            <li>Watch the staff as the scale plays - you'll see shape notes appear on the staff</li>
+            <li>Notice how the same shape (e.g., Do) appears at different vertical positions as the scale moves through different octaves</li>
             <li>Higher on the staff = higher pitch (even if same shape)</li>
+            <li>The red play line moves across the staff showing which note is currently playing</li>
           </ul>
         </li>
         <li><strong>Practice Recognizing Shapes at Different Positions:</strong>
           <ul>
-            <li>Click <strong>"Next"</strong> repeatedly</li>
-            <li>Pay attention to:
+            <li>Play the warmup scale multiple times (click <strong>"Play Warm Up"</strong> repeatedly)</li>
+            <li>As you watch the staff, pay attention to:
               <ul>
                 <li>The shape itself (which solfege syllable?)</li>
                 <li>The vertical position on the staff (which octave?)</li>
               </ul>
             </li>
-            <li>Try to identify both the shape AND its approximate position</li>
-            <li>Use <strong>"Flip"</strong> to check your answer</li>
+            <li>Notice how Do appears at different vertical positions - one for each octave</li>
+            <li>Try to identify both the shape AND its approximate position as the scale plays</li>
+            <li>All the notes are visible on the staff simultaneously, so you can study the relationship between shapes and positions</li>
           </ul>
         </li>
         <li><strong>Use Zoom Control</strong> (if needed):
@@ -396,13 +389,14 @@ function getSubLesson1_2() {
         </li>
         <li><strong>Practice Across Octaves:</strong>
           <ul>
-            <li>Continue practicing until you can identify:
+            <li>Continue playing the warmup scale and observing until you can identify:
               <ul>
                 <li>The shape correctly (Do, Re, Mi, etc.)</li>
-                <li>Whether it's in a higher or lower octave (by staff position)</li>
+                <li>Whether notes are in a higher or lower octave (by staff position)</li>
               </ul>
             </li>
             <li>The same shape appears multiple times - one per octave</li>
+            <li>Watch how the red play line moves across, highlighting each note as it plays</li>
           </ul>
         </li>
       </ol>
@@ -428,7 +422,7 @@ function getSubLesson1_2() {
     </div>
 
     <div class="benchmark">
-      <p><strong>Benchmark:</strong> 20/20 correct on flashcards across different octaves</p>
+      <p><strong>Benchmark:</strong> Successfully observe and identify shape notes at different octaves on the staff while playing warmup scales, understanding that the same shape appears at different vertical positions</p>
       <p><strong>Progression:</strong> Move to 1.3 when benchmark achieved</p>
     </div>
   `;
@@ -703,24 +697,24 @@ function getSubLesson1_5() {
             <li>This is why you might see accidentals even when playing scale notes</li>
           </ul>
         </li>
-        <li><strong>Observe Accidentals on the Staff:</strong>
+        <li><strong>Observe and Practice with Accidentals on the Staff:</strong>
           <ul>
             <li>Set Do to <strong>G#</strong> (or another sharp key) using the Do dropdown in the header</li>
             <li>Go to the <strong>"Warmup"</strong> tab</li>
+            <li>In the header controls, find the <strong>"Show accidentals"</strong> checkbox (in the control ribbon - you may need to click "Show controls" if hidden)</li>
+            <li>Make sure <strong>"Show accidentals"</strong> is checked (it's checked by default)</li>
             <li>Check <strong>"Major scale ↑"</strong> and click <strong>"Play Warm Up"</strong></li>
-            <li>Watch the staff as the scale plays</li>
-            <li>You may see accidentals (♯, ♭, or ♮) appearing before some notes</li>
+            <li>Watch the staff as the scale plays - you'll see accidentals (♯, ♭, or ♮) appearing before some notes</li>
             <li>These accidentals show how the note is spelled in that key</li>
-          </ul>
-        </li>
-        <li><strong>Toggle Accidentals Display:</strong>
-          <ul>
-            <li>In the header controls, find the <strong>"Show accidentals"</strong> checkbox</li>
-            <li>This checkbox is in the control ribbon (you may need to click "Show controls" if hidden)</li>
-            <li>By default, it's <strong>checked</strong> (accidentals are shown)</li>
-            <li>Try <strong>unchecking</strong> it - accidentals will disappear from the staff</li>
-            <li>Try <strong>checking</strong> it again - accidentals will reappear</li>
-            <li>This is useful if you find accidentals distracting, or if you want to see them for learning</li>
+            <li>Notice that some notes may have accidentals - this is normal and correct</li>
+            <li><strong>Practice toggling accidentals:</strong>
+              <ul>
+                <li>Try <strong>unchecking</strong> "Show accidentals" in the header</li>
+                <li>Play the warmup again - notice how accidentals disappear from the staff</li>
+                <li>Try <strong>checking</strong> it again - accidentals will reappear</li>
+                <li>This is useful if you find accidentals distracting, or if you want to see them for learning</li>
+              </ul>
+            </li>
           </ul>
         </li>
         <li><strong>Compare Different Keys:</strong>
@@ -748,17 +742,6 @@ function getSubLesson1_5() {
             <li>The app uses key-aware spelling, so it chooses the correct letter name based on the key</li>
           </ul>
         </li>
-        <li><strong>Practice with Flashcards:</strong>
-          <ul>
-            <li>Go to the <strong>"Flashcards"</strong> tab</li>
-            <li>Set Do to <strong>G#</strong> (or another key with accidentals)</li>
-            <li>Make sure <strong>"Show accidentals"</strong> is checked</li>
-            <li>Click <strong>"Next"</strong> to see shape notes</li>
-            <li>Notice that some notes may have accidentals</li>
-            <li>This is normal and correct - it shows how the note is spelled in that key</li>
-            <li>Try unchecking "Show accidentals" and see how the flashcards look without them</li>
-          </ul>
-        </li>
       </ol>
     </div>
 
@@ -768,7 +751,6 @@ function getSubLesson1_5() {
         <li>Accidentals appear to the left of note heads (♯ for sharp, ♭ for flat, ♮ for natural)</li>
         <li>Different keys show different accidentals</li>
         <li>When "Show accidentals" is unchecked, notes still appear in correct positions, just without the symbols</li>
-        <li>Shape notes remain the same regardless of accidentals - a Do is still Do, even with an accidental</li>
         <li>In sharp keys (G, D, A, E, B, F#, C#), you'll see sharps</li>
         <li>In flat keys (F, Bb, Eb, Ab, Db, Gb, Cb), you'll see flats</li>
       </ul>
@@ -793,14 +775,216 @@ function getSubLesson1_5() {
 }
 
 // Continue with Lesson 2 sub-lessons...
+function getSubLesson2_0() {
+  return `
+    <div class="learning-objectives">
+      <h4>Learning Objectives:</h4>
+      <ul>
+        <li>Find a comfortable Do pitch for your vocal range</li>
+        <li>Set Do in the app to match your comfortable range</li>
+        <li>Understand why choosing the right Do matters for singing practice</li>
+      </ul>
+    </div>
+
+    <div class="app-instructions">
+      <h4>Detailed App Instructions:</h4>
+      <ol>
+        <li><strong>Find Your Comfortable Singing Range:</strong>
+          <ul>
+            <li>Without using the app yet, try humming or singing a comfortable note</li>
+            <li>This should be a note you can sing easily, not too high or too low</li>
+            <li>Try singing a few different notes and find one that feels natural and comfortable</li>
+            <li>This will be your starting point for finding Do</li>
+          </ul>
+        </li>
+        <li><strong>Understanding Octave Numbers in the Do Dropdown:</strong>
+          <ul>
+            <li>In the header controls, find the <strong>"Do"</strong> dropdown menu</li>
+            <li>You'll see notes like <strong>C3</strong>, <strong>C4</strong>, <strong>D4</strong>, <strong>E4</strong>, etc.</li>
+            <li><strong>The number after the letter is the octave number</strong> - it tells you which octave the note is in</li>
+            <li><strong>How octave numbers work:</strong>
+              <ul>
+                <li><strong>C4</strong> = Middle C (the C in the middle of a piano keyboard)</li>
+                <li><strong>Lower numbers = lower pitches:</strong> C3 is one octave below C4, C2 is two octaves below C4</li>
+                <li><strong>Higher numbers = higher pitches:</strong> C5 is one octave above C4, C6 is two octaves above C4</li>
+                <li>Each octave spans from C to B (C, D, E, F, G, A, B, then the next C starts the next octave)</li>
+              </ul>
+            </li>
+            <li><strong>Examples:</strong>
+              <ul>
+                <li><strong>D3</strong> = D in the 3rd octave (lower, below middle C)</li>
+                <li><strong>D4</strong> = D in the 4th octave (around middle C range)</li>
+                <li><strong>D5</strong> = D in the 5th octave (higher, above middle C)</li>
+                <li>Same letter name (D), but different octaves = different pitches</li>
+              </ul>
+            </li>
+            <li><strong>Why this matters:</strong> The same letter (like D) appears in multiple octaves - D1, D2, D3, D4, D5, etc. - each one is a different pitch. You need to choose both the letter AND the octave number to find your comfortable Do.</li>
+          </ul>
+        </li>
+        <li><strong>Use the "Play Do" Button to Test Different Do Settings:</strong>
+          <ul>
+            <li>In the header controls, find the <strong>"Do"</strong> control group</li>
+            <li>There's a <strong>"Do"</strong> dropdown menu and a <strong>"Play Do"</strong> button</li>
+            <li>Start with <strong>C4</strong> (middle C) - click the dropdown and select <strong>C4</strong> if it's not already selected</li>
+            <li>Click the <strong>"Play Do"</strong> button</li>
+            <li>You'll hear the Do pitch play briefly</li>
+            <li><strong>Click "Play Do" multiple times</strong> to hear it repeatedly while you test</li>
+          </ul>
+        </li>
+        <li><strong>Test if This Do is Comfortable:</strong>
+          <ul>
+            <li>Click <strong>"Play Do"</strong> to hear the pitch</li>
+            <li><strong>Hum or sing "Do"</strong> to match the pitch you just heard</li>
+            <li>Ask yourself:
+              <ul>
+                <li>Is this pitch comfortable to sing?</li>
+                <li>Can I sing it without straining?</li>
+                <li>Can I sing both higher and lower from this note?</li>
+              </ul>
+            </li>
+            <li>If it feels too high or too low, you need to adjust</li>
+          </ul>
+        </li>
+        <li><strong>Adjust Do to Find Your Comfortable Range:</strong>
+          <ul>
+            <li>If the current Do is too <strong>high</strong>:
+              <ul>
+                <li>You can lower it in two ways:
+                  <ul>
+                    <li><strong>Lower the octave number:</strong> If it's C4, try <strong>C3</strong> (one octave lower)</li>
+                    <li><strong>Lower the letter name:</strong> If it's C4, try <strong>Bb3</strong> or <strong>A3</strong> (same octave, different note)</li>
+                    <li><strong>Or both:</strong> Try <strong>Bb3</strong> or <strong>A3</strong> for even lower pitches</li>
+                  </ul>
+                </li>
+                <li>Click <strong>"Play Do"</strong> to hear the new pitch</li>
+                <li>Test again by humming/singing "Do" to match the pitch</li>
+              </ul>
+            </li>
+            <li>If the current Do is too <strong>low</strong>:
+              <ul>
+                <li>You can raise it in two ways:
+                  <ul>
+                    <li><strong>Raise the octave number:</strong> If it's C4, try <strong>C5</strong> (one octave higher)</li>
+                    <li><strong>Raise the letter name:</strong> If it's C4, try <strong>D4</strong> or <strong>E4</strong> (same octave, different note)</li>
+                    <li><strong>Or both:</strong> Try <strong>D4</strong> or <strong>E4</strong> for comfortable mid-range pitches</li>
+                  </ul>
+                </li>
+                <li>Click <strong>"Play Do"</strong> to hear the new pitch</li>
+                <li>Test again by humming/singing "Do" to match the pitch</li>
+              </ul>
+            </li>
+            <li>Continue adjusting and testing until you find a Do that feels comfortable</li>
+            <li><strong>Tip:</strong> Click "Play Do" multiple times as you test - it helps you remember the pitch</li>
+            <li><strong>Remember:</strong> Pay attention to both the letter (C, D, E, etc.) AND the octave number (3, 4, 5, etc.) when selecting your Do</li>
+          </ul>
+        </li>
+        <li><strong>Test Your Full Range from This Do:</strong>
+          <ul>
+            <li>Once you've found a comfortable Do, test your range:</li>
+            <li>Click <strong>"Play Do"</strong> to hear Do, then sing "Do"</li>
+            <li>Now try singing the scale up from that Do:
+              <ul>
+                <li>Re (one step higher) - sing "Re"</li>
+                <li>Mi (another step higher) - sing "Mi"</li>
+                <li>Fa (another step higher) - sing "Fa"</li>
+                <li>So (another step higher) - sing "So"</li>
+                <li>La (another step higher) - sing "La"</li>
+                <li>Ti (another step higher) - sing "Ti"</li>
+                <li>Do (octave up) - sing "Do"</li>
+              </ul>
+            </li>
+            <li>If you can comfortably sing from Do up to the octave Do, this is a good Do setting</li>
+            <li>If you struggle with the higher notes (So, La, Ti, Do), try lowering Do by one or two semitones</li>
+            <li>If the lower notes feel too low, try raising Do by one or two semitones</li>
+          </ul>
+        </li>
+        <li><strong>Remember Your Do Setting:</strong>
+          <ul>
+            <li>Once you've found a comfortable Do, note which note it is (e.g., "My comfortable Do is D")</li>
+            <li>This is the Do you'll use for all your singing practice</li>
+            <li>You can always adjust it later if needed, but having a consistent Do helps with learning</li>
+          </ul>
+        </li>
+        <li><strong>Test with a Scale:</strong>
+          <ul>
+            <li>Go to the <strong>"Warmup"</strong> tab</li>
+            <li>Check <strong>"Major scale ↑"</strong> and click <strong>"Play Warm Up"</strong></li>
+            <li>As the scale plays, try to <strong>sing the solfege syllables</strong> for each note:
+              <ul>
+                <li>Sing "Do" on the first note</li>
+                <li>Sing "Re" on the second note</li>
+                <li>Sing "Mi" on the third note</li>
+                <li>Continue: "Fa", "So", "La", "Ti", "Do"</li>
+              </ul>
+            </li>
+            <li><strong>Important:</strong> Sing the actual solfege syllable names ("Do", "Re", "Mi", etc.), not just hum or sing a vowel</li>
+            <li>If you can comfortably sing the entire scale with solfege syllables, your Do is set correctly!</li>
+            <li>If any notes are uncomfortable, go back to the header and adjust Do, then test again</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="what-to-look-for">
+      <h4>What to Look For:</h4>
+      <ul>
+        <li>A comfortable Do should feel natural - not strained, not too breathy</li>
+        <li>You should be able to sing at least one octave up from Do (Do→Re→Mi→Fa→So→La→Ti→Do)</li>
+        <li>You should be able to sing a few notes below Do as well (for descending scales)</li>
+        <li>Different people have different comfortable ranges - there's no "wrong" Do</li>
+        <li>Women and higher voices often prefer Do around D, E, F, or G</li>
+        <li>Men and lower voices often prefer Do around A, Bb, B, or C (middle C or lower)</li>
+      </ul>
+    </div>
+
+    <div class="troubleshooting">
+      <h4>Troubleshooting:</h4>
+      <ul>
+        <li>If you can't find a comfortable Do, try starting with middle C (<strong>C4</strong>) and adjusting from there</li>
+        <li>If all notes feel too high, try setting Do to a lower octave or lower note:
+          <ul>
+            <li>Try <strong>A3</strong> or <strong>Bb3</strong> (lower in the 3rd octave)</li>
+            <li>Or try <strong>A4</strong> or <strong>Bb4</strong> but in a lower octave than your current setting</li>
+            <li>Remember: Lower octave number = lower pitch (A3 is lower than A4)</li>
+          </ul>
+        </li>
+        <li>If all notes feel too low, try setting Do to a higher octave or higher note:
+          <ul>
+            <li>Try <strong>E4</strong> or <strong>F4</strong> (in the 4th octave, around middle C range)</li>
+            <li>Or try <strong>E5</strong> or <strong>F5</strong> (higher in the 5th octave)</li>
+            <li>Remember: Higher octave number = higher pitch (E5 is higher than E4)</li>
+          </ul>
+        </li>
+        <li><strong>Understanding the octave numbers:</strong>
+          <ul>
+            <li>The number after the letter (like the "4" in C4) indicates which octave the note is in</li>
+            <li><strong>C4 = Middle C</strong> (the standard reference point on a piano)</li>
+            <li>Numbers go from 0 (very low) to 8+ (very high), with 4 being around the middle of a piano keyboard</li>
+            <li>Each octave contains 12 semitones (C, C#, D, D#, E, F, F#, G, G#, A, A#, B), then the next C starts the next octave</li>
+            <li>For example: C4 → D4 → E4 → F4 → G4 → A4 → B4 → C5 (C5 starts the next octave)</li>
+          </ul>
+        </li>
+        <li>Remember: You can always change Do later - this is just to find a good starting point</li>
+        <li>If you're not sure, err on the side of a slightly lower Do (lower octave number) - it's easier to sing higher from a lower starting point than vice versa</li>
+      </ul>
+    </div>
+
+    <div class="benchmark">
+      <p><strong>Benchmark:</strong> Successfully find a Do setting that allows you to comfortably sing a full major scale (Do→Re→Mi→Fa→So→La→Ti→Do) using solfege syllables</p>
+      <p><strong>Progression:</strong> Move to 2.1 when benchmark achieved</p>
+    </div>
+  `;
+}
+
 function getSubLesson2_1() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
       <ul>
-        <li>Identify which solfege syllable you're hearing</li>
-        <li>Match your voice to a given pitch</li>
-        <li>Use microphone feedback to see your pitch accuracy</li>
+        <li>Understand that higher on the staff = higher pitch</li>
+        <li>Recognize visual distance between notes on the staff</li>
+        <li>Use microphone feedback to see your pitch position relative to target notes</li>
+        <li>Connect visual spacing to pitch intervals</li>
       </ul>
     </div>
 
@@ -812,72 +996,113 @@ function getSubLesson2_1() {
             <li>In the header controls, find the <strong>"Start Mic"</strong> button</li>
             <li>Click <strong>"Start Mic"</strong> (you may need to allow browser microphone access)</li>
             <li>The button will change to <strong>"Stop Mic"</strong> when active</li>
-            <li>You should see your pitch appear on the staff as you sing</li>
+            <li>You should see your pitch appear on the staff as a line as you sing</li>
             <li>In the header, you'll see <strong>"Mic: [frequency] Hz | Δ [cents] cents"</strong> showing your current pitch</li>
           </ul>
         </li>
-        <li><strong>Configure Tolerance</strong> (optional):
-          <ul>
-            <li>Find the <strong>"Tolerance"</strong> slider in the header</li>
-            <li>This controls how strict the pitch detection is (in cents)</li>
-            <li>Start with <strong>60 cents</strong> (default) - this is fairly forgiving</li>
-            <li>You can lower it later for more precision</li>
-          </ul>
-        </li>
-        <li><strong>Practice with Warmup - Sing Along:</strong>
+        <li><strong>Observe the Staff with Warmup - Visual Distance:</strong>
           <ul>
             <li>Click the <strong>"Warmup"</strong> tab</li>
             <li>Check only <strong>"Major scale ↑"</strong></li>
-            <li>Set tempo to <strong>60 BPM</strong> (or slower)</li>
-            <li>Click <strong>"Play Warm Up"</strong></li>
-            <li><strong>As the scale plays, sing along</strong> with each note</li>
-            <li>Watch the staff - you should see:
+            <li>Click <strong>"Play Warm Up"</strong> (you don't need to sing yet - just watch)</li>
+            <li><strong>Watch the staff carefully</strong> as the scale plays:
               <ul>
-                <li>The red play line showing the target note</li>
-                <li>Your voice (if mic is working) appearing as a note on the staff</li>
-                <li>Try to make your note match the target note</li>
+                <li>Notice where Do appears on the staff (its vertical position)</li>
+                <li>Notice where Re appears - it's <strong>higher</strong> than Do</li>
+                <li>Notice where Mi appears - it's <strong>higher</strong> than Re</li>
+                <li>Continue watching: Fa, So, La, Ti, Do - each one is <strong>higher</strong> than the previous</li>
               </ul>
             </li>
-            <li>The staff shows shape notes, so you can see Do, Re, Mi, Fa, So, La, Ti, Do</li>
-            <li><strong>Repeat 5-10 times</strong>, focusing on matching each pitch</li>
-          </ul>
-        </li>
-        <li><strong>Practice with Chord Quality Tab - Drone Tones:</strong>
-          <ul>
-            <li>Click the <strong>"Chord Quality"</strong> tab</li>
-            <li>Find the <strong>"Degrees (relative to Do)"</strong> section</li>
-            <li>You'll see buttons for each solfege syllable: <strong>Do, Re, Mi, Fa, So, La, Ti</strong></li>
-            <li>Click the <strong>"Do"</strong> button to activate it (it should highlight)</li>
-            <li>Click <strong>"Start Drone"</strong> button</li>
-            <li>You'll hear a continuous Do tone</li>
-            <li><strong>Sing along</strong> with the drone, trying to match the pitch exactly</li>
-            <li>Watch the staff - your voice should appear close to the Do note</li>
-            <li>Check the "Δ cents" display - aim for <strong>±20 cents</strong> or less</li>
-          </ul>
-        </li>
-        <li><strong>Practice Each Scale Degree:</strong>
-          <ul>
-            <li>Stop the drone (click <strong>"Stop Drone"</strong>)</li>
-            <li>Click <strong>"Re"</strong> button, then <strong>"Start Drone"</strong></li>
-            <li>Sing Re, matching the pitch</li>
-            <li>Repeat for <strong>Mi, Fa, So, La, Ti</strong></li>
-            <li>For each one:
+            <li><strong>Key observation:</strong> As the pitch goes up, the note moves <strong>up on the staff</strong></li>
+            <li><strong>Visual distance:</strong> Notice the spacing between notes:
               <ul>
-                <li>Start the drone for that note</li>
-                <li>Sing along, watching the staff</li>
-                <li>Check the cents display (aim for ±20 cents)</li>
-                <li>Stop drone, move to next note</li>
+                <li>Do to Re: small step up (adjacent lines/spaces)</li>
+                <li>Re to Mi: small step up (adjacent lines/spaces)</li>
+                <li>Mi to Fa: small step up (adjacent lines/spaces)</li>
+                <li>So to La: small step up (adjacent lines/spaces)</li>
+                <li>La to Ti: small step up (adjacent lines/spaces)</li>
+                <li>Ti to Do: small step up (adjacent lines/spaces)</li>
               </ul>
             </li>
+            <li>All these steps look similar in visual distance - they're all "steps" (2nds)</li>
+            <li><strong>Play the warmup again</strong> and watch the red play line move up the staff as the scale ascends</li>
           </ul>
         </li>
-        <li><strong>Use Visual Feedback:</strong>
+        <li><strong>Practice Singing and Observing Visual Position:</strong>
           <ul>
-            <li>The staff shows your pitch as a line</li>
-            <li>If you're sharp (too high), your line appears above the target</li>
-            <li>If you're flat (too low), your line appears below the target</li>
-            <li>The "Δ cents" shows exact deviation (positive = sharp, negative = flat)</li>
-            <li>The "Mic: [Hz]" shows your exact frequency</li>
+            <li>With the warmup still playing, <strong>sing the solfege syllables</strong> as the scale plays:
+              <ul>
+                <li>When you hear Do, sing "Do" and watch where your voice line appears</li>
+                <li>When you hear Re, sing "Re" and watch your voice line move <strong>up</strong></li>
+                <li>Continue: "Mi", "Fa", "So", "La", "Ti", "Do" - watch your voice line move progressively <strong>higher</strong></li>
+              </ul>
+            </li>
+            <li><strong>Important:</strong> Sing the actual solfege syllable names ("Do", "Re", "Mi", etc.), not just hum</li>
+            <li><strong>Focus on the visual:</strong>
+              <ul>
+                <li>When you sing Do, your voice line should be at the same vertical position as the Do note</li>
+                <li>When you sing Re, your voice line should move <strong>up</strong> to match Re's position</li>
+                <li>Each syllable should move your voice line <strong>higher</strong> on the staff</li>
+                <li>The distance your voice line moves = the pitch interval you're singing</li>
+              </ul>
+            </li>
+            <li>If your voice line is <strong>above</strong> the target note, you're singing too high (sharp)</li>
+            <li>If your voice line is <strong>below</strong> the target note, you're singing too low (flat)</li>
+            <li>If your voice line <strong>aligns</strong> with the target note, you're singing the correct pitch!</li>
+          </ul>
+        </li>
+        <li><strong>Practice with "Play Do" - Single Note Matching:</strong>
+          <ul>
+            <li>In the header controls, find the <strong>"Do"</strong> control group</li>
+            <li>Click the <strong>"Play Do"</strong> button to hear Do</li>
+            <li><strong>Sing "Do"</strong> (the syllable) to match the pitch</li>
+            <li><strong>Watch the staff</strong> - your voice line should appear at the same vertical position as Do</li>
+            <li>If your line is above Do, you're singing too high - lower your pitch</li>
+            <li>If your line is below Do, you're singing too low - raise your pitch</li>
+            <li>Try to make your voice line align exactly with Do's position</li>
+            <li><strong>Check the "Δ cents" display</strong> in the header - aim for <strong>±20 cents</strong> or less</li>
+            <li>Repeat this several times: click "Play Do", sing "Do", watch your line align with Do</li>
+          </ul>
+        </li>
+        <li><strong>Understand Visual Distance = Pitch Interval:</strong>
+          <ul>
+            <li>Go back to the <strong>"Warmup"</strong> tab</li>
+            <li>Play the major scale again and <strong>watch the visual spacing</strong>:
+              <ul>
+                <li>Do to Re: small visual step (one line/space up) = small pitch step (2nd)</li>
+                <li>Do to Mi: medium visual distance (two steps up) = medium pitch jump (3rd)</li>
+                <li>Do to Fa: larger visual distance (three steps up) = larger pitch jump (4th)</li>
+                <li>Do to So: even larger visual distance (four steps up) = even larger pitch jump (5th)</li>
+              </ul>
+            </li>
+            <li><strong>Key concept:</strong> The visual distance between notes on the staff tells you the pitch interval</li>
+            <li>Small visual distance = small pitch interval (2nd, 3rd)</li>
+            <li>Large visual distance = large pitch interval (5th, 6th, 7th, octave)</li>
+            <li>When you sing, watch how far your voice line moves - this tells you what interval you're singing</li>
+          </ul>
+        </li>
+        <li><strong>Practice Matching Pitch with Visual Feedback:</strong>
+          <ul>
+            <li>Play the warmup scale again</li>
+            <li>As each note plays, <strong>sing the solfege syllable</strong> and watch your voice line</li>
+            <li>Try to make your voice line align with the target note's position</li>
+            <li>Notice:
+              <ul>
+                <li>When you're correct, your line matches the target note's vertical position</li>
+                <li>When you're sharp, your line appears <strong>above</strong> the target</li>
+                <li>When you're flat, your line appears <strong>below</strong> the target</li>
+                <li>The distance between your line and the target = how far off you are</li>
+              </ul>
+            </li>
+            <li><strong>Use the visual distance</strong> to guide your pitch adjustment:
+              <ul>
+                <li>If your line is far above the target, lower your pitch significantly</li>
+                <li>If your line is just slightly above, lower your pitch a little</li>
+                <li>If your line is far below the target, raise your pitch significantly</li>
+                <li>If your line is just slightly below, raise your pitch a little</li>
+              </ul>
+            </li>
+            <li>Repeat until you can consistently align your voice line with the target notes</li>
           </ul>
         </li>
       </ol>
@@ -886,10 +1111,13 @@ function getSubLesson2_1() {
     <div class="what-to-look-for">
       <h4>What to Look For:</h4>
       <ul>
-        <li>Your voice note on the staff should align with the target note</li>
-        <li>Cents display: ±20 or less = excellent, ±50 = good, ±100 = needs work</li>
-        <li>The staff shows shape notes, so you can see which solfege syllable you're singing</li>
-        <li>When matching a drone, your note should stay steady (not wobble)</li>
+        <li><strong>Higher on staff = higher pitch:</strong> Notes that appear higher on the staff represent higher pitches</li>
+        <li><strong>Visual distance = pitch interval:</strong> The vertical distance between notes shows the pitch interval (2nd, 3rd, 4th, etc.)</li>
+        <li><strong>Your voice line position:</strong> Your voice appears as a line on the staff - its vertical position shows your pitch</li>
+        <li><strong>Alignment:</strong> When your voice line aligns with a target note, you're singing the correct pitch</li>
+        <li><strong>Distance from target:</strong> The visual distance between your line and the target shows how far off you are</li>
+        <li><strong>Progressive movement:</strong> As you sing up a scale, your voice line should move progressively higher on the staff</li>
+        <li><strong>Cents display:</strong> ±20 or less = excellent alignment, ±50 = good, ±100 = needs work</li>
       </ul>
     </div>
 
@@ -897,15 +1125,16 @@ function getSubLesson2_1() {
       <h4>Troubleshooting:</h4>
       <ul>
         <li>If mic doesn't work, check browser permissions (click the lock icon in address bar)</li>
-        <li>If your voice doesn't appear on staff, make sure "Start Mic" was clicked</li>
-        <li>If cents are always high, you might be singing an octave too high (or vice versa)</li>
-        <li>If you can't match pitch, try humming first, then open your mouth to sing</li>
-        <li>If staff is cluttered, zoom out or clear previous notes by switching tabs</li>
+        <li>If your voice line doesn't appear on staff, make sure "Start Mic" was clicked</li>
+        <li>If your line is always way above/below, you might be singing an octave too high/low - try adjusting your Do setting</li>
+        <li>If you can't see the visual distance clearly, use the Zoom slider in the header to make the staff larger</li>
+        <li>If the staff is cluttered, clear it by switching tabs or refreshing</li>
+        <li>If you're confused about which direction is "up", remember: higher pitch = higher on the staff (like a ladder)</li>
       </ul>
     </div>
 
     <div class="benchmark">
-      <p><strong>Benchmark:</strong> Sing all 7 scale degrees (Do through Ti) accurately within ±20 cents, verified by microphone and staff visualization</p>
+      <p><strong>Benchmark:</strong> Successfully sing a major scale (Do through Do) while observing that your voice line moves progressively higher on the staff, aligning with each target note within ±50 cents</p>
       <p><strong>Progression:</strong> Move to 2.2 when benchmark achieved</p>
     </div>
   `;
@@ -1383,10 +1612,11 @@ function getSubLesson3_2() {
         <li><strong>Determine Your Vocal Range:</strong>
           <ul>
             <li>Click <strong>"Start Mic"</strong> in the header (if not already on)</li>
-            <li>Go to <strong>"Chord Quality"</strong> tab</li>
-            <li>Click <strong>"Do"</strong> button, then <strong>"Start Drone"</strong></li>
-            <li>Sing Do and check the staff - note which octave you're comfortable in</li>
-            <li>Try singing higher Do (octave up) and lower Do (octave down)</li>
+            <li>In the header controls, find the <strong>"Do"</strong> control group</li>
+            <li>Click the <strong>"Play Do"</strong> button to hear Do</li>
+            <li><strong>Sing "Do"</strong> and check the staff - note which octave you're comfortable in</li>
+            <li>Try changing Do to a higher note (e.g., D or E), click "Play Do", and sing "Do" again</li>
+            <li>Try changing Do to a lower note (e.g., A or Bb), click "Play Do", and sing "Do" again</li>
             <li>Determine: Are you more comfortable in the higher range (Soprano/Alto) or lower range (Tenor/Bass)?</li>
           </ul>
         </li>
