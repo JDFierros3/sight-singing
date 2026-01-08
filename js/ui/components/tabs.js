@@ -174,8 +174,6 @@ function updateTabButtonStates() {
 }
 
 export function switchToTab(tabName) {
-  stopAllPlayback();
-  
   // Handle sidebar layout for theory tab on large screens
   const isLargeScreen = window.matchMedia('(min-width: 1024px)').matches;
   const isSidebarActive = document.body.classList.contains('theory-sidebar-active');
@@ -183,16 +181,21 @@ export function switchToTab(tabName) {
   // Theory tab works as a toggle for the sidebar on large screens
   if (tabName === 'theory' && isLargeScreen) {
     if (isSidebarActive) {
-      // Close sidebar - save scroll position first, then switch back to previous tab or default
+      // Close sidebar - save scroll position, but DON'T clear staff or stop playback
+      // Just restore the layout and keep the current tab's state
       saveSidebarScrollPosition();
       document.body.classList.remove('theory-sidebar-active');
-      const previousTab = appState.exercise.previousTab || 'warmup';
-      appState.exercise.currentTab = previousTab;
       moveTheoryToMainContent();
-      // Continue with normal tab switching for the previous tab
-      tabName = previousTab;
+      // Update UI state without clearing staff
+      document.body.setAttribute('data-active-tab', appState.exercise.currentTab);
+      updateTabButtonStates();
+      updateHeaderRevealButtons(appState.exercise.currentTab);
+      // Trigger resize to update canvas layout
+      window.dispatchEvent(new Event('resize'));
+      return; // Return early - don't clear staff or stop playback
     } else {
       // Open sidebar - keep current tab active in main area
+      // DON'T stop playback or clear staff - just open sidebar overlay
       document.body.classList.add('theory-sidebar-active');
       appState.exercise.previousTab = appState.exercise.currentTab;
       // Don't change currentTab - keep the active tab in main area
@@ -206,25 +209,28 @@ export function switchToTab(tabName) {
       document.body.setAttribute('data-active-tab', appState.exercise.currentTab);
       updateTabButtonStates();
       updateHeaderRevealButtons(appState.exercise.currentTab);
-      return;
+      return; // Return early - don't clear staff or stop playback
     }
-  } else {
-    // Normal tab switching - update current tab
-    if (tabName !== 'theory' || !isLargeScreen) {
-      // Store previous tab before switching (only if sidebar is not open)
-      // If sidebar is open, we want to keep the previousTab as it was when sidebar opened
-      if (!isSidebarActive || !isLargeScreen) {
-        appState.exercise.previousTab = appState.exercise.currentTab;
-      }
-      appState.exercise.currentTab = tabName;
+  }
+  
+  // Only stop playback and clear staff when actually switching tabs (not just toggling sidebar)
+  stopAllPlayback();
+  
+  // Normal tab switching - update current tab
+  if (tabName !== 'theory' || !isLargeScreen) {
+    // Store previous tab before switching (only if sidebar is not open)
+    // If sidebar is open, we want to keep the previousTab as it was when sidebar opened
+    if (!isSidebarActive || !isLargeScreen) {
+      appState.exercise.previousTab = appState.exercise.currentTab;
     }
-    // On small screens, theory tab works normally
-    if (tabName === 'theory' && !isLargeScreen) {
-      setTimeout(() => {
-        renderTheoryContent();
-        moveTheoryToMainContent();
-      }, 10);
-    }
+    appState.exercise.currentTab = tabName;
+  }
+  // On small screens, theory tab works normally
+  if (tabName === 'theory' && !isLargeScreen) {
+    setTimeout(() => {
+      renderTheoryContent();
+      moveTheoryToMainContent();
+    }, 10);
   }
   
   // Set data attribute on body for CSS targeting
