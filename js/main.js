@@ -73,9 +73,9 @@ const {
   handleFlashcardAccidentalsChange = () => {}
 } = inputs;
 
-function initializeApplication() {
+async function initializeApplication() {
   setupApplicationState();
-  buildUserInterface();
+  await buildUserInterface();
   wireUpEventHandlers();
   initializeDefaultInstrument();
   setupKeyboardShortcuts();
@@ -113,16 +113,17 @@ async function initializeDefaultInstrument() {
   }
 }
 
-function buildUserInterface() {
+async function buildUserInterface() {
   buildNoteSelectionMenus();
   buildChordRootButtons();
   buildChordQualityButtons();
   buildChordInversionButtons();
   
-  initializeTabSystem();
+  // Initialize SATB controls first (loads Amazing Grace)
+  // This must complete before tab system so exercises are available
+  await initializeSATBControls();
   
-  // Initialize SATB controls
-  initializeSATBControls();
+  initializeTabSystem();
   
   // Initialize staff panning (for manual panning when not playing)
   initializeStaffPanning();

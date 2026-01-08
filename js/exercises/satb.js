@@ -347,12 +347,14 @@ export async function initializeSATBControls() {
   const exercises = getAllSATBExercises();
   buildExerciseSelection(exercises);
   
-  // Store the default exercise but don't display it yet
-  // It will be displayed when the user switches to the SATB tab
+  // Store the default exercise
   if (exercises.length > 0) {
     appState.satb.currentExercise = exercises[0];
-    // Don't call displaySATBExerciseOnStaff here - let the tab system handle it
-    // when the user switches to the SATB tab
+    
+    // If already on SATB tab, display the exercise immediately
+    if (appState.exercise.currentTab === 'satb') {
+      displaySATBExerciseOnStaff(exercises[0]);
+    }
   }
 }
 
