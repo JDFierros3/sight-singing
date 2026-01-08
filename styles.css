@@ -523,7 +523,7 @@ canvas {
   flex-shrink: 0;
 }
 
-.tab {
+.tab, .part-btn {
   padding: 8px 10px;
   border: 1px solid #273056;
   background: #0f1426;
@@ -532,7 +532,7 @@ canvas {
   cursor: pointer;
 }
 
-.tab.active {
+.tab.active, .part-btn.active {
   background: #121a33;
 }
 

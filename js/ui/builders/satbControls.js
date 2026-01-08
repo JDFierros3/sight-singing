@@ -27,7 +27,7 @@ export function buildPartSelectionButtons() {
   parts.forEach(part => {
     const button = createElement('button', {
       id: `satbPart-${part.id}`,
-      class: 'tab',
+      class: 'part-btn',
       'aria-label': `Aim for ${part.label}`,
       'data-part': part.id
     });

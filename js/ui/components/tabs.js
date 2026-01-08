@@ -13,7 +13,9 @@ import { renderTheoryContent, saveExpandedLessons } from './theoryContent.js';
 const TAB_NAMES = ['warmup', 'cluster', 'intervals', 'flashcards', 'satb', 'chord-quality', 'theory'];
 
 export function initializeTabSystem() {
-  const tabButtons = document.querySelectorAll('.tab');
+  // Only attach tab switching to buttons that have data-tab attribute
+  // (Not SATB part buttons which use .tab class but have data-part instead)
+  const tabButtons = document.querySelectorAll('.tab[data-tab]');
   tabButtons.forEach(button => {
     button.addEventListener('click', () => {
       const tabName = button.dataset.tab;
