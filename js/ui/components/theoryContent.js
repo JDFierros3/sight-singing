@@ -320,7 +320,7 @@ function getSubLesson1_1() {
       <ul>
         <li>If "Flip" adds text instead of replacing, that's a bug - refresh the page</li>
         <li>If you're struggling, slow down and study each shape-syllable pair</li>
-        <li>Remember: Do (diamond), Re (oval), Mi (rectangle), Fa (triangle), So (oval), La (diamond), Ti (rectangle)</li>
+        <li>Remember: Do (Triangle), Re (Half Circle), Mi (Diamond), Fa (Flag), So (Oval), La (Rectange), Ti (Ice cream)</li>
       </ul>
     </div>
 
@@ -442,8 +442,8 @@ function getSubLesson1_3() {
         <li><strong>Change the Do Note:</strong>
           <ul>
             <li>Click the <strong>"Do"</strong> dropdown menu</li>
-            <li>You'll see a list of notes (C, C#, D, D#, E, F, F#, G, G#, A, A#, B)</li>
-            <li>Select a different note (e.g., if it's C, change it to <strong>G</strong>)</li>
+            <li>You'll see a list of notes (C4, C#4, D4, D#4, E4, F4, F#4, G4, G#4, A4, A#4, B4)</li>
+            <li>Select a different note (e.g., if it's C4, change it to <strong>4G</strong>)</li>
             <li>Click the <strong>"Play Do"</strong> button to hear the new Do pitch</li>
           </ul>
         </li>
@@ -474,24 +474,6 @@ function getSubLesson1_3() {
               </ul>
             </li>
             <li>Note: Piano and Choir sounds may take a moment to load the first time you select them</li>
-          </ul>
-        </li>
-        <li><strong>Observe Shape Consistency:</strong>
-          <ul>
-            <li>Navigate to the <strong>"Flashcards"</strong> tab</li>
-            <li>Click <strong>"Next"</strong> to see a shape note</li>
-            <li>Notice: The shapes themselves don't change!</li>
-            <li>A diamond is still Do, an oval is still Re, etc.</li>
-            <li>Only the actual pitch (frequency) changes</li>
-          </ul>
-        </li>
-        <li><strong>Practice with Different Do Settings:</strong>
-          <ul>
-            <li>Go back to header, change Do to <strong>F</strong></li>
-            <li>Click <strong>"Play Do"</strong> to hear it</li>
-            <li>Go to <strong>"Flashcards"</strong> tab, practice identifying shapes</li>
-            <li>Change Do to <strong>D</strong>, repeat</li>
-            <li>The shapes should always mean the same thing (Do, Re, Mi, etc.)</li>
           </ul>
         </li>
         <li><strong>Use Warmup Tab to Hear Scales:</strong>
@@ -670,7 +652,8 @@ function getSubLesson1_5() {
         <li>Understand how key signatures affect note placement on the staff</li>
         <li>Learn what accidentals (sharps, flats, naturals) mean</li>
         <li>Understand why notes may appear with accidentals even when Do is set</li>
-        <li>Learn to toggle accidentals display in the app</li>
+        <li>Understand that accidentals are suppressed if they match the key signature</li>
+        <li>Learn to enable and toggle the unified "Show Accidentals & Key" setting in the app</li>
       </ul>
     </div>
 
@@ -686,35 +669,52 @@ function getSubLesson1_5() {
             <li>This is why you might see accidentals even when playing scale notes</li>
           </ul>
         </li>
-        <li><strong>Observe and Practice with Accidentals on the Staff:</strong>
+        <li><strong>Enable and Practice with Accidentals and Key Signatures on the Staff:</strong>
           <ul>
-            <li>Set Do to <strong>G#</strong> (or another sharp key) using the Do dropdown in the header</li>
+            <li>Set Do to <strong>G</strong> (or another key) using the Do dropdown in the header</li>
             <li>Go to the <strong>"Warmup"</strong> tab</li>
-            <li>In the header controls, find the <strong>"Show accidentals"</strong> checkbox (in the control ribbon - you may need to click "Show controls" if hidden)</li>
-            <li>Make sure <strong>"Show accidentals"</strong> is checked (it's checked by default)</li>
+            <li>In the header controls, find the <strong>"Show Accidentals & Key"</strong> checkbox (in the control ribbon - you may need to click "Show controls" if hidden)</li>
+            <li><strong>Important:</strong> This setting is disabled by default - you must enable it to see key signatures and accidentals</li>
+            <li><strong>Check</strong> the "Show Accidentals & Key" checkbox to enable it</li>
+            <li>Notice that a <strong>key signature</strong> appears at the start of the staff (e.g., one sharp ♯ for G major)</li>
             <li>Check <strong>"Major scale ↑"</strong> and click <strong>"Play Warm Up"</strong></li>
             <li>Watch the staff as the scale plays - you'll see accidentals (♯, ♭, or ♮) appearing before some notes</li>
             <li>These accidentals show how the note is spelled in that key</li>
-            <li>Notice that some notes may have accidentals - this is normal and correct</li>
-            <li><strong>Practice toggling accidentals:</strong>
+            <li><strong>Key insight:</strong> Notes that match the key signature (e.g., F# in G major) show <strong>no accidental</strong> because the sharp is already in the key signature</li>
+            <li>Notes that cancel the key signature (e.g., F♮ in G major) show a <strong>natural sign</strong> (♮)</li>
+            <li><strong>Practice toggling the setting:</strong>
               <ul>
-                <li>Try <strong>unchecking</strong> "Show accidentals" in the header</li>
-                <li>Play the warmup again - notice how accidentals disappear from the staff</li>
-                <li>Try <strong>checking</strong> it again - accidentals will reappear</li>
-                <li>This is useful if you find accidentals distracting, or if you want to see them for learning</li>
+                <li>Try <strong>unchecking</strong> "Show Accidentals & Key" in the header</li>
+                <li>Notice how both the key signature and accidentals disappear from the staff</li>
+                <li>Try <strong>checking</strong> it again - both will reappear</li>
+                <li>This unified setting controls both key signatures and accidentals together</li>
               </ul>
             </li>
           </ul>
         </li>
-        <li><strong>Compare Different Keys:</strong>
+        <li><strong>Compare Different Keys and Key Signatures:</strong>
           <ul>
+            <li>Make sure <strong>"Show Accidentals & Key"</strong> is enabled</li>
             <li>Set Do to <strong>C</strong> (no sharps/flats)</li>
-            <li>Play the warmup scale - notice there are no accidentals (C major has no sharps/flats)</li>
-            <li>Set Do to <strong>G</strong> (one sharp)</li>
-            <li>Play the warmup scale - you may see some accidentals</li>
-            <li>Set Do to <strong>F</strong> (one flat)</li>
-            <li>Play the warmup scale - you may see different accidentals (flats instead of sharps)</li>
-            <li>This demonstrates how different keys require different accidentals</li>
+            <li>Notice the key signature shows <strong>no sharps or flats</strong> at the start of the staff</li>
+            <li>Play the warmup scale - notice there are no accidentals (C major has no sharps/flats in the key signature)</li>
+            <li>Set Do to <strong>G</strong> (one sharp: F#)</li>
+            <li>Notice the key signature shows <strong>one sharp (F#)</strong> at the start of the staff</li>
+            <li>Play the warmup scale - notice that F# notes show <strong>no accidental</strong> (the sharp is in the key signature)</li>
+            <li>If any F natural notes appear, they will show a <strong>natural sign (♮)</strong> to cancel the key signature</li>
+            <li>Set Do to <strong>F</strong> (one flat: Bb)</li>
+            <li>Notice the key signature shows <strong>one flat (Bb)</strong> at the start of the staff</li>
+            <li>Play the warmup scale - notice that Bb notes show <strong>no accidental</strong> (the flat is in the key signature)</li>
+            <li>This demonstrates how different keys require different key signatures, and how accidentals are suppressed when they match the key signature</li>
+          </ul>
+        </li>
+        <li><strong>Understanding Key Signature Determination:</strong>
+          <ul>
+            <li><strong>For all tabs except SATB:</strong> The key signature is determined by your <strong>"Do" setting</strong> (movable Do)</li>
+            <li>For example, if Do = G, the key signature is G major (1 sharp: F#)</li>
+            <li>If Do = F, the key signature is F major (1 flat: Bb)</li>
+            <li><strong>For SATB tab:</strong> The key signature comes from the MIDI file (if available)</li>
+            <li>This allows you to practice in different keys by simply changing your Do setting</li>
           </ul>
         </li>
         <li><strong>Understanding the Staff Placement:</strong>
@@ -737,27 +737,32 @@ function getSubLesson1_5() {
     <div class="what-to-look-for">
       <h4>What to Look For:</h4>
       <ul>
+        <li>Key signatures appear at the start of the staff (after the clefs) when "Show Accidentals & Key" is enabled</li>
         <li>Accidentals appear to the left of note heads (♯ for sharp, ♭ for flat, ♮ for natural)</li>
-        <li>Different keys show different accidentals</li>
-        <li>When "Show accidentals" is unchecked, notes still appear in correct positions, just without the symbols</li>
-        <li>In sharp keys (G, D, A, E, B, F#, C#), you'll see sharps</li>
-        <li>In flat keys (F, Bb, Eb, Ab, Db, Gb, Cb), you'll see flats</li>
+        <li>Different keys show different key signatures (sharps or flats)</li>
+        <li><strong>Important:</strong> Notes that match the key signature show <strong>no accidental</strong> (e.g., F# in G major shows no accidental because F# is in the key signature)</li>
+        <li>Notes that cancel the key signature show a <strong>natural sign (♮)</strong> (e.g., F♮ in G major shows ♮ to cancel the F# in the key signature)</li>
+        <li>When "Show Accidentals & Key" is unchecked, notes still appear in correct positions, just without key signatures or accidentals</li>
+        <li>In sharp keys (G, D, A, E, B, F#, C#), the key signature shows sharps, and F# notes show no accidental</li>
+        <li>In flat keys (F, Bb, Eb, Ab, Db, Gb, Cb), the key signature shows flats, and Bb notes show no accidental</li>
       </ul>
     </div>
 
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
+        <li>If you don't see key signatures or accidentals, make sure "Show Accidentals & Key" is enabled (it's disabled by default)</li>
         <li>If you see accidentals that seem wrong, remember: the app uses key-aware spelling, which follows music theory rules</li>
-        <li>If accidentals are distracting, uncheck "Show accidentals" - the notes will still be in correct positions</li>
-        <li>If you can't find the "Show accidentals" checkbox, make sure the header controls are visible (click "Show controls" if needed)</li>
+        <li>If accidentals are distracting, uncheck "Show Accidentals & Key" - the notes will still be in correct positions</li>
+        <li>If you can't find the "Show Accidentals & Key" checkbox, make sure the header controls are visible (click "Show controls" if needed)</li>
         <li>If notes look like they're in wrong positions, that's likely due to key-aware placement - this is correct behavior</li>
         <li>Remember: accidentals don't change the pitch, they just show how the note is spelled in the current key</li>
+        <li>Remember: notes that match the key signature show no accidental - this is correct behavior (the accidental is already in the key signature)</li>
       </ul>
     </div>
 
     <div class="benchmark">
-      <p><strong>Benchmark:</strong> Understand why accidentals appear in different keys, and be able to toggle the accidentals display on/off</p>
+      <p><strong>Benchmark:</strong> Understand why key signatures and accidentals appear in different keys, understand that accidentals are suppressed when they match the key signature, and be able to enable and toggle the "Show Accidentals & Key" setting</p>
       <p><strong>Progression:</strong> Move to Lesson 2 when benchmark achieved</p>
     </div>
   `;
@@ -2066,7 +2071,7 @@ function getSubLesson4_1() {
             <li>This creates a I chord (tonic chord)</li>
             <li><strong>Notice</strong> - when you click a button, you'll hear a brief preview (~0.5 seconds) of the chord</li>
             <li><strong>Look at the staff</strong> - you'll see Do, Mi, So displayed with their shape notes</li>
-            <li><strong>Study the shapes</strong>: Notice which shape is Do (diamond), Mi (rectangle), So (oval)</li>
+            <li><strong>Study the shapes</strong>: Notice which shape is Do (Triange), Mi (Diamond), So (oval)</li>
             <li>Click <strong>"Start Drone"</strong> button to hear the chord continuously</li>
             <li>You'll hear all 3 notes playing simultaneously (a chord)</li>
             <li><strong>Watch the staff</strong> - the active tones (playing in the drone) will be highlighted brighter</li>
@@ -2101,7 +2106,7 @@ function getSubLesson4_1() {
             <li>This creates a V chord (dominant chord)</li>
             <li><strong>Notice the preview</strong> - you'll hear the chord briefly when you click</li>
             <li>Look at the staff - see So, Ti, Re with their shape notes</li>
-            <li><strong>Study the shapes</strong>: So (oval), Ti (rectangle), Re (oval)</li>
+            <li><strong>Study the shapes</strong>: So (oval), Ti (Ice Cream), Re (Half Circle)</li>
             <li>Click <strong>"Start Drone"</strong> to hear it continuously</li>
             <li><strong>Listen to the quality</strong> - this is also a Major chord</li>
             <li><strong>Try to identify each tone</strong>: So (lowest), Ti (middle), Re (highest)</li>
@@ -2116,7 +2121,7 @@ function getSubLesson4_1() {
             <li>This creates a IV chord (subdominant chord)</li>
             <li><strong>Notice the preview</strong> - you'll hear the chord briefly when you click</li>
             <li>Look at the staff - see Fa, La, Do with their shape notes</li>
-            <li><strong>Study the shapes</strong>: Fa (triangle), La (diamond), Do (diamond)</li>
+            <li><strong>Study the shapes</strong>: Fa (Flag), La (Rectangle), Do (Triangle)</li>
             <li>Click <strong>"Start Drone"</strong> to hear it continuously</li>
             <li><strong>Listen to the quality</strong> - also a Major chord</li>
             <li><strong>Try to identify each tone</strong>: Fa (lowest), La (middle), Do (highest)</li>
@@ -2156,9 +2161,9 @@ function getSubLesson4_1() {
     <div class="what-to-look-for">
       <h4>What to Look For:</h4>
       <ul>
-        <li>I chord = Do-Mi-So (diamond, rectangle, oval shapes)</li>
-        <li>V chord = So-Ti-Re (oval, rectangle, oval shapes)</li>
-        <li>IV chord = Fa-La-Do (triangle, diamond, diamond shapes)</li>
+        <li>I chord = Do-Mi-So (Triangle, Diamond, oval shapes)</li>
+        <li>V chord = So-Ti-Re (oval, Ice cream, Half circle shapes)</li>
+        <li>IV chord = Fa-La-Do (Flag, Rectangle, Triangle shapes)</li>
         <li>All three are Major chords (same quality, different roots)</li>
         <li>Each chord has 3 distinct tones you can identify</li>
         <li>Shape notes help you see which solfege syllables are in each chord</li>
@@ -2790,6 +2795,8 @@ function getSubLesson5_2() {
             <li>Also select whether the piece is in <strong>Major</strong> or <strong>Minor</strong> mode</li>
             <li>Click <strong>"OK"</strong> to continue (or <strong>"Cancel"</strong> if you want to try a different file)</li>
             <li><strong>Why this matters:</strong> The key signature determines which solfege syllables correspond to which notes, so getting it right is important for accurate shape note display</li>
+            <li><strong>Note:</strong> To see the key signature on the staff, enable "Show Accidentals & Key" in the header controls (this setting works globally across all tabs, not just in the SATB tab)</li>
+            <li><strong>Important:</strong> The SATB tab uses the MIDI file's key signature (if available), while other tabs use the "Do" setting (movable Do) as the key signature</li>
           </ul>
         </li>
         <li><strong>Verify the Import:</strong>
@@ -2937,6 +2944,7 @@ function getSubLesson5_2() {
             <li>Use the Flashcards tab to practice shape-to-solfege recognition</li>
             <li>Slow down and identify each note before singing</li>
             <li>Check the key signature - it affects which solfege syllable each note represents</li>
+            <li>Enable "Show Accidentals & Key" in the header controls to see the key signature at the start of the staff</li>
           </ul>
         </li>
         <li><strong>If microphone isn't working:</strong>

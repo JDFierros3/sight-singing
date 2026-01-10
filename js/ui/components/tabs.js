@@ -242,12 +242,18 @@ export function switchToTab(tabName) {
   appState.exercise.showAnswers.intervals = false;
   appState.exercise.showAnswers.cluster = false;
   
-  // Clear SATB-specific key signature info when switching away from SATB
+  // Clear SATB-specific notes when switching away from SATB
+  // Note: We keep keyTonic/keyMode since rendering logic checks currentTab before using them
+  // When switching back to SATB, they'll be restored from the exercise
   if (tabName !== 'satb') {
-    appState.staff.keyTonic = undefined;
-    appState.staff.keyMode = undefined;
     appState.staff.notes = [];
     appState.staff.satbPreviewMode = false;
+    // Only clear key info if we're not on SATB (rendering logic will use movable Do for other tabs)
+    // This allows rendering logic to determine the key based on currentTab
+    if (appState.exercise.currentTab !== 'satb') {
+      appState.staff.keyTonic = undefined;
+      appState.staff.keyMode = undefined;
+    }
   }
 
   // Re-render staff to clear previous tab context immediately

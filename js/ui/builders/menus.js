@@ -10,8 +10,6 @@ import { SOLFEGE, DEGREE_SEMITONES, CHORDS } from '../../config/constants.js';
 
 export function buildNoteSelectionMenus() {
   buildDoNoteMenu();
-  buildMinNoteMenu();
-  buildMaxNoteMenu();
 }
 
 function buildDoNoteMenu() {
@@ -20,22 +18,6 @@ function buildDoNoteMenu() {
   clearMenu(menu);
   populateMenuWithMidiRange(menu, 36, 84);
   selectMenuOption(menu, appState.tuning.doMidi);
-}
-
-function buildMinNoteMenu() {
-  const menu = getElementById('minNote');
-  if (!menu) return;
-  clearMenu(menu);
-  populateMenuWithMidiRange(menu, 36, 84);
-  selectMenuOption(menu, appState.tuning.minMidi);
-}
-
-function buildMaxNoteMenu() {
-  const menu = getElementById('maxNote');
-  if (!menu) return;
-  clearMenu(menu);
-  populateMenuWithMidiRange(menu, 36, 84);
-  selectMenuOption(menu, appState.tuning.maxMidi);
 }
 
 function populateMenuWithMidiRange(menu, minMidi, maxMidi) {

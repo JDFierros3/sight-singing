@@ -18,9 +18,9 @@ export const appState = {
 function initializeTuning() {
   return {
     a4: 440,
-    doMidi: 60,
-    minMidi: 48,
-    maxMidi: 72,
+    doMidi: 60, // C4 (Middle C)
+    minMidi: 0, // Full MIDI range (no longer user-configurable)
+    maxMidi: 127, // Full MIDI range (no longer user-configurable)
     instrument: 'acoustic_grand_piano' // Current instrument (sine for oscillator, or soundfont name)
   };
 }
@@ -30,8 +30,7 @@ function initializeDisplay() {
     tolerance: 60,
     zoom: 1.5,
     playAim: true,
-    showKeySignature: false,
-    showAccidentals: true
+    showAccidentalsAndKey: false // Unified setting for both accidentals and key signatures
   };
 }
 

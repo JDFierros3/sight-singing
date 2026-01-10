@@ -165,11 +165,9 @@ function getDirectionMultiplier(direction) {
 }
 
 function constrainNoteToRange(note) {
-  const min = appState.tuning.minMidi;
-  const max = appState.tuning.maxMidi;
-  // Simple clamp: if out of range, move to nearest boundary
-  if (note < min) return min;
-  if (note > max) return max;
+  // No range clamping - use full MIDI range (0-127)
+  if (note < 0) return 0;
+  if (note > 127) return 127;
   return note;
 }
 
@@ -191,16 +189,15 @@ function constrainToScaleIfNeeded(note) {
   }
   
   // Note is not diatonic - snap to nearest diatonic note
-  // Find the closest diatonic note by checking all degrees in the same octave range
+  // Find the closest diatonic note by checking nearby notes (within 24 semitones)
   const doMidi = appState.tuning.doMidi;
-  const minMidi = appState.tuning.minMidi;
-  const maxMidi = appState.tuning.maxMidi;
   
   let closestNote = note;
   let minDistance = Infinity;
   
-  // Check all diatonic notes within the allowed range
-  for (let testMidi = minMidi; testMidi <= maxMidi; testMidi++) {
+  // Check diatonic notes within 2 octaves of the target note (24 semitones in each direction)
+  const searchRange = 24;
+  for (let testMidi = Math.max(0, note - searchRange); testMidi <= Math.min(127, note + searchRange); testMidi++) {
     if (getDegreeForMidi(testMidi, doMidi) !== null) {
       const distance = Math.abs(testMidi - note);
       if (distance < minDistance) {

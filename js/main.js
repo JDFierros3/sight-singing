@@ -30,13 +30,10 @@ const {
   handleA4TuningChange = () => {},
   handleInstrumentChange = () => {},
   handleDoNoteChange = () => {},
-  handleMinNoteChange = () => {},
-  handleMaxNoteChange = () => {},
   handleToleranceChange = () => {},
   handleZoomChange = () => {},
-  handleShowAccidentalsChange = () => {},
+  handleShowAccidentalsAndKeyChange = () => {},
   handlePlayAimChange = () => {},
-  handleShowKeySignatureChange = () => {},
   handleScaleOnlyChange = () => {},
   handleHideAnswersIntervalsChange = () => {},
   handleHideAnswersClusterChange = () => {},
@@ -258,20 +255,29 @@ function setupTuningControls() {
   getElementById('a4').addEventListener('change', handleA4TuningChange);
   getElementById('instrument')?.addEventListener('change', handleInstrumentChange);
   getElementById('doNote').addEventListener('change', handleDoNoteChange);
-  getElementById('minNote').addEventListener('change', handleMinNoteChange);
-  getElementById('maxNote').addEventListener('change', handleMaxNoteChange);
 }
 
 function setupDisplayControls() {
   getElementById('tolerance').addEventListener('input', handleToleranceChange);
   getElementById('zoom').addEventListener('input', handleZoomChange);
-  const showAccidentalsCheckbox = getElementById('showAccidentals');
-  if (showAccidentalsCheckbox) {
-    showAccidentalsCheckbox.addEventListener('change', handleShowAccidentalsChange);
-    // Initialize checkbox state from appState
-    showAccidentalsCheckbox.checked = appState.display.showAccidentals;
+  const showAccidentalsAndKeyCheckbox = getElementById('showAccidentalsAndKey');
+  if (showAccidentalsAndKeyCheckbox) {
+    // Migrate old localStorage keys if they exist
+    const oldShowAccidentals = localStorage.getItem('showAccidentals');
+    const oldShowKeySignature = localStorage.getItem('showKeySignature');
+    if (oldShowAccidentals !== null || oldShowKeySignature !== null) {
+      // If either old setting was true, migrate to unified setting as true
+      const shouldEnable = oldShowAccidentals === 'true' || oldShowKeySignature === 'true';
+      appState.display.showAccidentalsAndKey = shouldEnable;
+      // Clean up old keys
+      localStorage.removeItem('showAccidentals');
+      localStorage.removeItem('showKeySignature');
+    }
+    
+    showAccidentalsAndKeyCheckbox.addEventListener('change', handleShowAccidentalsAndKeyChange);
+    // Initialize checkbox state from appState (default is false/disabled)
+    showAccidentalsAndKeyCheckbox.checked = appState.display.showAccidentalsAndKey || false;
   }
-  getElementById('showKeySignature')?.addEventListener('change', handleShowKeySignatureChange);
   
   // Setup diatonic toggles for each exercise panel
   const scaleOnlyCheckboxes = ['onScaleOnly-cluster', 'onScaleOnly-intervals', 'onScaleOnly-satb'];

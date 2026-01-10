@@ -54,17 +54,16 @@ function buildClusterNotes(count) {
 function buildAnchoredCluster(count, { anchor, direction, diatonic }) {
   const pool = buildPool({ anchor, direction, diatonic, excludeDoPitchClass: true });
 
-  // Always include Do (anchor) if it is within range; otherwise pick closest in range.
+  // Always include Do (anchor) directly - no range clamping
   const notes = [];
-  const inRangeAnchor = clampToRange(anchor);
-  notes.push(inRangeAnchor);
+  notes.push(anchor);
 
   // Remove anchor from pool so we don't duplicate it.
-  const available = pool.filter(m => m !== inRangeAnchor);
+  const available = pool.filter(m => m !== anchor);
 
   // Prefer unique pitch classes so Play 3 doesn't often give (Sol, Sol') etc.
   // If we run out of unique pitch classes in the allowed range, we fall back to any remaining.
-  const usedPitchClasses = new Set([normalizeModulo(inRangeAnchor, 12)]);
+  const usedPitchClasses = new Set([normalizeModulo(anchor, 12)]);
   while (notes.length < count && available.length > 0) {
     // Try a few times to find a new pitch class.
     let chosenIndex = -1;
@@ -102,14 +101,15 @@ function buildFreeCluster(count, { diatonic }) {
 }
 
 function buildPool({ anchor, direction, diatonic, excludeDoPitchClass }) {
-  const minMidi = appState.tuning.minMidi;
-  const maxMidi = appState.tuning.maxMidi;
   const doMidi = appState.tuning.doMidi;
 
   const preset = CLUSTER_DIFFICULTY_PRESETS[appState.exercise.clusterDifficulty] || null;
   const octaveRange = preset ? preset.octaveRange : null;
-  const minAllowed = octaveRange ? Math.max(minMidi, doMidi - 12 * octaveRange) : minMidi;
-  const maxAllowed = octaveRange ? Math.min(maxMidi, doMidi + 12 * octaveRange) : maxMidi;
+  
+  // Use wide default range (full MIDI range 0-127) if no octaveRange constraint
+  // Otherwise calculate range based on Do and octaveRange, clamped to MIDI range
+  const minAllowed = octaveRange ? Math.max(0, doMidi - 12 * octaveRange) : 0;
+  const maxAllowed = octaveRange ? Math.min(127, doMidi + 12 * octaveRange) : 127;
 
   const pool = [];
 
@@ -131,16 +131,8 @@ function buildPool({ anchor, direction, diatonic, excludeDoPitchClass }) {
     pool.push(midi);
   }
 
-  // If we filtered too hard (edge vocal ranges), fall back to at least the anchor-only pool.
-  return pool.length ? pool : [clampToRange(anchor)];
-}
-
-function clampToRange(midi) {
-  const minMidi = appState.tuning.minMidi;
-  const maxMidi = appState.tuning.maxMidi;
-  if (midi < minMidi) return minMidi;
-  if (midi > maxMidi) return maxMidi;
-  return midi;
+  // If we filtered too hard (edge cases), fall back to at least the anchor-only pool.
+  return pool.length ? pool : [anchor];
 }
 
 function storeClusterNotes(notes) {

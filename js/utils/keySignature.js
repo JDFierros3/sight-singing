@@ -238,10 +238,44 @@ function findNearestDiatonicAbove(pitchClass, diatonicPCs) {
  * @param {number} noteMidi - MIDI note number
  * @param {number} tonic - Key tonic pitch class (0-11)
  * @param {string} mode - 'major' or 'minor'
+ * @param {Object|null} keyInfo - Optional key signature info from getKeySignature(). If provided, suppresses redundant accidentals
  * @returns {string|null} 'sharp', 'flat', 'natural', or null
  */
-export function getAccidentalForNote(noteMidi, tonic, mode = 'major') {
+export function getAccidentalForNote(noteMidi, tonic, mode = 'major', keyInfo = null) {
   const spelled = spellMidiInKey(noteMidi, tonic, mode);
-  return spelled ? spelled.accidental : null;
+  if (!spelled) return null;
+  
+  // If keyInfo is provided, suppress redundant accidentals
+  if (keyInfo) {
+    const letterAcc = buildLetterAccidentals(keyInfo);
+    const letter = spelled.letter;
+    const accidental = spelled.accidental;
+    const keySignatureAccidental = letterAcc[letter] || 0;
+    
+    // spellMidiInKey already returns accidental: null for notes in the key signature
+    // So if accidental is null and the letter is in the key signature, no accidental needed
+    // e.g., F# in G major: spellMidiInKey returns accidental: null (F# is diatonic), letterAcc['F'] = 1
+    // Since accidental is null and letterAcc['F'] = 1, the note is in the key signature -> return null
+    if (accidental === null && keySignatureAccidental !== 0) {
+      // The note matches the key signature, no accidental needed
+      return null;
+    }
+    
+    // If the note is natural (natural pitch class) but the letter is sharped/flatted in key signature, return 'natural'
+    // e.g., F♮ (natural F) in G major (key signature has F#) -> return 'natural'
+    // spellMidiInKey for F♮ in G major would return letter: 'F', accidental: 'natural' (because pc === natPc and letterAcc['F'] !== 0)
+    if (accidental === 'natural') {
+      return 'natural'; // Keep the natural sign
+    }
+    
+    // If the note is sharp/flat but the letter is NOT in the key signature, return the accidental
+    // This handles chromatic notes (e.g., C# in C major -> return 'sharp')
+    // Note: spellMidiInKey should not return a sharp/flat that matches the key signature
+    // because it would have matched the basePc and returned null
+    return accidental;
+  }
+  
+  // If no keyInfo provided, return accidental as-is (backward compatibility)
+  return spelled.accidental;
 }
 

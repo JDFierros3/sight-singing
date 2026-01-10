@@ -68,21 +68,14 @@
         </div>
 
         <div class="controlGroup">
-          <label for="minNote">Low</label>
-          <select id="minNote" aria-label="Select minimum note"></select>
-          <label for="maxNote">High</label>
-          <select id="maxNote" aria-label="Select maximum note"></select>
-        </div>
-
-        <div class="controlGroup">
           <label for="zoom">Zoom</label>
           <input id="zoom" type="range" min="0.7" max="1.8" value="1.5" step="0.05" aria-label="Staff zoom level" />
         </div>
 
         <div class="controlGroup">
           <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px">
-            <input id="showAccidentals" type="checkbox" checked aria-label="Show accidentals on staff" />
-            Show accidentals
+            <input id="showAccidentalsAndKey" type="checkbox" aria-label="Show accidentals and key signature on staff" />
+            Show Accidentals & Key
           </label>
         </div>
 
@@ -322,14 +315,6 @@
             <span>Key: <span id="satbKeyLabel">—</span></span>
             <button id="btnSatbTransposeDown" aria-label="Transpose down 1 semitone">−</button>
             <button id="btnSatbTransposeUp" aria-label="Transpose up 1 semitone">+</button>
-          </div>
-          
-          <!-- Key Signature Display -->
-          <div style="margin-bottom:12px">
-            <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px">
-              <input id="showKeySignature" type="checkbox" aria-label="Show key signature on staff" />
-              Show key signature on staff
-            </label>
           </div>
           
           <!-- Play Controls -->

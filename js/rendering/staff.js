@@ -18,10 +18,23 @@ let ctx = null;
 let lastMicMidiForLine = null;
 
 export function getKeySignatureWidthPx() {
-  if (!(appState.display.showKeySignature && appState.staff.satbPreviewMode && Number.isFinite(appState.staff.keyTonic))) {
+  if (!appState.display.showAccidentalsAndKey) {
     return 0;
   }
-  const info = getKeySignature(appState.staff.keyTonic, appState.staff.keyMode || 'major');
+  
+  // Determine the key based on current tab
+  let tonicPc, mode;
+  if (appState.exercise.currentTab === 'satb' && Number.isFinite(appState.staff.keyTonic)) {
+    // SATB tab: use MIDI file's key
+    tonicPc = appState.staff.keyTonic;
+    mode = appState.staff.keyMode || 'major';
+  } else {
+    // Other tabs: use movable Do
+    tonicPc = appState.tuning.doMidi % 12;
+    mode = 'major';
+  }
+  
+  const info = getKeySignature(tonicPc, mode);
   const count = (info.sharps?.length || 0) + (info.flats?.length || 0);
   // Must match drawKeySignature spacing in accidentals.js (12px) plus a little padding
   return Math.max(0, count * 12 + 18);
@@ -218,8 +231,20 @@ function drawStaffLines(dimensions) {
   drawTrebleClef(ctx, dimensions);
   drawBassClef(ctx, dimensions);
   
-  // Draw key signature if we have key info (for SATB exercises only) and it's enabled
-  if (Number.isFinite(appState.staff.keyTonic) && appState.staff.satbPreviewMode && appState.display.showKeySignature) {
+  // Draw key signature if enabled
+  if (appState.display.showAccidentalsAndKey) {
+    // Determine the key based on current tab
+    let tonicPc, mode;
+    if (appState.exercise.currentTab === 'satb' && Number.isFinite(appState.staff.keyTonic)) {
+      // SATB tab: use MIDI file's key
+      tonicPc = appState.staff.keyTonic;
+      mode = appState.staff.keyMode || 'major';
+    } else {
+      // Other tabs: use movable Do
+      tonicPc = appState.tuning.doMidi % 12;
+      mode = 'major';
+    }
+    
     const keySignatureDimensions = {
       width: dimensions.width,
       height: dimensions.height,
@@ -228,7 +253,7 @@ function drawStaffLines(dimensions) {
       bassStaffTop: dimensions.bassStaffTop,
       lineSpacing: dimensions.spacing
     };
-    drawKeySignature(ctx, appState.staff.keyTonic, appState.staff.keyMode || 'major', keySignatureDimensions);
+    drawKeySignature(ctx, tonicPc, mode, keySignatureDimensions);
   }
 }
 
@@ -421,6 +446,9 @@ function createNotePositionMapper(dimensions) {
   // We need key-aware spelling so flat keys (Db/Eb/...) don't render on sharp spellings (C#/D#/...).
   const letters = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
+  // Natural positions for pitch classes (C=0, C#/Db=0, D=1, D#/Eb=1, E=2, F=3, F#/Gb=3, G=4, G#/Ab=4, A=5, A#/Bb=5, B=6)
+  const naturalPositions = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
+
   let pitchClassToDiatonic = [
     0, // C
     0, // C#
@@ -436,8 +464,8 @@ function createNotePositionMapper(dimensions) {
     6  // B
   ];
 
-  // Always use key-aware spelling based on movable Do (not just SATB mode)
-  // This ensures correct vertical positioning for all tabs (warmup, intervals, etc.)
+  // Always use key-aware spelling for ALL tabs (SATB and movable Do exercises)
+  // This ensures key signatures match the note spellings and positions
   let keyTonic = null;
   let keyMode = 'major';
   
@@ -447,7 +475,7 @@ function createNotePositionMapper(dimensions) {
     keyTonic = appState.staff.keyTonic;
     keyMode = appState.staff.keyMode || 'major';
   } else if (Number.isFinite(appState.tuning?.doMidi)) {
-    // Use movable Do as the key tonic
+    // Use movable Do as the key tonic for all movable Do exercises
     keyTonic = appState.tuning.doMidi % 12;
     keyMode = 'major'; // Assume major for movable Do exercises
   }
@@ -470,10 +498,36 @@ function createNotePositionMapper(dimensions) {
     const midiInt = Math.round(midi);
     const octave = Math.floor(midiInt / 12) - 1; // C4 => 4
     const pc = ((midiInt % 12) + 12) % 12;
-    const diatonicInOctave = pitchClassToDiatonic[pc];
-
-    // Middle C = C4 => step 0. Each octave adds 7 diatonic steps.
-    return (octave - 4) * 7 + diatonicInOctave;
+    
+    // Calculate natural position baseline (what position this note would have with natural spelling)
+    const naturalIndex = naturalPositions[pc];
+    const naturalStep = (octave - 4) * 7 + naturalIndex;
+    
+    // Get key-aware letter index (how this pitch class is spelled in the current key)
+    const keyAwareIndex = pitchClassToDiatonic[pc];
+    
+    // Always use key-aware positioning when we have a key
+    if (keyTonic !== null) {
+      // Calculate what octave would give the correct position with key-aware letter
+      // Formula: naturalStep = (octave - 4) * 7 + naturalIndex
+      // We want: adjustedStep ≈ naturalStep, where adjustedStep = (adjustedOctave - 4) * 7 + keyAwareIndex
+      // Solving: (adjustedOctave - 4) * 7 + keyAwareIndex = naturalStep
+      // Therefore: adjustedOctave = 4 + (naturalStep - keyAwareIndex) / 7
+      const adjustedOctave = 4 + (naturalStep - keyAwareIndex) / 7;
+      const roundedOctave = Math.round(adjustedOctave);
+      const adjustedStep = (roundedOctave - 4) * 7 + keyAwareIndex;
+      
+      // Validate: if the error is acceptable (≤1 step), use adjusted position
+      // This handles fractional octaves by rounding and checking accuracy
+      if (Math.abs(adjustedStep - naturalStep) <= 1) {
+        return adjustedStep;
+      }
+      // Fallback: if rounding caused too much error (rare edge case), use natural position
+      // This preserves pitch relationships even in extreme enharmonic situations
+    }
+    
+    // Fallback: no key or validation failed, use natural position
+    return naturalStep;
   }
 
   return function yForMidi(midi) {
@@ -590,15 +644,31 @@ function drawActiveNotes(noteMapper) {
   activeMidis.forEach((midi, index) => {
     const y = noteMapper(midi);
     const solfege = getSolfegeForMidi(midi, appState.tuning.doMidi);
-    const x = 100 + index * 20;
+    // Use getStaffStartX() to account for key signature width when enabled
+    const x = getStaffStartX() + index * 20;
     
     // Draw ledger lines if needed
     const dimensions = getCanvasDimensions();
     drawLedgerLines(ctx, y, dimensions);
     
     // Check for accidental (if enabled)
-    if (appState.display.showAccidentals) {
-      const accidental = getAccidentalForNote(midi, tonic, mode);
+    if (appState.display.showAccidentalsAndKey) {
+      // Determine the key based on current tab
+      let tonicPc, keyMode;
+      if (appState.exercise.currentTab === 'satb' && Number.isFinite(appState.staff.keyTonic)) {
+        // SATB tab: use MIDI file's key
+        tonicPc = appState.staff.keyTonic;
+        keyMode = appState.staff.keyMode || 'major';
+      } else {
+        // Other tabs: use movable Do
+        tonicPc = appState.tuning.doMidi % 12;
+        keyMode = 'major';
+      }
+      
+      // Get key signature info for accidental suppression
+      const keyInfo = getKeySignature(tonicPc, keyMode);
+      const accidental = getAccidentalForNote(midi, tonicPc, keyMode, keyInfo);
+      
       if (accidental) {
         const accidentalX = x - 14;
         const accidentalY = y - 2;
@@ -1044,17 +1114,35 @@ function drawNoteAtPosition(x, y, midi, isActive, solfege, isAimPart = false, ac
   
   ctx.save();
   
-  // Draw accidental before the shape (if present and enabled)
-  if (accidental && appState.display.showAccidentals) {
-    const accidentalX = x - 14; // Position to the left of note
-    const accidentalY = y - 2; // Slightly above center
+  // Draw accidental before the shape (if enabled)
+  if (appState.display.showAccidentalsAndKey) {
+    // Recalculate accidental with key-aware suppression
+    let tonicPc, keyMode;
+    if (appState.exercise.currentTab === 'satb' && Number.isFinite(appState.staff.keyTonic)) {
+      // SATB tab: use MIDI file's key
+      tonicPc = appState.staff.keyTonic;
+      keyMode = appState.staff.keyMode || 'major';
+    } else {
+      // Other tabs: use movable Do
+      tonicPc = appState.tuning.doMidi % 12;
+      keyMode = 'major';
+    }
     
-    if (accidental === 'sharp') {
-      drawSharp(ctx, accidentalX, accidentalY, 14);
-    } else if (accidental === 'flat') {
-      drawFlat(ctx, accidentalX, accidentalY, 14);
-    } else if (accidental === 'natural') {
-      drawNatural(ctx, accidentalX, accidentalY, 14);
+    // Get key signature info for accidental suppression
+    const keyInfo = getKeySignature(tonicPc, keyMode);
+    const calculatedAccidental = getAccidentalForNote(midi, tonicPc, keyMode, keyInfo);
+    
+    if (calculatedAccidental) {
+      const accidentalX = x - 14; // Position to the left of note
+      const accidentalY = y - 2; // Slightly above center
+      
+      if (calculatedAccidental === 'sharp') {
+        drawSharp(ctx, accidentalX, accidentalY, 14);
+      } else if (calculatedAccidental === 'flat') {
+        drawFlat(ctx, accidentalX, accidentalY, 14);
+      } else if (calculatedAccidental === 'natural') {
+        drawNatural(ctx, accidentalX, accidentalY, 14);
+      }
     }
   }
   

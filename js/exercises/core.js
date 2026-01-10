@@ -21,9 +21,8 @@ export function setActiveDisplay(midis, label) {
 
 
 export function pickRandomNoteInRange() {
-  const min = appState.tuning.minMidi;
-  const max = appState.tuning.maxMidi;
-  return randomInRange(min, max);
+  // Use full MIDI range (0-127) instead of limited range
+  return randomInRange(0, 127);
 }
 
 export function playTonesForDuration(midis, duration, label) {

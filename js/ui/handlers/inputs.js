@@ -82,23 +82,9 @@ export function handleDoNoteChange(event) {
   transport.stopAllPlayback?.();
 }
 
-export function handleMinNoteChange(event) {
-  const value = Number(event.target.value);
-  updateTuningSetting('minMidi', value);
-  renderStaff();
-  transport.stopAllPlayback?.();
-}
-
-export function handleMaxNoteChange(event) {
-  const value = Number(event.target.value);
-  updateTuningSetting('maxMidi', value);
-  renderStaff();
-  transport.stopAllPlayback?.();
-}
-
-export function handleShowAccidentalsChange(event) {
+export function handleShowAccidentalsAndKeyChange(event) {
   const value = event.target.checked;
-  updateDisplaySetting('showAccidentals', value);
+  updateDisplaySetting('showAccidentalsAndKey', value);
   renderStaff();
 }
 
@@ -118,13 +104,6 @@ export function handleZoomChange(event) {
 export function handlePlayAimChange(event) {
   const value = event.target.checked;
   updateDisplaySetting('playAim', value);
-}
-
-export function handleShowKeySignatureChange(event) {
-  const value = event.target.checked;
-  updateDisplaySetting('showKeySignature', value);
-  // Re-render the staff to show/hide key signature
-  import('../rendering/staff.js').then(staff => staff.renderStaff());
 }
 
 export function handleScaleOnlyChange(event) {
