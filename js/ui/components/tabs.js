@@ -3,7 +3,7 @@
  */
 
 import { getElementById } from '../../utils/dom.js';
-import { appState } from '../../state/appState.js';
+import { appState, updateDisplaySetting } from '../../state/appState.js';
 import { displaySATBExerciseOnStaff, getAllSATBExercises } from '../../exercises/satb.js';
 import { initializeFlashcards } from '../../exercises/flashcards.js';
 import { stopAllPlayback } from '../components/transport.js';
@@ -256,9 +256,6 @@ export function switchToTab(tabName) {
     }
   }
 
-  // Re-render staff to clear previous tab context immediately
-  renderStaff();
-  
   updateTabButtonStates();
   
   syncTabSelectValue(appState.exercise.currentTab);
@@ -266,25 +263,37 @@ export function switchToTab(tabName) {
   // Show/hide reveal buttons in header based on active tab
   updateHeaderRevealButtons(appState.exercise.currentTab);
   
+  // Update "Show Accidentals & Key" setting based on tab
+  const showAccidentalsCheckbox = getElementById('showAccidentalsAndKey');
+  if (showAccidentalsCheckbox) {
+    if (appState.exercise.currentTab === 'satb') {
+      // Enable by default for SATB tab
+      updateDisplaySetting('showAccidentalsAndKey', true);
+      showAccidentalsCheckbox.checked = true;
+    } else {
+      // Disable by default for other tabs
+      updateDisplaySetting('showAccidentalsAndKey', false);
+      showAccidentalsCheckbox.checked = false;
+    }
+  }
+
+  // Re-render staff to clear previous tab context and apply settings
+  renderStaff();
+
   // If switching to SATB tab, ensure the current exercise is displayed
   if (appState.exercise.currentTab === 'satb') {
     // Use setTimeout to ensure panel is visible before rendering
     setTimeout(() => {
-      const exerciseSelect = getElementById('satbExercise');
-      if (exerciseSelect) {
-        const exercises = getAllSATBExercises();
-        const exerciseIndex = parseInt(exerciseSelect.value) || 0;
-        if (exercises[exerciseIndex]) {
-          appState.satb.currentExercise = exercises[exerciseIndex];
-          displaySATBExerciseOnStaff(exercises[exerciseIndex]);
-        } else if (exercises.length > 0) {
-          // Fallback to first exercise if selection is invalid
-          appState.satb.currentExercise = exercises[0];
-          displaySATBExerciseOnStaff(exercises[0]);
-        }
-      } else if (appState.satb.currentExercise) {
-        // If dropdown not ready but we have a current exercise, display it
-        displaySATBExerciseOnStaff(appState.satb.currentExercise);
+      // Display current exercise if one is selected, otherwise show first available
+      const exercises = getAllSATBExercises();
+      const currentExercise = appState.satb.currentExercise;
+      
+      if (currentExercise) {
+        displaySATBExerciseOnStaff(currentExercise);
+      } else if (exercises.length > 0) {
+        // Fallback to first exercise if no selection
+        appState.satb.currentExercise = exercises[0];
+        displaySATBExerciseOnStaff(exercises[0]);
       }
     }, 10);
   }

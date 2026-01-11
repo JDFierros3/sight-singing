@@ -59,7 +59,7 @@ const {
   handleSATBStopClick = () => {},
   handleSATBPartClick = () => {},
   handleSATBTempoChange = () => {},
-  handleSATBExerciseChange = () => {},
+  handleSATBBrowseHymnsClick = () => {},
   handleSATBTransposeChange = () => {},
   handleMidiFileSelect = () => {},
   handleIntervalDifficultyPreset = () => {},
@@ -372,7 +372,7 @@ function setupExerciseControls() {
   const btnSatbResume = getElementById('btnSatbResume');
   const btnSatbStop = getElementById('btnSatbStop');
   const satbTempo = getElementById('satbTempo');
-  const satbExercise = getElementById('satbExercise');
+  const btnBrowseHymns = getElementById('btnBrowseHymns');
   const satbTransposeUp = getElementById('btnSatbTransposeUp');
   const satbTransposeDown = getElementById('btnSatbTransposeDown');
   const satbPartSelection = getElementById('satbPartSelection');
@@ -397,8 +397,8 @@ function setupExerciseControls() {
       tempoValue.textContent = satbTempo.value;
     }
   }
-  if (satbExercise) {
-    satbExercise.addEventListener('change', handleSATBExerciseChange);
+  if (btnBrowseHymns) {
+    btnBrowseHymns.onclick = handleSATBBrowseHymnsClick;
   }
   if (satbTransposeUp) {
     satbTransposeUp.onclick = () => changeSatbTranspose(1);

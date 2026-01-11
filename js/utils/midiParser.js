@@ -864,22 +864,29 @@ export async function parseMidiToExercise(arrayBuffer, label, options = {}) {
     }
   }
   
-  // Key detection: only trust explicit MIDI key signatures
-  // If caller provides a forced key (e.g., user confirmed), use it.
+  // Key detection: ALWAYS trust MIDI file key signature over any external metadata
+  // Never use options.forceKey unless MIDI file has no key signature and it's user-verified
+  // This ensures accurate key detection regardless of website metadata errors
   let keyGuess;
-  if (options.forceKey && Number.isFinite(options.forceKey.tonic)) {
-    keyGuess = { tonic: options.forceKey.tonic, mode: options.forceKey.mode || 'major' };
+  
+  // First priority: Use explicit key signature from MIDI file header
+  if (Number.isFinite(midiData.keyMidi)) {
+    // Extract mode from key signature if available, default to major
+    const keySignature = midiData.keySignature;
+    const mode = (keySignature && keySignature.scale === 1) ? 'minor' : 'major';
+    keyGuess = { tonic: midiData.keyMidi, mode: mode };
   } else {
-    // Only use explicit key signature from MIDI header
-    if (Number.isFinite(midiData.keyMidi)) {
-      keyGuess = { tonic: midiData.keyMidi, mode: 'major' };
+    // No explicit key signature in MIDI file
+    // Only use forceKey as last resort if explicitly provided (user-verified scenario)
+    if (options.forceKey && Number.isFinite(options.forceKey.tonic)) {
+      keyGuess = { tonic: options.forceKey.tonic, mode: options.forceKey.mode || 'major' };
     } else {
-      // No explicit key - will need user prompt
+      // No key available - will fall back to analysis guess
       keyGuess = null;
     }
   }
 
-  // Always compute an analysis guess (for UI), even if we don't trust it as authoritative.
+  // Always compute an analysis guess (for UI fallback), even if we don't trust it as authoritative.
   const analysisGuess = analyzeKeyFromMidiData(midiData);
 
   let exercise;

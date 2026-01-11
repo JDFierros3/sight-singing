@@ -1,0 +1,15 @@
+{
+  "name": "shape-note-ear-trainer",
+  "version": "2.0.0",
+  "description": "Shape-note / solfege ear trainer for singers",
+  "scripts": {
+    "build-midi-library": "node scripts/build-midi-library.js",
+    "download-hymns": "node scripts/download-hymns.js"
+  },
+  "devDependencies": {
+    "@tonejs/midi": "^2.0.28",
+    "cheerio": "^1.1.2",
+    "node-fetch": "^2.7.0"
+  },
+  "private": true
+}

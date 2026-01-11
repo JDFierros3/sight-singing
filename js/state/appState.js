@@ -118,6 +118,7 @@ function initializeSATB() {
       B: 0.5  // Bass volume
     },
     currentExercise: null,
+    selectedExerciseIndex: -1, // Index of selected exercise in hymn browser
     isPlaying: false,
     midiExercises: [], // Array of exercises loaded from MIDI files
     transposeSemis: 0

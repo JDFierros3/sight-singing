@@ -1,5 +1,13 @@
 # Cursor 
 .cursor/
 
+# Temporary folder for downloaded MIDI files from Hymnary.org (before processing)
+downloaded-midis/
 
+# Node modules (if npm install is run for build script)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
 

@@ -20,7 +20,7 @@ import { playIntervalExercise, revealIntervalSolution } from '../../exercises/in
 import { playSATBExercise, stopSATBExercise, pauseSATBExercise, resumeSATBExercise, handlePartSelection, getAllSATBExercises, displaySATBExerciseOnStaff, loadMidiExercise, setSatbTranspose } from '../../exercises/satb.js';
 import * as transport from '../components/transport.js';
 import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode } from '../../exercises/flashcards.js';
-import { buildExerciseSelection } from '../builders/satbControls.js';
+import { openHymnBrowser } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
 
 export function handleA4TuningChange(event) {
@@ -431,20 +431,9 @@ export function handleSATBTempoChange(event) {
   // which is called when playback starts/stops
 }
 
-export function handleSATBExerciseChange(event) {
-  // Exercise selection changed - store the selection and display on staff
-  const exerciseIndex = parseInt(event.target.value) || 0;
-  const exercises = getAllSATBExercises();
-  if (exercises[exerciseIndex]) {
-    // Reset transposition when switching exercises
-    setSatbTranspose(0);
-    appState.satb.currentExercise = exercises[exerciseIndex];
-    
-    // Display the exercise on the staff immediately (but don't play it)
-    displaySATBExerciseOnStaff(exercises[exerciseIndex]);
-  }
-
-  transport.stopAllPlayback?.();
+export function handleSATBBrowseHymnsClick() {
+  // Open hymn browser modal (replaces dropdown)
+  openHymnBrowser();
 }
 
 export function handleSATBTransposeChange(event) {
@@ -510,38 +499,39 @@ function promptForKey(label, guess = null) {
 
     const dialog = document.createElement('div');
     dialog.style.cssText = `
-      background: white;
+      background: #1a1f35;
       padding: 20px;
       border-radius: 8px;
+      border: 1px solid #262b44;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       max-width: 450px;
       width: 90%;
     `;
 
     dialog.innerHTML = `
-      <h3 style="margin-top: 0; color: #333;">Select Key for "${label}"</h3>
-      <p style="margin: 10px 0; color: #666;">This MIDI file doesn't specify a key signature. Please select the correct key:</p>
-      ${guessPct === null ? '' : `<p style="margin: 6px 0 0; color: #444;"><strong>Best guess:</strong> ${keyNames[guessKey]} ${guessMode} (${guessPct}%)${guessLabel}</p>`}
+      <h3 style="margin-top: 0; color: #b7c0ce;">Select Key for "${label}"</h3>
+      <p style="margin: 10px 0; color: #7a8499;">This MIDI file doesn't specify a key signature. Please select the correct key:</p>
+      ${guessPct === null ? '' : `<p style="margin: 6px 0 0; color: #7a8499;"><strong>Best guess:</strong> ${keyNames[guessKey]} ${guessMode} (${guessPct}%)${guessLabel}</p>`}
       <div style="display: flex; gap: 10px; margin: 15px 0;">
         <div style="flex: 1;">
-          <label style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Key:</label>
-          <select id="keySelect" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+          <label style="display: block; margin-bottom: 5px; color: #b7c0ce; font-weight: 500;">Key:</label>
+          <select id="keySelect" style="width: 100%; padding: 8px; border: 1px solid #2a3051; border-radius: 6px; background: #0f1426; color: #b7c0ce;">
             ${keyNames.map((name, i) => 
               `<option value="${keyValues[i]}"${i === guessKey ? ' selected' : ''}>${name}</option>`
             ).join('')}
           </select>
         </div>
         <div style="flex: 1;">
-          <label style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Mode:</label>
-          <select id="modeSelect" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+          <label style="display: block; margin-bottom: 5px; color: #b7c0ce; font-weight: 500;">Mode:</label>
+          <select id="modeSelect" style="width: 100%; padding: 8px; border: 1px solid #2a3051; border-radius: 6px; background: #0f1426; color: #b7c0ce;">
             <option value="major"${guessMode === 'major' ? ' selected' : ''}>Major</option>
             <option value="minor"${guessMode === 'minor' ? ' selected' : ''}>Minor</option>
           </select>
         </div>
       </div>
       <div style="text-align: right; margin-top: 20px;">
-        <button id="cancelBtn" style="margin-right: 10px; padding: 8px 16px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Cancel</button>
-        <button id="okBtn" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        <button id="cancelBtn" style="margin-right: 10px; padding: 8px 16px; background: #2a3051; border: 1px solid #39406a; border-radius: 6px; cursor: pointer; color: #b7c0ce;">Cancel</button>
+        <button id="okBtn" style="padding: 8px 16px; background: #7db3fc; color: #0f1426; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">OK</button>
       </div>
     `;
 
@@ -596,15 +586,8 @@ export async function handleMidiFileSelect(event) {
     // Load MIDI file and prompt for key if not explicitly stated
     const exercise = await loadMidiExerciseWithKeyPrompt(arrayBuffer, label);
     
-    // Update exercise selection to show new exercise
-    const exercises = getAllSATBExercises();
-    buildExerciseSelection(exercises);
-    
-    // Select the newly loaded exercise
-    const exerciseSelect = getElementById('satbExercise');
-    const exerciseIndex = exercises.findIndex(ex => ex.label === exercise.label);
-    if (exerciseIndex !== -1) {
-      exerciseSelect.value = exerciseIndex;
+    // Set as current exercise and display on staff
+    if (exercise) {
       appState.satb.currentExercise = exercise;
       displaySATBExerciseOnStaff(exercise);
     }

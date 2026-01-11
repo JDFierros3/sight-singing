@@ -11,7 +11,7 @@ import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence, getCurrentSequenceId } from '../player/sequenceManager.js';
 import { playNote, stopAllNotes } from '../player/audioPlayer.js';
 import { getAllSATBExercises as getAllSATBExercisesFromData, createExerciseFromMidi } from './satbData.js';
-import { buildPartSelectionButtons, buildPartVolumeControls, buildExerciseSelection, updatePartSelection } from '../ui/builders/satbControls.js';
+import { buildPartSelectionButtons, buildPartVolumeControls, updatePartSelection } from '../ui/builders/satbControls.js';
 import { renderStaff } from '../rendering/staff.js';
 import { updatePanningCursor } from '../rendering/staffPanning.js';
 import { getAccidentalForNote } from '../utils/keySignature.js';
@@ -65,21 +65,17 @@ export async function playSATBExercise() {
   const badge = getElementById('satbBadge');
   setTextContent(badge, '—');
   
-  // Get selected exercise
-  const exerciseSelect = getElementById('satbExercise');
-  const exerciseIndex = parseInt(exerciseSelect.value) || 0;
-  const exercises = getAllSATBExercises(); // Include MIDI exercises
-  const baseExercise = exercises[exerciseIndex];
-  const exercise = getTransposedExercise(baseExercise, appState.satb.transposeSemis);
+  // Get selected exercise from appState (set by hymn browser)
+  const baseExercise = appState.satb.currentExercise;
   
-  if (!exercise) {
+  if (!baseExercise) {
     appState.satb.isPlaying = false;
     updateSatbButton(false);
-    setTextContent(badge, 'No exercise selected');
+    setTextContent(badge, 'No exercise selected - browse hymns to select one');
     return;
   }
   
-  appState.satb.currentExercise = baseExercise;
+  const exercise = getTransposedExercise(baseExercise, appState.satb.transposeSemis);
 
   // Ensure staff key context exists during playback (used for solfege mapping + key signature spacing)
   if (Number.isFinite(exercise.midiKeyMidi)) {
@@ -288,6 +284,10 @@ export async function displaySATBExerciseOnStaff(exercise) {
   
   // Store the base exercise so getDoMidiForDisplay() can access it
   appState.satb.currentExercise = exercise;
+  
+  // Update current hymn display
+  const { updateCurrentHymnDisplay } = await import('../ui/components/hymnBrowser.js');
+  updateCurrentHymnDisplay();
 
   const transposed = getTransposedExercise(exercise, appState.satb.transposeSemis);
   
@@ -340,22 +340,31 @@ export async function initializeSATBControls() {
   // Build volume controls
   buildPartVolumeControls();
   
-  // Pre-load Amazing Grace MIDI file (must complete before building exercise selection)
-  await preloadAmazingGrace();
+  // Pre-load all MIDI files from /midi folder (must complete before displaying)
+  await preloadAllMidiFiles();
   
-  // Build exercise selection (includes MIDI exercises now)
+  // Initialize hymn browser UI
+  const { initializeHymnBrowser, updateCurrentHymnDisplay } = await import('../ui/components/hymnBrowser.js');
+  initializeHymnBrowser();
+  
+  // Update current hymn display on initial load
+  updateCurrentHymnDisplay();
+  
+  // Auto-select first exercise if available (so staff displays something)
   const exercises = getAllSATBExercises();
-  buildExerciseSelection(exercises);
-  
-  // Store the default exercise
   if (exercises.length > 0) {
-    appState.satb.currentExercise = exercises[0];
+    if (!appState.satb.currentExercise) {
+      appState.satb.currentExercise = exercises[0];
+      appState.satb.selectedExerciseIndex = 0;
+    }
     
-    // If already on SATB tab, display the exercise immediately
-    if (appState.exercise.currentTab === 'satb') {
-      displaySATBExerciseOnStaff(exercises[0]);
+    // If already on SATB tab, display the current exercise immediately
+    if (appState.exercise.currentTab === 'satb' && appState.satb.currentExercise) {
+      displaySATBExerciseOnStaff(appState.satb.currentExercise);
     }
   }
+  
+  // Note: Exercise selection is now handled by hymn browser UI, not dropdown
 }
 
 /**
@@ -378,21 +387,39 @@ export function getCurrentSATBExercise() {
 /**
  * Load MIDI file and add to exercises
  * @param {ArrayBuffer} arrayBuffer - MIDI file data
- * @param {string} label - Exercise label
+ * @param {string|Object} labelOrMetadata - Exercise label string OR metadata object with {hymnName, tuneName, label}
+ * @param {Object} options - Optional parsing options (key will be detected from MIDI file, not from options)
  */
-export async function loadMidiExercise(arrayBuffer, label, options = {}) {
+export async function loadMidiExercise(arrayBuffer, labelOrMetadata, options = {}) {
   const { parseMidiToExercise } = await import('../utils/midiParser.js');
   
   try {
+    // Extract label from metadata object or use string directly
+    let label;
+    let metadata = null;
+    
+    if (typeof labelOrMetadata === 'object' && labelOrMetadata !== null) {
+      // Metadata object provided
+      metadata = labelOrMetadata;
+      label = metadata.label || `${metadata.hymnName} (${metadata.tuneName})`;
+    } else {
+      // String label provided (backward compatibility)
+      label = labelOrMetadata || 'Untitled';
+    }
+    
+    // Always detect key from MIDI file content - never use external metadata
+    // options.forceKey will only be used if MIDI file has no key signature
     const { exercise: midiExercise } = await parseMidiToExercise(arrayBuffer, label, options);
     const exercise = createExerciseFromMidi(midiExercise);
     
+    // Store metadata in exercise for search/filtering
+    if (metadata) {
+      exercise.hymnName = metadata.hymnName;
+      exercise.tuneName = metadata.tuneName;
+    }
+    
     // Add to MIDI exercises array
     appState.satb.midiExercises.push(exercise);
-    
-    // Update exercise selection dropdown
-    const allExercises = getAllSATBExercises();
-    buildExerciseSelection(allExercises);
     
     return exercise;
   } catch (error) {
@@ -402,23 +429,72 @@ export async function loadMidiExercise(arrayBuffer, label, options = {}) {
 }
 
 /**
- * Pre-load Amazing Grace MIDI file
+ * Load metadata.json to get list of MIDI files and their metadata
  */
-export async function preloadAmazingGrace() {
+async function loadMidiMetadata() {
   try {
-    const response = await fetch('./midi/330-Amazing_Grace.mid');
+    const response = await fetch('./midi/metadata.json');
     if (!response.ok) {
-      console.warn('Could not load Amazing Grace MIDI file');
+      console.warn('Could not load metadata.json - MIDI files may not be organized yet');
+      return null;
+    }
+    const metadata = await response.json();
+    return metadata;
+  } catch (error) {
+    console.warn('Error loading metadata.json:', error);
+    return null;
+  }
+}
+
+/**
+ * Pre-load all MIDI files from /midi folder using metadata.json
+ * Auto-discovers and loads all MIDI files with proper labels and key detection
+ */
+export async function preloadAllMidiFiles() {
+  try {
+    // Load metadata.json to get list of files and their metadata
+    const metadata = await loadMidiMetadata();
+    
+    if (!metadata || Object.keys(metadata).length === 0) {
+      // Fallback: try to load Amazing Grace directly if metadata doesn't exist
+      console.warn('No metadata found, attempting to load Amazing Grace as fallback');
+      try {
+        const response = await fetch('./midi/330-Amazing_Grace.mid');
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          await loadMidiExercise(arrayBuffer, 'Amazing Grace');
+        }
+      } catch (e) {
+        // Silent fail - no MIDI files available
+      }
       return;
     }
-
-    const arrayBuffer = await response.arrayBuffer();
-    await loadMidiExercise(arrayBuffer, 'Amazing Grace', {
-      forceKey: { tonic: 7, mode: 'major' } // G major
+    
+    // Load each MIDI file listed in metadata
+    const loadPromises = Object.entries(metadata).map(async ([filename, fileMetadata]) => {
+      try {
+        const response = await fetch(`./midi/${filename}`);
+        if (!response.ok) {
+          console.warn(`Could not load MIDI file: ${filename}`);
+          return null;
+        }
+        
+        const arrayBuffer = await response.arrayBuffer();
+        // Pass metadata object - key will be detected from MIDI file, not metadata
+        const exercise = await loadMidiExercise(arrayBuffer, fileMetadata);
+        return exercise;
+      } catch (error) {
+        console.error(`Error loading MIDI file ${filename}:`, error);
+        return null;
+      }
     });
+    
+    await Promise.all(loadPromises);
+    
+    console.log(`Loaded ${appState.satb.midiExercises.length} MIDI exercises`);
   } catch (error) {
-    console.warn('Error preloading Amazing Grace:', error);
-    // Don't throw - this is optional
+    console.warn('Error preloading MIDI files:', error);
+    // Don't throw - this is optional, app can work without MIDI files
   }
 }
 

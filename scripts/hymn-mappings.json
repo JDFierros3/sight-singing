@@ -1,0 +1,537 @@
+{
+  "OLD HUNDREDTH": {
+    "hymnName": "All People That on Earth Do Dwell",
+    "commonTexts": ["Doxology", "Praise God from Whom All Blessings Flow"]
+  },
+  "NEW BRITAIN": {
+    "hymnName": "Amazing Grace"
+  },
+  "HYFRYDOL": {
+    "hymnName": "Come Thou Long Expected Jesus",
+    "commonTexts": ["Alleluia! Sing to Jesus", "Love Divine, All Loves Excelling"]
+  },
+  "KINGSFOLD": {
+    "hymnName": "I Heard the Voice of Jesus Say"
+  },
+  "SLANE": {
+    "hymnName": "Be Thou My Vision"
+  },
+  "O WALY WALY": {
+    "hymnName": "The Water Is Wide",
+    "commonTexts": ["When I Survey the Wondrous Cross"]
+  },
+  "HYMN TO JOY": {
+    "hymnName": "Joyful, Joyful, We Adore Thee"
+  },
+  "BEACH SPRING": {
+    "hymnName": "Lord of the Dance",
+    "commonTexts": ["Come, Ye Sinners, Poor and Needy"]
+  },
+  "EIN FESTE BURG": {
+    "hymnName": "A Mighty Fortress Is Our God"
+  },
+  "FINLANDIA": {
+    "hymnName": "Be Still, My Soul",
+    "commonTexts": ["This Is My Song"]
+  },
+  "AURELIA": {
+    "hymnName": "The Church's One Foundation"
+  },
+  "ELLACOMBE": {
+    "hymnName": "Come, Sing, O Church, in Joy"
+  },
+  "NETTLETON": {
+    "hymnName": "Come, Thou Fount of Every Blessing"
+  },
+  "PASSION CHORALE": {
+    "hymnName": "O Sacred Head, Now Wounded"
+  },
+  "CRIMOND": {
+    "hymnName": "The Lord's My Shepherd"
+  },
+  "ST. ANNE": {
+    "hymnName": "O God, Our Help in Ages Past"
+  },
+  "DUKE STREET": {
+    "hymnName": "Jesus Shall Reign",
+    "commonTexts": ["I Know That My Redeemer Lives"]
+  },
+  "HANOVER": {
+    "hymnName": "O Worship the King"
+  },
+  "REGENT SQUARE": {
+    "hymnName": "Angels from the Realms of Glory"
+  },
+  "ST. DENIO": {
+    "hymnName": "Immortal, Invisible, God Only Wise"
+  },
+  "FOREST GREEN": {
+    "hymnName": "O Little Town of Bethlehem"
+  },
+  "CRUSADERS' HYMN": {
+    "hymnName": "Fairest Lord Jesus"
+  },
+  "WIE SCHÖN LEUCHTET": {
+    "hymnName": "How Brightly Shines the Morning Star"
+  },
+  "SALZBURG": {
+    "hymnName": "At the Name of Jesus"
+  },
+  "BUNESSAN": {
+    "hymnName": "Morning Has Broken"
+  },
+  "STUTTGART": {
+    "hymnName": "Come, Thou Long Expected Jesus"
+  },
+  "CWM RHONDDA": {
+    "hymnName": "Guide Me, O Thou Great Jehovah"
+  },
+  "ABERYSTWYTH": {
+    "hymnName": "Jesus, Lover of My Soul"
+  },
+  "ADESTE FIDELES": {
+    "hymnName": "O Come, All Ye Faithful"
+  },
+  "ANTIOCH": {
+    "hymnName": "Joy to the World"
+  },
+  "AR HYD Y NOS": {
+    "hymnName": "All Through the Night"
+  },
+  "ASSURANCE": {
+    "hymnName": "Blessed Assurance, Jesus Is Mine"
+  },
+  "AUSTRIAN HYMN": {
+    "hymnName": "Glorious Things of Thee Are Spoken"
+  },
+  "AZMON": {
+    "hymnName": "O for a Thousand Tongues to Sing"
+  },
+  "BATTLE HYMN OF THE REPUBLIC": {
+    "hymnName": "Mine Eyes Have Seen the Glory"
+  },
+  "BEECHER": {
+    "hymnName": "Love Divine, All Loves Excelling"
+  },
+  "BETHANY": {
+    "hymnName": "Nearer, My God, to Thee"
+  },
+  "BLAENWERN": {
+    "hymnName": "Love Divine, All Loves Excelling"
+  },
+  "BRADBURY": {
+    "hymnName": "Savior, Like a Shepherd Lead Us"
+  },
+  "CAROL": {
+    "hymnName": "It Came Upon the Midnight Clear"
+  },
+  "CHRIST AROSE": {
+    "hymnName": "Low in the Grave He Lay"
+  },
+  "CLEANSING FOUNTAIN": {
+    "hymnName": "There Is a Fountain"
+  },
+  "CONVERSE": {
+    "hymnName": "What a Friend We Have in Jesus"
+  },
+  "CORONATION": {
+    "hymnName": "All Hail the Power of Jesus' Name"
+  },
+  "CRADLE SONG": {
+    "hymnName": "Away in a Manger"
+  },
+  "CRUCIFER": {
+    "hymnName": "Lift High the Cross"
+  },
+  "DARWALL": {
+    "hymnName": "Rejoice, the Lord Is King"
+  },
+  "DENNIS": {
+    "hymnName": "Blest Be the Tie That Binds"
+  },
+  "DIADEMATA": {
+    "hymnName": "Crown Him with Many Crowns"
+  },
+  "DIVINUM MYSTERIUM": {
+    "hymnName": "Of the Father's Love Begotten"
+  },
+  "DIX": {
+    "hymnName": "As with Gladness Men of Old"
+  },
+  "DOWN AMPNEY": {
+    "hymnName": "Come Down, O Love Divine"
+  },
+  "DUNDEE": {
+    "hymnName": "I to the Hills Will Lift Mine Eyes"
+  },
+  "EASTER HYMN": {
+    "hymnName": "Jesus Christ Is Risen Today"
+  },
+  "EBENEZER": {
+    "hymnName": "Once to Every Man and Nation"
+  },
+  "ELLERS": {
+    "hymnName": "God Be with You Till We Meet Again"
+  },
+  "ENGELBERG": {
+    "hymnName": "When in Our Music God Is Glorified"
+  },
+  "ES IST EIN ROS": {
+    "hymnName": "Lo, How a Rose E'er Blooming"
+  },
+  "EVENTIDE": {
+    "hymnName": "Abide with Me"
+  },
+  "FAITHFULNESS": {
+    "hymnName": "Great Is Thy Faithfulness"
+  },
+  "FESTAL SONG": {
+    "hymnName": "Hark! Ten Thousand Harps and Voices"
+  },
+  "FOUNDATION": {
+    "hymnName": "How Firm a Foundation"
+  },
+  "GENEVAN 42": {
+    "hymnName": "As the Deer"
+  },
+  "GLORIA": {
+    "hymnName": "Angels We Have Heard on High"
+  },
+  "GO TELL IT": {
+    "hymnName": "Go Tell It on the Mountain"
+  },
+  "GOD BE WITH YOU": {
+    "hymnName": "God Be with You Till We Meet Again"
+  },
+  "GORDON": {
+    "hymnName": "My Jesus, I Love Thee"
+  },
+  "GREENSLEEVES": {
+    "hymnName": "What Child Is This"
+  },
+  "HAMBURG": {
+    "hymnName": "When I Survey the Wondrous Cross"
+  },
+  "HANKEY": {
+    "hymnName": "Tell Me the Old, Old Story"
+  },
+  "HANSON PLACE": {
+    "hymnName": "It Is Well with My Soul"
+  },
+  "HE LEADETH ME": {
+    "hymnName": "He Leadeth Me, O Blessed Thought"
+  },
+  "HENDON": {
+    "hymnName": "O Master, Let Me Walk with Thee"
+  },
+  "HERZLIEBSTER JESU": {
+    "hymnName": "Ah, Holy Jesus"
+  },
+  "HOLY MANNA": {
+    "hymnName": "Brethren, We Have Met to Worship"
+  },
+  "HUDSON": {
+    "hymnName": "Amazing Grace"
+  },
+  "HURSLEY": {
+    "hymnName": "Sun of My Soul, Thou Savior Dear"
+  },
+  "IN DULCI JUBILO": {
+    "hymnName": "Good Christian Men, Rejoice"
+  },
+  "IRBY": {
+    "hymnName": "Once in Royal David's City"
+  },
+  "ITALIAN HYMN": {
+    "hymnName": "Come, Thou Almighty King"
+  },
+  "JESUS LOVES ME": {
+    "hymnName": "Jesus Loves Me, This I Know"
+  },
+  "JUDAS MACCABEUS": {
+    "hymnName": "Thine Be the Glory"
+  },
+  "KING'S WESTON": {
+    "hymnName": "At the Name of Jesus"
+  },
+  "KINGS OF ORIENT": {
+    "hymnName": "We Three Kings"
+  },
+  "KREMSER": {
+    "hymnName": "We Gather Together"
+  },
+  "LANCASHIRE": {
+    "hymnName": "Lead On, O King Eternal"
+  },
+  "LASST UNS ERFREUEN": {
+    "hymnName": "All Creatures of Our God and King"
+  },
+  "LAUDA ANIMA": {
+    "hymnName": "Praise, My Soul, the King of Heaven"
+  },
+  "LAUDES DOMINI": {
+    "hymnName": "When Morning Gilds the Skies"
+  },
+  "LEONI": {
+    "hymnName": "The God of Abraham Praise"
+  },
+  "LET US BREAK BREAD": {
+    "hymnName": "Let Us Break Bread Together"
+  },
+  "LIEBSTER JESU": {
+    "hymnName": "Blessed Jesus, at Thy Word"
+  },
+  "LLANFAIR": {
+    "hymnName": "Jesus, Jesus, Rest Your Head"
+  },
+  "LOBE DEN HERREN": {
+    "hymnName": "Praise to the Lord, the Almighty"
+  },
+  "LONDONDERRY AIR": {
+    "hymnName": "Danny Boy",
+    "commonTexts": ["Would God I Were the Tender Apple Blossom"]
+  },
+  "LOVE UNKNOWN": {
+    "hymnName": "My Song Is Love Unknown"
+  },
+  "LYONS": {
+    "hymnName": "O Worship the King"
+  },
+  "MARCHING TO ZION": {
+    "hymnName": "We're Marching to Zion"
+  },
+  "MARION": {
+    "hymnName": "Awake, My Soul, and with the Sun"
+  },
+  "MARTYRDOM": {
+    "hymnName": "Alas, and Did My Savior Bleed"
+  },
+  "MELITA": {
+    "hymnName": "Eternal Father, Strong to Save"
+  },
+  "MENDELSSOHN": {
+    "hymnName": "Hark! The Herald Angels Sing"
+  },
+  "MIT FREUDEN ZART": {
+    "hymnName": "Sing Praise to God Who Reigns Above"
+  },
+  "MORECAMBE": {
+    "hymnName": "Spirit of God, Descend upon My Heart"
+  },
+  "MORE LOVE TO THEE": {
+    "hymnName": "More Love to Thee, O Christ"
+  },
+  "MORNING SONG": {
+    "hymnName": "O Day of Rest and Gladness"
+  },
+  "MUNICH": {
+    "hymnName": "O Word of God Incarnate"
+  },
+  "NATIONAL HYMN": {
+    "hymnName": "God of Our Fathers"
+  },
+  "NEAR THE CROSS": {
+    "hymnName": "Jesus, Keep Me Near the Cross"
+  },
+  "NEED": {
+    "hymnName": "I Need Thee Every Hour"
+  },
+  "NEUMARK": {
+    "hymnName": "If Thou But Suffer God to Guide Thee"
+  },
+  "NICAEA": {
+    "hymnName": "Holy, Holy, Holy"
+  },
+  "NOEL NOUVELET": {
+    "hymnName": "Sing We Now of Christmas"
+  },
+  "NUN DANKET": {
+    "hymnName": "Now Thank We All Our God"
+  },
+  "O FILII ET FILIAE": {
+    "hymnName": "O Sons and Daughters"
+  },
+  "O PERFECT LOVE": {
+    "hymnName": "O Perfect Love"
+  },
+  "O WALY WALY": {
+    "hymnName": "The Water Is Wide"
+  },
+  "OLD RUGGED CROSS": {
+    "hymnName": "The Old Rugged Cross"
+  },
+  "OLIVET": {
+    "hymnName": "My Faith Looks Up to Thee"
+  },
+  "PICARDY": {
+    "hymnName": "Let All Mortal Flesh Keep Silence"
+  },
+  "PUER NOBIS NASCITUR": {
+    "hymnName": "Unto Us Is Born a Son"
+  },
+  "RATHBUN": {
+    "hymnName": "God Himself Is with Us"
+  },
+  "REDHEAD NO. 76": {
+    "hymnName": "Go to Dark Gethsemane"
+  },
+  "RENDEZ À DIEU": {
+    "hymnName": "Rend to God"
+  },
+  "RESIGNATION": {
+    "hymnName": "My Shepherd Will Supply My Need"
+  },
+  "RESTORATION": {
+    "hymnName": "Come, Ye Sinners, Poor and Needy"
+  },
+  "RICHMOND": {
+    "hymnName": "Weary of Earth and Laden with My Sin"
+  },
+  "ROCKINGHAM": {
+    "hymnName": "When I Survey the Wondrous Cross"
+  },
+  "ROYAL OAK": {
+    "hymnName": "All Things Bright and Beautiful"
+  },
+  "SAGINA": {
+    "hymnName": "And Can It Be That I Should Gain"
+  },
+  "SALVE FESTA DIES": {
+    "hymnName": "Hail Thee, Festival Day"
+  },
+  "SANDON": {
+    "hymnName": "Lord, Speak to Me"
+  },
+  "SEEK YE FIRST": {
+    "hymnName": "Seek Ye First the Kingdom of God"
+  },
+  "SHOWALTER": {
+    "hymnName": "Leaning on the Everlasting Arms"
+  },
+  "SIMPLE GIFTS": {
+    "hymnName": "Simple Gifts"
+  },
+  "SINE NOMINE": {
+    "hymnName": "For All the Saints"
+  },
+  "SOLID ROCK": {
+    "hymnName": "My Hope Is Built on Nothing Less"
+  },
+  "ST. AGNES": {
+    "hymnName": "Jesus, the Very Thought of Thee"
+  },
+  "ST. CATHERINE": {
+    "hymnName": "Faith of Our Fathers"
+  },
+  "ST. CHRISTOPHER": {
+    "hymnName": "Beneath the Cross of Jesus"
+  },
+  "ST. CLEMENT": {
+    "hymnName": "The Day Thou Gavest"
+  },
+  "ST. COLUMBA": {
+    "hymnName": "The King of Love My Shepherd Is"
+  },
+  "ST. FLAVIAN": {
+    "hymnName": "At the Name of Jesus"
+  },
+  "ST. GEORGE'S WINDSOR": {
+    "hymnName": "Come, Ye Thankful People, Come"
+  },
+  "ST. GERTRUDE": {
+    "hymnName": "Onward, Christian Soldiers"
+  },
+  "ST. LOUIS": {
+    "hymnName": "O Little Town of Bethlehem"
+  },
+  "ST. MAGNUS": {
+    "hymnName": "The Head That Once Was Crowned"
+  },
+  "ST. MARGARET": {
+    "hymnName": "O Love That Wilt Not Let Me Go"
+  },
+  "ST. PETER": {
+    "hymnName": "How Sweet the Name of Jesus Sounds"
+  },
+  "ST. THEODULPH": {
+    "hymnName": "All Glory, Laud, and Honor"
+  },
+  "ST. THOMAS": {
+    "hymnName": "I Love Thy Kingdom, Lord"
+  },
+  "STILLE NACHT": {
+    "hymnName": "Silent Night"
+  },
+  "SURRENDER": {
+    "hymnName": "I Surrender All"
+  },
+  "TALLIS' CANON": {
+    "hymnName": "All Praise to Thee, My God, This Night"
+  },
+  "TERRA BEATA": {
+    "hymnName": "This Is My Father's World"
+  },
+  "THAXTED": {
+    "hymnName": "I Vow to Thee, My Country"
+  },
+  "THE FIRST NOWELL": {
+    "hymnName": "The First Noel"
+  },
+  "TO GOD BE THE GLORY": {
+    "hymnName": "To God Be the Glory"
+  },
+  "TOPLADY": {
+    "hymnName": "Rock of Ages, Cleft for Me"
+  },
+  "TRENTHAM": {
+    "hymnName": "Breathe on Me, Breath of God"
+  },
+  "TRURO": {
+    "hymnName": "Lift Up Your Heads"
+  },
+  "TRUST AND OBEY": {
+    "hymnName": "Trust and Obey"
+  },
+  "TRYGGARE KAN INGEN VARA": {
+    "hymnName": "Children of the Heavenly Father"
+  },
+  "VENI EMMANUEL": {
+    "hymnName": "O Come, O Come, Emmanuel"
+  },
+  "VICTORY": {
+    "hymnName": "All Hail the Power of Jesus' Name"
+  },
+  "VILLE DU HAVRE": {
+    "hymnName": "It Is Well with My Soul"
+  },
+  "WACHET AUF": {
+    "hymnName": "Wake, Awake, for Night Is Flying"
+  },
+  "WAREHAM": {
+    "hymnName": "Fight the Good Fight"
+  },
+  "WEBB": {
+    "hymnName": "Stand Up, Stand Up for Jesus"
+  },
+  "WERE YOU THERE": {
+    "hymnName": "Were You There"
+  },
+  "WINCHESTER NEW": {
+    "hymnName": "On Jordan's Bank the Baptist's Cry"
+  },
+  "WINCHESTER OLD": {
+    "hymnName": "While Shepherds Watched Their Flocks"
+  },
+  "WONDROUS LOVE": {
+    "hymnName": "What Wondrous Love Is This"
+  },
+  "WOODLANDS": {
+    "hymnName": "Tell Out, My Soul"
+  },
+  "WOODWORTH": {
+    "hymnName": "Just as I Am, Without One Plea"
+  },
+  "WYE VALLEY": {
+    "hymnName": "The God of Abraham Praise"
+  }
+}

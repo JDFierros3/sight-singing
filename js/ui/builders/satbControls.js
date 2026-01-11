@@ -4,6 +4,7 @@
 
 import { getElementById, createElement, setTextContent } from '../../utils/dom.js';
 import { appState } from '../../state/appState.js';
+import { openHymnBrowser } from '../components/hymnBrowser.js';
 
 /**
  * Build part selection buttons (S, A, T, B)
@@ -107,30 +108,10 @@ export function buildPartVolumeControls() {
 }
 
 /**
- * Build exercise selection dropdown
+ * Open hymn browser modal (replaces dropdown)
+ * Re-exported for use by handlers
  */
-export function buildExerciseSelection(exercises) {
-  const select = getElementById('satbExercise');
-  if (!select) {
-    return;
-  }
-  
-  // Clear existing options
-  select.innerHTML = '';
-  
-  exercises.forEach((exercise, index) => {
-    const option = createElement('option', {
-      value: index.toString()
-    });
-    setTextContent(option, exercise.label);
-    select.appendChild(option);
-  });
-  
-  // Set default selection
-  if (exercises.length > 0) {
-    select.value = '0';
-  }
-}
+export { openHymnBrowser };
 
 /**
  * Update part selection button states
