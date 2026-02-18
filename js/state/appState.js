@@ -170,50 +170,53 @@ export function updateDisplaySetting(key, value) {
   }
 }
 
-export function getDroneFrequencies() {
+export function getDroneMidiNotes() {
   const semis = appState.drone.semis || [];
   const inversion = appState.drone.inversion || 0;
   const rootSemi = appState.drone.rootSemi;
-  
+  const doMidi = appState.tuning.doMidi;
+
   if (semis.length === 0) {
     return [];
   }
-  
-  // Calculate chord tones based on inversion
+
+  // Calculate absolute MIDI values based on inversion
+  const base = doMidi + rootSemi;
   let chordTones;
   if (inversion === 0) {
-    // Root position: use chord tones as-is
-    chordTones = semis.map(semi => rootSemi + semi);
+    chordTones = semis.map(semi => base + semi);
   } else if (inversion === 1) {
     // First inversion: move root up an octave, 3rd becomes bass
     if (semis.length >= 2) {
       chordTones = [
-        rootSemi + semis[1], // 3rd becomes bass
-        ...semis.slice(2).map(semi => rootSemi + semi), // 5th, 7th, etc. stay
-        rootSemi + semis[0] + 12 // Root moves up an octave
+        base + semis[1], // 3rd becomes bass
+        ...semis.slice(2).map(semi => base + semi), // 5th, 7th, etc. stay
+        base + semis[0] + 12 // Root moves up an octave
       ];
     } else {
-      chordTones = semis.map(semi => rootSemi + semi);
+      chordTones = semis.map(semi => base + semi);
     }
   } else if (inversion === 2) {
     // Second inversion: move root and 3rd up an octave, 5th becomes bass
     if (semis.length >= 3) {
       chordTones = [
-        rootSemi + semis[2], // 5th becomes bass
-        ...semis.slice(3).map(semi => rootSemi + semi), // 7th, etc. stay
-        rootSemi + semis[0] + 12, // Root moves up
-        rootSemi + semis[1] + 12  // 3rd moves up
+        base + semis[2], // 5th becomes bass
+        ...semis.slice(3).map(semi => base + semi), // 7th, etc. stay
+        base + semis[0] + 12, // Root moves up
+        base + semis[1] + 12  // 3rd moves up
       ];
     } else {
-      chordTones = semis.map(semi => rootSemi + semi);
+      chordTones = semis.map(semi => base + semi);
     }
   } else {
-    // Fallback to root position
-    chordTones = semis.map(semi => rootSemi + semi);
+    chordTones = semis.map(semi => base + semi);
   }
-  
-  // Convert MIDI values to frequencies
-  return chordTones.map(midi => midiToFrequency(midi, appState.tuning.a4));
+
+  return chordTones;
+}
+
+export function getDroneFrequencies() {
+  return getDroneMidiNotes().map(midi => midiToFrequency(midi, appState.tuning.a4));
 }
 
 export function getTargetMidi() {

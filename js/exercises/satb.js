@@ -5,6 +5,8 @@
 import { getElementById, setTextContent } from '../utils/dom.js';
 import { ensureAudioContext } from '../audio/context.js';
 import { stopAllDroneOscillators } from '../audio/drone.js';
+import { stopOscillator } from '../audio/oscillator.js';
+import { stopInstrumentNote } from '../audio/instruments.js';
 import { appState } from '../state/appState.js';
 import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
@@ -197,7 +199,11 @@ export function stopSATBExercise() {
  */
 function stopAllSATBOscillators() {
   activeSATBOscillators.forEach(oscillator => {
-    // Oscillators are managed by audioPlayer, but we can clear the array
+    if (oscillator && oscillator.stop) {
+      stopInstrumentNote(oscillator);
+    } else {
+      stopOscillator(oscillator);
+    }
   });
   activeSATBOscillators = [];
 }
@@ -532,7 +538,7 @@ function getTransposedExercise(exercise, semis) {
   };
 
   if (Number.isFinite(exercise.midiKeyMidi)) {
-    clone.midiKeyMidi = (exercise.midiKeyMidi + semis + 12) % 12;
+    clone.midiKeyMidi = ((exercise.midiKeyMidi + semis) % 12 + 12) % 12;
   }
   if (exercise.midiKeyMode) {
     clone.midiKeyMode = exercise.midiKeyMode;

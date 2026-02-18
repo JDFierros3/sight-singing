@@ -2,51 +2,68 @@
  * Drone management for sustained tones
  */
 
-import { ensureAudioContext, getAudioContext } from './context.js';
+import { getAudioContext } from './context.js';
 import { createOscillator, startOscillator, stopOscillator, connectOscillatorToDestination } from './oscillator.js';
+import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from './instruments.js';
+import { getDroneMidiNotes } from '../state/appState.js';
 import { getElementById, setTextContent } from '../utils/dom.js';
 import { buildIndividualVolumeControls, hideIndividualVolumeControls } from '../ui/builders/volumeControls.js';
 
+const DRONE_DURATION = 60; // seconds — long sustain, re-triggered on restart
+
 export const drone = {
   oscillators: [],
+  instrumentNotes: [],
   gainNode: null,
   frequencies: []
 };
 
 export function startDroneWithFrequencies(frequencies, gain) {
   stopAllDroneOscillators();
-  
+
   const ctx = getAudioContext();
   if (!ctx) {
     return;
   }
-  
-  const destination = ctx.destination;
+
   const gainValue = Number(gain) || 0.25;
-  
   drone.frequencies = frequencies.slice();
-  drone.oscillators = frequencies
-    .map(freq => {
-      const osc = createOscillator(freq, 'sine', gainValue);
-      if (osc) {
-        connectOscillatorToDestination(osc, destination);
-        startOscillator(osc);
-      }
-      return osc;
-    })
-    .filter(Boolean);
-  
-  if (!drone.gainNode) {
-    drone.gainNode = destination;
+
+  if (isUsingSoundfont()) {
+    // Use instrument samples instead of oscillators
+    const midis = getDroneMidiNotes();
+    drone.instrumentNotes = midis
+      .map(midi => playInstrumentNote(midi, DRONE_DURATION, gainValue))
+      .filter(Boolean);
+  } else {
+    // Use sine wave oscillators
+    const destination = ctx.destination;
+    drone.oscillators = frequencies
+      .map(freq => {
+        const osc = createOscillator(freq, 'sine', gainValue);
+        if (osc) {
+          connectOscillatorToDestination(osc, destination);
+          startOscillator(osc);
+        }
+        return osc;
+      })
+      .filter(Boolean);
+
+    if (!drone.gainNode) {
+      drone.gainNode = destination;
+    }
+
+    buildIndividualVolumeControls(frequencies);
   }
-  
-  buildIndividualVolumeControls(frequencies);
+
   updateDroneStatus(frequencies);
 }
 
 export function stopAllDroneOscillators() {
   drone.oscillators.forEach(stopOscillator);
   drone.oscillators = [];
+  drone.instrumentNotes.forEach(stopInstrumentNote);
+  drone.instrumentNotes = [];
   drone.frequencies = [];
   hideIndividualVolumeControls();
   updateDroneStatus([]);
@@ -54,7 +71,7 @@ export function stopAllDroneOscillators() {
 
 export function updateDroneGain(gain) {
   const gainValue = Number(gain) || 0.25;
-  
+
   drone.oscillators.forEach(osc => {
     if (osc && osc.g) {
       osc.g.gain.value = gainValue;
@@ -66,7 +83,7 @@ export function updateIndividualDroneGain(frequency, gain) {
   const gainValue = Number(gain) || 0.25;
   const targetFreq = Number(frequency);
   const tolerance = 0.1;
-  
+
   drone.oscillators.forEach((osc, index) => {
     if (osc && osc.g && drone.frequencies[index] !== undefined) {
       const freqDiff = Math.abs(drone.frequencies[index] - targetFreq);
@@ -78,7 +95,7 @@ export function updateIndividualDroneGain(frequency, gain) {
 }
 
 export function isDroneActive() {
-  return drone.oscillators.length > 0;
+  return drone.oscillators.length > 0 || drone.instrumentNotes.length > 0;
 }
 
 function updateDroneStatus(frequencies) {
@@ -90,4 +107,3 @@ function updateDroneStatus(frequencies) {
     setTextContent(statusElement, `Drone: ${freqList}`);
   }
 }
-
