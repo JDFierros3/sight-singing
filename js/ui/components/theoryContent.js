@@ -11,10 +11,8 @@ export function renderTheoryContent() {
     <div class="theory-content">
       <h1>Solfege and Shape Note Learning Path</h1>
       <p class="theory-intro">
-        Welcome to the comprehensive learning path for solfege and shape notes! 
-        This curriculum will guide you from complete beginner to singing harmony parts, 
-        using the exercises in this application. Each lesson includes detailed, step-by-step 
-        instructions for using the app's features.
+        This learning path guides you from complete beginner to singing harmony parts.
+        Start with Lesson 1 to learn the shapes, then work through each lesson in order.
       </p>
       <p class="theory-intro" style="margin-top: 15px; padding: 12px; background: rgba(251, 191, 36, 0.1); border-left: 3px solid var(--warn); border-radius: 4px;">
         <strong>Note:</strong> On large screens (desktop/tablet), the theory content appears as a resizable sidebar 
@@ -28,6 +26,8 @@ export function renderTheoryContent() {
       ${renderLesson3()}
       ${renderLesson4()}
       ${renderLesson5()}
+      ${renderLesson6()}
+      ${renderLesson7()}
       ${renderBenchmarkTracking()}
     </div>
   `;
@@ -40,6 +40,13 @@ export function renderTheoryContent() {
 function setupLessonCollapse() {
   // Load saved expanded state
   const savedExpanded = loadExpandedLessons();
+
+  // On first visit (no saved state), auto-expand Lesson 1 and Sub-lesson 1.1
+  const isFirstVisit = !localStorage.getItem('theory-expanded-lessons-v2');
+  if (isFirstVisit) {
+    savedExpanded.lessons.push('1');
+    savedExpanded.subLessons.push('1.1');
+  }
   
   // All lessons start collapsed (unless saved state says otherwise)
   const lessonHeaders = document.querySelectorAll('.lesson-header');
@@ -123,7 +130,7 @@ function setupLessonCollapse() {
 
 function loadExpandedLessons() {
   try {
-    const saved = localStorage.getItem('theory-expanded-lessons');
+    const saved = localStorage.getItem('theory-expanded-lessons-v2');
     if (saved) {
       return JSON.parse(saved);
     }
@@ -131,6 +138,38 @@ function loadExpandedLessons() {
     console.warn('Failed to load expanded lessons state:', e);
   }
   return { lessons: [], subLessons: [] };
+}
+
+/**
+ * Expand a specific lesson by number and scroll it into view.
+ * Call after the theory content is rendered and visible.
+ */
+export function expandAndScrollToLesson(lessonNumber) {
+  const lessonStr = String(lessonNumber);
+  const header = document.querySelector(`[data-lesson-toggle="${lessonStr}"]`);
+  const content = document.querySelector(`[data-lesson-content="${lessonStr}"]`);
+  if (!header || !content) return;
+
+  // Expand if collapsed
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    const icon = header.querySelector('.lesson-toggle-icon');
+    if (icon) icon.textContent = '▼';
+    header.parentElement.classList.add('lesson-expanded');
+    saveExpandedLessons();
+  }
+
+  // Scroll into view — use the lesson section element
+  const section = document.getElementById(`lesson-${lessonStr}`);
+  if (section) {
+    // Scroll within the sidebar if it's in sidebar mode, otherwise within main content
+    const sidebar = document.getElementById('theory-sidebar');
+    if (sidebar && document.body.classList.contains('theory-sidebar-active') && sidebar.contains(section)) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
 }
 
 export function saveExpandedLessons() {
@@ -158,7 +197,7 @@ export function saveExpandedLessons() {
       }
     });
     
-    localStorage.setItem('theory-expanded-lessons', JSON.stringify({
+    localStorage.setItem('theory-expanded-lessons-v2', JSON.stringify({
       lessons,
       subLessons
     }));
@@ -171,7 +210,7 @@ function renderLesson1() {
   return `
     <section class="lesson" id="lesson-1" data-lesson="1">
       <div class="lesson-header" data-lesson-toggle="1">
-        <h2>Lesson 1: Basics</h2>
+        <h2>Lesson 1: Shape Notes &amp; Solfege</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="1">
@@ -180,8 +219,11 @@ function renderLesson1() {
         ${renderSubLesson('1.1', 'Shape Notes and Solfege Syllables', getSubLesson1_1())}
         ${renderSubLesson('1.2', 'Understanding the Staff Structure', getSubLesson1_2())}
         ${renderSubLesson('1.3', 'Movable Do System', getSubLesson1_3())}
-        ${renderSubLesson('1.4', 'Basic Intervals (Whole Steps and Half Steps)', getSubLesson1_4())}
-        ${renderSubLesson('1.5', 'Key Signatures and Accidentals', getSubLesson1_5())}
+
+        <div class="warmup-connection">
+          <strong>What's Next: Daily Warmup</strong>
+          Once you know the shapes, head to the Warmup tab to start singing them. Daily warmup is the single most important habit for ear training — it's the foundation that every other exercise builds on. Lesson 2 will guide you through it.
+        </div>
       </div>
     </section>
   `;
@@ -191,17 +233,15 @@ function renderLesson2() {
   return `
     <section class="lesson" id="lesson-2" data-lesson="2">
       <div class="lesson-header" data-lesson-toggle="2">
-        <h2>Lesson 2: Ear Training</h2>
+        <h2>Lesson 2: Warmup &amp; Singing Foundations</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="2">
-        <p class="lesson-goal"><strong>Goal:</strong> Develop the ability to recognize intervals and pitches by ear</p>
+        <p class="lesson-goal"><strong>Goal:</strong> Build singing confidence with scales, pitch matching, and finding your range</p>
 
-        ${renderSubLesson('2.0', 'Finding Your Comfortable Do', getSubLesson2_0())}
-        ${renderSubLesson('2.1', 'Visual and Audio Pitch Matching', getSubLesson2_1())}
-        ${renderSubLesson('2.2', 'Interval Recognition (2nds, 3rds, 4ths, 5ths)', getSubLesson2_2())}
-        ${renderSubLesson('2.3', 'Larger Intervals (6ths, 7ths, Octaves)', getSubLesson2_3())}
-        ${renderSubLesson('2.4', 'Identifying Multiple Tones (Clusters)', getSubLesson2_4())}
+        ${renderSubLesson('2.1', 'Finding Your Comfortable Do', getSubLesson2_1())}
+        ${renderSubLesson('2.2', 'Visual and Audio Pitch Matching', getSubLesson2_2())}
+        ${renderSubLesson('2.3', 'The 6 Warmup Stanzas — Your Daily Practice', getSubLesson2_3())}
       </div>
     </section>
   `;
@@ -211,16 +251,23 @@ function renderLesson3() {
   return `
     <section class="lesson" id="lesson-3" data-lesson="3">
       <div class="lesson-header" data-lesson-toggle="3">
-        <h2>Lesson 3: Harmony</h2>
+        <h2>Lesson 3: Interval Training</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="3">
-        <p class="lesson-goal"><strong>Goal:</strong> Understand and sing in 4-part harmony (SATB)</p>
+        <p class="lesson-goal"><strong>Goal:</strong> Recognize intervals by ear, from small steps to large leaps</p>
 
-        ${renderSubLesson('3.1', 'Understanding SATB Structure', getSubLesson3_1())}
-        ${renderSubLesson('3.2', 'Finding Your Part in Harmony', getSubLesson3_2())}
-        ${renderSubLesson('3.3', 'Voice Leading and Part Independence', getSubLesson3_3())}
-        ${renderSubLesson('3.4', 'Singing Against Other Parts', getSubLesson3_4())}
+        <div class="warmup-connection">
+          <strong>Warmup Connection: Intervals from Do</strong>
+          Before starting interval exercises, warm up with <strong>Intervals from Do (up and down)</strong> — stanzas 3 and 4.
+          You've been <em>producing</em> these intervals in the warmup — now you'll learn to <em>recognize</em> them when played back.
+          The Do-Mi you sang becomes the Major 3rd you identify. If you can sing it, you can hear it.
+        </div>
+
+        ${renderSubLesson('3.1', 'Whole Steps, Half Steps, and Basic Intervals', getSubLesson3_1())}
+        ${renderSubLesson('3.2', 'Interval Recognition: 2nds through 5ths', getSubLesson3_2())}
+        ${renderSubLesson('3.3', 'Larger Intervals: 6ths, 7ths, Octaves', getSubLesson3_3())}
+        ${renderSubLesson('3.4', 'Key Signatures and Accidentals', getSubLesson3_4())}
       </div>
     </section>
   `;
@@ -230,16 +277,22 @@ function renderLesson4() {
   return `
     <section class="lesson" id="lesson-4" data-lesson="4">
       <div class="lesson-header" data-lesson-toggle="4">
-        <h2>Lesson 4: Chords</h2>
+        <h2>Lesson 4: Cluster Detection</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="4">
-        <p class="lesson-goal"><strong>Goal:</strong> Understand chord structure, qualities, and progressions using shape notes</p>
+        <p class="lesson-goal"><strong>Goal:</strong> Hear and identify multiple simultaneous tones</p>
 
-        ${renderSubLesson('4.1', 'Triads and Chord Qualities (Shape Note Focus)', getSubLesson4_1())}
-        ${renderSubLesson('4.2', 'Chord Progressions (I, IV, V)', getSubLesson4_2())}
-        ${renderSubLesson('4.3', 'Minor Chords and Other Qualities', getSubLesson4_3())}
-        ${renderSubLesson('4.4', 'Advanced Harmony and Voice Leading', getSubLesson4_4())}
+        <div class="warmup-connection">
+          <strong>Warmup Connection: Arpeggios &amp; Intervals from Do</strong>
+          The <strong>Arpeggios</strong> stanza is your secret weapon here. When you sing Do-Mi-Sol, you're hearing those three notes sequentially.
+          In clusters, those same notes play <em>simultaneously</em>. If you can sing the arpeggio, you can pick apart the chord.
+          Also revisit <strong>Intervals from Do</strong> — recognizing the interval between two cluster tones is how you identify the second and third notes.
+        </div>
+
+        ${renderSubLesson('4.1', 'Hearing Multiple Simultaneous Tones', getSubLesson4_1())}
+        ${renderSubLesson('4.2', 'Strategies for Picking Apart Clusters', getSubLesson4_2())}
+        ${renderSubLesson('4.3', 'From Clusters to Chords', getSubLesson4_3())}
       </div>
     </section>
   `;
@@ -327,6 +380,7 @@ function getSubLesson1_1() {
     <div class="benchmark">
       <p><strong>Benchmark:</strong> 20/20 correct on flashcards (no accidentals) in under 2 minutes</p>
       <p><strong>Progression:</strong> Move to 1.2 when benchmark achieved</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="flashcards">Try it: Go to Flashcards &rarr;</button></p>
     </div>
   `;
 }
@@ -527,12 +581,12 @@ function getSubLesson1_3() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Successfully identify shapes correctly when Do is changed to 3 different keys (test with C, G, and F)</p>
-      <p><strong>Progression:</strong> Move to 1.4 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Proceed to Lesson 2 when benchmark achieved</p>
     </div>
   `;
 }
 
-function getSubLesson1_4() {
+function getSubLesson3_1() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -639,12 +693,12 @@ function getSubLesson1_4() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Correctly identify 10/10 intervals of 1-2 semitones on Easy mode</p>
-      <p><strong>Progression:</strong> Move to 1.5 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 3.2 when benchmark achieved</p>
     </div>
   `;
 }
 
-function getSubLesson1_5() {
+function getSubLesson3_4() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -763,13 +817,13 @@ function getSubLesson1_5() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Understand why key signatures and accidentals appear in different keys, understand that accidentals are suppressed when they match the key signature, and be able to enable and toggle the "Show Accidentals & Key" setting</p>
-      <p><strong>Progression:</strong> Move to Lesson 2 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Proceed to Lesson 4 when benchmark achieved</p>
     </div>
   `;
 }
 
-// Continue with Lesson 2 sub-lessons...
-function getSubLesson2_0() {
+// Lesson 2 sub-lessons (Warmup & Singing Foundations)
+function getSubLesson2_1() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -965,12 +1019,13 @@ function getSubLesson2_0() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Successfully find a Do setting that allows you to comfortably sing a full major scale (Do→Re→Mi→Fa→So→La→Ti→Do) using solfege syllables</p>
-      <p><strong>Progression:</strong> Move to 2.1 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 2.2 when benchmark achieved</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="warmup">Try it: Go to Warmup &rarr;</button></p>
     </div>
   `;
 }
 
-function getSubLesson2_1() {
+function getSubLesson2_2() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -1129,12 +1184,113 @@ function getSubLesson2_1() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Successfully sing a major scale (Do through Do) while observing that your voice line moves progressively higher on the staff, aligning with each target note within ±50 cents</p>
-      <p><strong>Progression:</strong> Move to 2.2 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 2.3 when benchmark achieved</p>
     </div>
   `;
 }
 
-function getSubLesson2_2() {
+function getSubLesson2_3() {
+  return `
+    <div class="learning-objectives">
+      <h4>Learning Objectives:</h4>
+      <ul>
+        <li>Understand what each of the 6 warmup stanzas trains</li>
+        <li>Connect warmup exercises to the skills they build</li>
+        <li>Establish a daily warmup practice routine</li>
+      </ul>
+    </div>
+
+    <div class="app-instructions">
+      <h4>The 6 Warmup Stanzas Explained:</h4>
+      <p>The Warmup tab contains 6 stanzas. Together, they train <strong>every skill</strong> you'll need for the rest of this app.
+         Do them daily — even just once through — and you'll build ear training ability faster than any other single exercise.</p>
+
+      <h4>Stanzas 1 &amp; 2: Major Scale Up and Down</h4>
+      <p><strong>What it is:</strong> Do-Re-Mi-Fa-Sol-La-Ti-Do ascending, then the same descending.</p>
+      <p><strong>What it trains:</strong> This is the foundation of everything. Every melody, every chord, every harmony
+         is built from these 7 notes and the intervals between them. By singing the scale daily, you internalize
+         the "feel" of each step — the wide whole steps (Do→Re, Re→Mi, Fa→Sol, Sol→La, La→Ti) and
+         the narrow half steps (Mi→Fa, Ti→Do). This W-W-H-W-W-W-H pattern IS the major scale.</p>
+      <p><strong>How to practice:</strong></p>
+      <ol>
+        <li>Check <strong>"Major scale ↑"</strong> and <strong>"Major scale ↓"</strong> in the Warmup tab</li>
+        <li>Click <strong>"Play Warm Up"</strong> and sing along using solfege syllables</li>
+        <li>Watch the staff — your mic line should track each note</li>
+        <li>Focus on the half steps (Mi→Fa, Ti→Do) — they're the tricky ones</li>
+      </ol>
+
+      <h4>Stanzas 3 &amp; 4: Intervals from Do (Up and Down)</h4>
+      <p><strong>What it is:</strong> Do-Re, Do-Mi, Do-Fa, Do-Sol, Do-La, Do-Ti, Do-Do' — always returning to Do between each target note. The descending version starts from high Do.</p>
+      <p><strong>What it trains:</strong> This is your <strong>interval recognition engine</strong>. By always returning to Do,
+         you learn to <em>produce</em> each interval from a reference pitch. The Do-Mi you sing here IS the Major 3rd.
+         The Do-Sol is the Perfect 5th. When the Interval Training tab plays two notes and asks "what interval?",
+         you'll recognize it because your voice already knows what it feels like to jump from Do to that note.</p>
+      <p><strong>How to practice:</strong></p>
+      <ol>
+        <li>Check <strong>"Intervals from Do ↑"</strong> and <strong>"Intervals from Do ↓"</strong></li>
+        <li>Sing each interval clearly: "Do... Re... Do... Mi... Do... Fa..." etc.</li>
+        <li>Really <em>feel</em> the size of each jump — 2nd (small), 3rd (medium), 5th (large), octave (huge)</li>
+        <li>The descending version trains the same intervals going down — equally important</li>
+      </ol>
+
+      <h4>Stanzas 5 &amp; 6: Arpeggios (Up and Down)</h4>
+      <p><strong>What it is:</strong> Triads built on every scale degree — Do-Mi-Sol (I chord), Re-Fa-La (ii chord),
+         Mi-Sol-Ti (iii chord), Fa-La-Do (IV chord), Sol-Ti-Re (V chord), La-Do-Mi (vi chord) — ascending, then descending.</p>
+      <p><strong>What it trains:</strong> Each arpeggio IS a chord, played one note at a time. When you sing Do-Mi-Sol,
+         you're singing the major triad. When you later hear those 3 notes played <em>simultaneously</em> in the
+         Cluster tab or Chord Quality tab, you'll recognize them because your voice already knows those notes individually.
+         The arpeggios also prepare you for SATB singing — each voice part moves through these chord tones.</p>
+      <p><strong>How to practice:</strong></p>
+      <ol>
+        <li>Check <strong>"Arpeggios (↑)"</strong> and <strong>"Arpeggios (↓)"</strong></li>
+        <li>Sing each triad clearly with solfege: "Do-Mi-Sol... Re-Fa-La... Mi-Sol-Ti..." etc.</li>
+        <li>Notice which triads sound <strong>major</strong> (bright: I, IV, V) vs. <strong>minor</strong> (dark: ii, iii, vi)</li>
+        <li>This awareness will directly help you in Chord Quality exercises later</li>
+      </ol>
+
+      <h4>Putting It All Together: Your Daily Routine</h4>
+      <p>A complete warmup takes about 3-4 minutes at 60 BPM. Do it every time you open the app:</p>
+      <ol>
+        <li>Select all 6 stanzas (or use the "Select All" option)</li>
+        <li>Click <strong>"Play Warm Up"</strong> and sing along with solfege syllables</li>
+        <li>Use the microphone to verify your pitch accuracy</li>
+        <li>As you get comfortable, try singing ahead of the playback (anticipate the next note)</li>
+      </ol>
+      <p><strong>Key insight:</strong> If you can <em>produce</em> intervals and chords with your voice, you can <em>recognize</em>
+         them by ear. The warmup is not just a warmup — it's the core training that makes everything else possible.</p>
+    </div>
+
+    <div class="what-to-look-for">
+      <h4>What to Look For:</h4>
+      <ul>
+        <li>Your pitch accuracy improving over days and weeks of daily practice</li>
+        <li>Half steps (Mi→Fa, Ti→Do) becoming easier to nail</li>
+        <li>Intervals from Do becoming automatic — you "just know" what Do→Sol sounds like</li>
+        <li>Arpeggio quality differences becoming clearer (major vs. minor triads)</li>
+        <li>The badge showing which stanza is playing so you can follow along</li>
+      </ul>
+    </div>
+
+    <div class="troubleshooting">
+      <h4>Troubleshooting:</h4>
+      <ul>
+        <li>If everything is too fast, slow the tempo with the slider (try 45-50 BPM)</li>
+        <li>If you can't keep up with all 6 stanzas, start with just scales (stanzas 1-2) and add more as you improve</li>
+        <li>If arpeggios are hard, practice the scale stanzas until they're solid first</li>
+        <li>If you're not sure you're singing the right pitch, enable the microphone and watch the staff</li>
+        <li>If your voice cracks on high notes, lower your Do setting (try 2 semitones lower)</li>
+      </ul>
+    </div>
+
+    <div class="benchmark">
+      <p><strong>Benchmark:</strong> Complete all 6 warmup stanzas while singing along with solfege syllables, maintaining pitch within ±50 cents for most notes</p>
+      <p><strong>Progression:</strong> Proceed to Lesson 3 when benchmark achieved. Continue doing daily warmups — they support every exercise that follows.</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="warmup">Try it: Go to Warmup &rarr;</button></p>
+    </div>
+  `;
+}
+
+function getSubLesson3_2() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -1300,12 +1456,13 @@ function getSubLesson2_2() {
         <li>10/10 with Direction: Down (descending)</li>
         <li>10/10 with Direction: Either (mixed)</li>
       </ul>
-      <p><strong>Progression:</strong> Move to 2.3 when all three benchmarks achieved</p>
+      <p><strong>Progression:</strong> Move to 3.3 when all three benchmarks achieved</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="intervals">Try it: Go to Interval Training &rarr;</button></p>
     </div>
   `;
 }
 
-function getSubLesson2_3() {
+function getSubLesson3_3() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -1323,7 +1480,7 @@ function getSubLesson2_3() {
           <ul>
             <li>Click <strong>"Interval Training"</strong> tab</li>
             <li>Click the <strong>"Medium"</strong> difficulty button (upgrade from Easy)</li>
-            <li>Find <strong>"Direction"</strong> dropdown - keep it on <strong>"Either"</strong> (you mastered this in 2.2)</li>
+            <li>Find <strong>"Direction"</strong> dropdown - keep it on <strong>"Either"</strong> (you mastered this in 3.2)</li>
             <li>Find <strong>"Min (semitones)"</strong> - set to <strong>1</strong></li>
             <li>Find <strong>"Max (semitones)"</strong> - set to <strong>12</strong> (this includes octaves)</li>
             <li>Make sure <strong>"Constrain to scale notes (diatonic)"</strong> is <strong>CHECKED</strong></li>
@@ -1385,7 +1542,7 @@ function getSubLesson2_3() {
         <li>6ths feel "wide" - like a big jump (Do→La ascending, Do→Mi-below descending)</li>
         <li>7ths feel "unresolved" - want to go to the octave (Do→Ti wants to resolve to Do)</li>
         <li>Octaves feel "familiar" - same note, different register (Do→Do)</li>
-        <li>You should already be comfortable with ascending vs. descending from Lesson 2.2</li>
+        <li>You should already be comfortable with ascending vs. descending from Lesson 3.2</li>
       </ul>
     </div>
 
@@ -1394,19 +1551,19 @@ function getSubLesson2_3() {
       <ul>
         <li>If you're confusing 6ths and 7ths, practice those two specifically</li>
         <li>If octaves are hard, practice Do→Do (octave) vs. Do→Ti (7th) to feel the difference</li>
-        <li>If direction (ascending/descending) is still confusing, review Lesson 2.2</li>
+        <li>If direction (ascending/descending) is still confusing, review Lesson 3.2</li>
         <li>If starting from different notes is hard, that's normal - keep practicing</li>
       </ul>
     </div>
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> 10/10 correct on Interval Training Medium mode (intervals 1-12 semitones, direction either)</p>
-      <p><strong>Progression:</strong> Move to 2.4 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 3.4 when benchmark achieved</p>
     </div>
   `;
 }
 
-function getSubLesson2_4() {
+function getSubLesson4_1() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -1510,13 +1667,177 @@ function getSubLesson2_4() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> 10/10 correct on Hidden Cluster Medium mode (2 tones)</p>
-      <p><strong>Progression:</strong> Move to Lesson 3 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 4.2 when benchmark achieved</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="cluster">Try it: Go to Hidden Cluster &rarr;</button></p>
     </div>
   `;
 }
 
-// Lesson 3 sub-lessons
-function getSubLesson3_1() {
+function getSubLesson4_2() {
+  return `
+    <div class="learning-objectives">
+      <h4>Learning Objectives:</h4>
+      <ul>
+        <li>Learn practical strategies for separating simultaneous tones</li>
+        <li>Use your warmup training to identify cluster notes</li>
+        <li>Progress through difficulty levels with confidence</li>
+      </ul>
+    </div>
+
+    <div class="app-instructions">
+      <h4>Detailed Strategies:</h4>
+      <ol>
+        <li><strong>Strategy 1 — Hum the Lowest Note First:</strong>
+          <ul>
+            <li>When a cluster plays, focus on the <strong>lowest tone</strong> — it's usually the easiest to isolate</li>
+            <li>Hum or sing it to lock it in</li>
+            <li>Once you've identified the bottom note, mentally "subtract" it and listen for what's left</li>
+            <li>This is exactly what bass singers do in SATB — they find the lowest note and hold it</li>
+          </ul>
+        </li>
+        <li><strong>Strategy 2 — Use the Duration Slider:</strong>
+          <ul>
+            <li>Increase the <strong>Duration</strong> slider to 5-7 seconds when starting out</li>
+            <li>More time = more chances to focus on each individual note</li>
+            <li>On the first listen, find the lowest note. On the replay, find the highest. Then the middle.</li>
+            <li>As you improve, gradually reduce the duration for more challenge</li>
+          </ul>
+        </li>
+        <li><strong>Strategy 3 — Use Your Arpeggio Training:</strong>
+          <ul>
+            <li>You've been singing arpeggios in warmup: Do-Mi-Sol, Re-Fa-La, etc.</li>
+            <li>When you hear a cluster, ask: "Does this sound like one of my arpeggios?"</li>
+            <li>If you hear Do and Sol together, that's the outer notes of the I chord arpeggio</li>
+            <li>If you hear Re and La, that's the ii chord arpeggio pattern</li>
+            <li>Your voice memory from warmup helps your ear decode what it hears</li>
+          </ul>
+        </li>
+        <li><strong>Strategy 4 — Identify the Interval Between Notes:</strong>
+          <ul>
+            <li>In a 2-note cluster, identify the <strong>interval</strong> between the two notes</li>
+            <li>Use your Intervals from Do training: "This sounds like a 3rd" or "This sounds like a 5th"</li>
+            <li>Once you know the interval and one of the notes, you can figure out the other</li>
+            <li>For example: "The lower note sounds like Do, and the interval is a 3rd, so the upper note is Mi"</li>
+          </ul>
+        </li>
+        <li><strong>Progression Through Difficulties:</strong>
+          <ul>
+            <li><strong>Easy:</strong> Always includes Do + one other diatonic note. Start here — you just need to identify what's paired with Do</li>
+            <li><strong>Medium:</strong> Wider range, may not include Do. Use interval recognition to identify both notes</li>
+            <li><strong>Hard:</strong> Chromatic notes possible. Listen for the "color" of non-scale notes</li>
+            <li>Master 2-note clusters on each difficulty before moving to 3-note clusters</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="what-to-look-for">
+      <h4>What to Look For:</h4>
+      <ul>
+        <li>Your speed at identifying the lowest note improving with practice</li>
+        <li>Arpeggio patterns becoming recognizable in clusters</li>
+        <li>Interval recognition from Lesson 3 directly helping decode clusters</li>
+        <li>Increased confidence when moving from 2-note to 3-note clusters</li>
+      </ul>
+    </div>
+
+    <div class="troubleshooting">
+      <h4>Troubleshooting:</h4>
+      <ul>
+        <li>If all tones blur together, increase the duration and focus on just the lowest tone first</li>
+        <li>If you can hear 2 notes in a 3-note cluster but not the third, try singing Do-Mi-Sol to yourself and see if the cluster matches</li>
+        <li>If you're stuck on Easy, go back to the Warmup tab and sing Intervals from Do a few times, then try again</li>
+        <li>If Hard mode is overwhelming, stay on Medium until you're consistently getting 8/10+</li>
+      </ul>
+    </div>
+
+    <div class="benchmark">
+      <p><strong>Benchmark:</strong> 8/10 correct on 2-note clusters at Medium difficulty, and 6/10 on 3-note clusters at Easy difficulty</p>
+      <p><strong>Progression:</strong> Move to 4.3 when benchmark achieved</p>
+    </div>
+  `;
+}
+
+function getSubLesson4_3() {
+  return `
+    <div class="learning-objectives">
+      <h4>Learning Objectives:</h4>
+      <ul>
+        <li>Understand that clusters and chords are the same thing</li>
+        <li>Recognize common triads when played simultaneously</li>
+        <li>Bridge cluster detection skills into chord quality awareness</li>
+      </ul>
+    </div>
+
+    <div class="app-instructions">
+      <h4>The Connection:</h4>
+      <p>Here's the insight that ties everything together: <strong>a cluster of 3 simultaneous notes IS a chord</strong>.
+         When you hear Do-Mi-Sol played at the same time, that's not just "3 notes" — it's a <strong>major triad</strong>.
+         The cluster detection skill you've been building is actually the chord recognition skill.</p>
+
+      <h4>Practice Recognizing Chord Shapes in Clusters:</h4>
+      <ol>
+        <li><strong>Play 3-note clusters on Easy mode</strong> (Hidden Cluster tab)
+          <ul>
+            <li>After revealing, look at the 3 notes — do they form a triad you know from warmup arpeggios?</li>
+            <li>Do-Mi-Sol = I chord (major). Re-Fa-La = ii chord (minor). Fa-La-Do = IV chord (major).</li>
+            <li>Start noticing: "That cluster was a I chord!" or "That was a ii chord!"</li>
+          </ul>
+        </li>
+        <li><strong>Cross-train with Chord Quality tab:</strong>
+          <ul>
+            <li>Go to the <strong>Chord Quality</strong> tab</li>
+            <li>Click <strong>"Do (I)"</strong> then <strong>"Major (1-3-5)"</strong> to hear the I chord as a drone</li>
+            <li>Now go back to Hidden Cluster and play a 3-note cluster</li>
+            <li>Ask yourself: "Does this sound like that I chord I just heard?"</li>
+            <li>This cross-training connects your cluster hearing with chord identification</li>
+          </ul>
+        </li>
+        <li><strong>Use arpeggios as a "decoder ring":</strong>
+          <ul>
+            <li>When you hear a cluster, quickly sing the arpeggio that might match</li>
+            <li>Hear a bright cluster with Do at the bottom? Sing "Do-Mi-Sol" — does it match?</li>
+            <li>Hear a darker cluster? Try "Re-Fa-La" or "La-Do-Mi" — minor triads</li>
+            <li>Your warmup arpeggio training is literally the key to unlocking chord recognition</li>
+          </ul>
+        </li>
+      </ol>
+
+      <h4>What This Means for What's Next:</h4>
+      <p>In <strong>Lesson 5 (Chord Quality)</strong>, you'll learn to formally identify chord types (major, minor, diminished, etc.)
+         and understand chord progressions. But the ear training foundation? You've already built it here and in your daily warmup.
+         The Chord Quality tab just gives you the vocabulary and formal framework for what your ear already knows.</p>
+    </div>
+
+    <div class="what-to-look-for">
+      <h4>What to Look For:</h4>
+      <ul>
+        <li>Clusters that "sound familiar" from your arpeggio practice</li>
+        <li>Major triads (I, IV, V) sound bright — minor triads (ii, iii, vi) sound darker</li>
+        <li>Your ability to name the chord (not just the individual notes) when hearing a cluster</li>
+        <li>Growing confidence that cluster detection and chord recognition are the same skill</li>
+      </ul>
+    </div>
+
+    <div class="troubleshooting">
+      <h4>Troubleshooting:</h4>
+      <ul>
+        <li>If you can name individual notes but not the chord, review the arpeggio patterns: which scale degree triads are major vs. minor?</li>
+        <li>If clusters don't sound like "chords" yet, spend more time on the Chord Quality tab listening to drone chords, then come back</li>
+        <li>If you're confused about major vs. minor, just listen to the "brightness" — major is bright, minor is dark</li>
+      </ul>
+    </div>
+
+    <div class="benchmark">
+      <p><strong>Benchmark:</strong> When playing 3-note clusters, correctly identify both the individual notes AND the chord type (major or minor) at least 6/10 times</p>
+      <p><strong>Progression:</strong> Proceed to Lesson 5 when benchmark achieved</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="cluster">Try it: Go to Hidden Cluster &rarr;</button></p>
+    </div>
+  `;
+}
+
+// Lesson 6 sub-lessons (SATB)
+function getSubLesson6_1() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -1630,13 +1951,13 @@ function getSubLesson3_1() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Correctly identify which part (S/A/T/B) is singing when listening to isolated parts (test yourself: have someone else play a random part, or use a random number generator to pick which part to isolate)</p>
-      <p><strong>Progression:</strong> Move to 3.2 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 6.2 when benchmark achieved</p>
     </div>
   `;
 }
 
-// Lesson 3 remaining sub-lessons
-function getSubLesson3_2() {
+// Lesson 6 remaining sub-lessons (SATB)
+function getSubLesson6_2() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -1652,7 +1973,7 @@ function getSubLesson3_2() {
       <ol>
         <li><strong>Know Your Vocal Range:</strong>
           <ul>
-            <li>If you haven't already, complete <strong>Lesson 2.0 (Finding Your Comfortable Do)</strong> to determine your vocal range</li>
+            <li>If you haven't already, complete <strong>Lesson 2.1 (Finding Your Comfortable Do)</strong> to determine your vocal range</li>
             <li>Based on your comfortable Do setting from that lesson, determine if you're more comfortable in the higher range (Soprano/Alto) or lower range (Tenor/Bass)</li>
             <li>Higher voices (comfortable with Do around D4, E4, F4): likely Soprano or Alto</li>
             <li>Lower voices (comfortable with Do around A3, Bb3, C4): likely Tenor or Bass</li>
@@ -1753,12 +2074,13 @@ function getSubLesson3_2() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Successfully sing your part for a complete SATB exercise with 80%+ pitch accuracy (your voice note aligns with target part notes on staff for most of the exercise)</p>
-      <p><strong>Progression:</strong> Move to 3.3 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 6.3 when benchmark achieved</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="satb">Try it: Go to SATB Practice &rarr;</button></p>
     </div>
   `;
 }
 
-function getSubLesson3_3() {
+function getSubLesson6_3() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -1887,12 +2209,12 @@ function getSubLesson3_3() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Sing your part correctly with your part muted for at least 4 measures (you can maintain your part's melody and rhythm without hearing it)</p>
-      <p><strong>Progression:</strong> Move to 3.4 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 6.4 when benchmark achieved</p>
     </div>
   `;
 }
 
-function getSubLesson3_4() {
+function getSubLesson6_4() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -2036,13 +2358,13 @@ function getSubLesson3_4() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Successfully sing your part through a complete SATB exercise with all parts playing at normal tempo (60 BPM), maintaining accurate pitch and rhythm throughout</p>
-      <p><strong>Progression:</strong> Move to Lesson 4 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Proceed to Lesson 7 when benchmark achieved</p>
     </div>
   `;
 }
 
-// Lesson 4 sub-lessons
-function getSubLesson4_1() {
+// Lesson 5 sub-lessons (Chord Quality & Harmony)
+function getSubLesson5_1() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -2182,12 +2504,13 @@ function getSubLesson4_1() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Correctly identify all 3 tones in I, IV, and V chords 8/10 times (when you hear a chord, you can name all 3 solfege syllables)</p>
-      <p><strong>Progression:</strong> Move to 4.2 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 5.2 when benchmark achieved</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="chord-quality">Try it: Go to Chord Quality &rarr;</button></p>
     </div>
   `;
 }
 
-function getSubLesson4_2() {
+function getSubLesson5_2() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -2349,12 +2672,12 @@ function getSubLesson4_2() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Correctly identify I, IV, and V chords in a progression 8/10 times (when you hear a chord change, you can name which chord it is)</p>
-      <p><strong>Progression:</strong> Move to 4.3 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 5.3 when benchmark achieved</p>
     </div>
   `;
 }
 
-function getSubLesson4_3() {
+function getSubLesson5_3() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -2502,12 +2825,12 @@ function getSubLesson4_3() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Correctly distinguish Major vs. minor chords 8/10 times (when you hear a chord, you can identify if it's Major or minor)</p>
-      <p><strong>Progression:</strong> Move to 4.4 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 5.4 when benchmark achieved</p>
     </div>
   `;
 }
 
-function getSubLesson4_4() {
+function getSubLesson5_4() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -2674,7 +2997,7 @@ function getSubLesson4_4() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Successfully sing a complete SATB piece with accurate pitch and rhythm, identifying chord progressions as you sing (you can name at least 3-4 chord progressions during the piece, e.g., "That was I → IV → V → I")</p>
-      <p><strong>Progression:</strong> <strong>Congratulations! You've completed the curriculum.</strong></p>
+      <p><strong>Progression:</strong> Proceed to Lesson 6 when benchmark achieved</p>
     </div>
   `;
 }
@@ -2683,20 +3006,74 @@ function renderLesson5() {
   return `
     <section class="lesson" id="lesson-5" data-lesson="5">
       <div class="lesson-header" data-lesson-toggle="5">
-        <h2>Lesson 5: FA SO LA (Traditional Solfege Singing)</h2>
+        <h2>Lesson 5: Chord Quality &amp; Harmony</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="5">
-        <p class="lesson-goal"><strong>Goal:</strong> Master the traditional practice of singing solfege syllables without lyrics using your own hymn MIDI files, building part independence and ear training</p>
+        <p class="lesson-goal"><strong>Goal:</strong> Understand chord structure, qualities, and progressions</p>
 
-        ${renderSubLesson('5.1', 'Understanding the FA SO LA Tradition', getSubLesson5_1())}
-        ${renderSubLesson('5.2', 'Importing and Practicing with Your Own Hymn MIDI Files', getSubLesson5_2())}
+        <div class="warmup-connection">
+          <strong>Warmup Connection: Arpeggios</strong>
+          The <strong>Arpeggios</strong> stanza directly trains chord hearing. Each arpeggio you sing is a chord played one note at a time.
+          The I chord (Do-Mi-Sol) arpeggio you've been singing every warmup? That's the major triad.
+          The ii chord (Re-Fa-La)? That's a minor triad.
+          Your daily arpeggios have been teaching you chord quality all along.
+        </div>
+
+        ${renderSubLesson('5.1', 'Triads and Chord Qualities (Shape Note Focus)', getSubLesson5_1())}
+        ${renderSubLesson('5.2', 'Chord Progressions (I, IV, V)', getSubLesson5_2())}
+        ${renderSubLesson('5.3', 'Minor Chords and Other Qualities', getSubLesson5_3())}
+        ${renderSubLesson('5.4', 'Inversions and Advanced Harmony', getSubLesson5_4())}
       </div>
     </section>
   `;
 }
 
-function getSubLesson5_1() {
+function renderLesson6() {
+  return `
+    <section class="lesson" id="lesson-6" data-lesson="6">
+      <div class="lesson-header" data-lesson-toggle="6">
+        <h2>Lesson 6: Singing SATB Harmony</h2>
+        <span class="lesson-toggle-icon">▼</span>
+      </div>
+      <div class="lesson-content" data-lesson-content="6">
+        <p class="lesson-goal"><strong>Goal:</strong> Sing your part in 4-voice harmony</p>
+
+        <div class="warmup-connection">
+          <strong>Warmup Connection: Everything Comes Together</strong>
+          SATB singing uses EVERYTHING from warmup. <strong>Scales</strong> give you the melodic patterns each voice part follows.
+          <strong>Intervals from Do</strong> let you find your starting note relative to the key.
+          <strong>Arpeggios</strong> let you hear how your note fits into the chord the other 3 parts form around you.
+          Before attempting an SATB piece, do a full warmup — it's what professional choirs do before every rehearsal.
+        </div>
+
+        ${renderSubLesson('6.1', 'Understanding SATB Structure', getSubLesson6_1())}
+        ${renderSubLesson('6.2', 'Finding Your Part in Harmony', getSubLesson6_2())}
+        ${renderSubLesson('6.3', 'Voice Leading and Part Independence', getSubLesson6_3())}
+        ${renderSubLesson('6.4', 'Singing Against Other Parts', getSubLesson6_4())}
+      </div>
+    </section>
+  `;
+}
+
+function renderLesson7() {
+  return `
+    <section class="lesson" id="lesson-7" data-lesson="7">
+      <div class="lesson-header" data-lesson-toggle="7">
+        <h2>Lesson 7: FA SO LA Tradition</h2>
+        <span class="lesson-toggle-icon">▼</span>
+      </div>
+      <div class="lesson-content" data-lesson-content="7">
+        <p class="lesson-goal"><strong>Goal:</strong> Understand sacred harp singing tradition and practice with real hymns</p>
+
+        ${renderSubLesson('7.1', 'Understanding the FA SO LA Tradition', getSubLesson7_1())}
+        ${renderSubLesson('7.2', 'Importing and Practicing with Hymn MIDI Files', getSubLesson7_2())}
+      </div>
+    </section>
+  `;
+}
+
+function getSubLesson7_1() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
@@ -2741,12 +3118,12 @@ function getSubLesson5_1() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Understand the purpose and benefits of FA SO LA singing practice. You're ready to move on when you can explain why this method is valuable for ear training.</p>
-      <p><strong>Progression:</strong> Once you understand the tradition, proceed to Sub-lesson 5.2 to learn how to import and practice with your own hymn MIDI files.</p>
+      <p><strong>Progression:</strong> Once you understand the tradition, proceed to Sub-lesson 7.2 to learn how to import and practice with your own hymn MIDI files.</p>
     </div>
   `;
 }
 
-function getSubLesson5_2() {
+function getSubLesson7_2() {
   return `
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>

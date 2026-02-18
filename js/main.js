@@ -4,7 +4,7 @@
 
 import { buildNoteSelectionMenus } from './ui/builders/menus.js';
 import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionButtons } from './ui/builders/chordButtons.js';
-import { initializeTabSystem } from './ui/components/tabs.js';
+import { initializeTabSystem, switchToTab } from './ui/components/tabs.js';
 import { renderStaff } from './rendering/staff.js';
 import { getCurrentPitch } from './pitch/detection.js';
 import { appState, updateTuningSetting } from './state/appState.js';
@@ -19,6 +19,7 @@ import { startDroneWithFrequencies } from './audio/drone.js';
 import { ensureAudioContext } from './audio/context.js';
 import { getDroneFrequencies } from './state/appState.js';
 import { initializeStaffPanning } from './rendering/staffPanning.js';
+import { buildHomepage } from './ui/builders/homepage.js';
 import * as scrollingStaff from './rendering/scrollingStaff.js';
 import { handleGlobalPlay, handleGlobalStop, refreshGlobalTransportUI } from './ui/components/transport.js';
 import { beepDo } from './audio/doPitch.js';
@@ -121,7 +122,8 @@ async function buildUserInterface() {
   await initializeSATBControls();
   
   initializeTabSystem();
-  
+  buildHomepage();
+
   // Initialize staff panning (for manual panning when not playing)
   initializeStaffPanning();
   
@@ -136,6 +138,44 @@ function wireUpEventHandlers() {
   setupDroneControls();
   setupTargetControls();
   setupExerciseControls();
+  setupGlobalDelegation();
+}
+
+function setupGlobalDelegation() {
+  document.addEventListener('click', (e) => {
+    // "Learn more" links open the Theory tab/sidebar and expand the target lesson
+    const theoryLink = e.target.closest('[data-open-theory]');
+    if (theoryLink) {
+      const lessonNumber = theoryLink.dataset.openTheory;
+      openTheoryToLesson(lessonNumber);
+      return;
+    }
+    // "Try it" links in Theory switch to the relevant exercise tab
+    const tabBtn = e.target.closest('[data-tab-switch]');
+    if (tabBtn && tabBtn.dataset.tabSwitch) {
+      switchToTab(tabBtn.dataset.tabSwitch);
+    }
+  });
+}
+
+async function openTheoryToLesson(lessonNumber) {
+  const { expandAndScrollToLesson } = await import('./ui/components/theoryContent.js');
+  const isLargeScreen = window.matchMedia('(min-width: 1024px)').matches;
+  const isSidebarActive = document.body.classList.contains('theory-sidebar-active');
+
+  if (isLargeScreen && !isSidebarActive) {
+    // On desktop, open the sidebar (without toggling away current tab)
+    switchToTab('theory');
+    // Wait for sidebar to render, then expand + scroll
+    setTimeout(() => expandAndScrollToLesson(lessonNumber), 120);
+  } else if (isLargeScreen && isSidebarActive) {
+    // Sidebar already open — just expand + scroll
+    expandAndScrollToLesson(lessonNumber);
+  } else {
+    // Small screen — switch to theory tab normally
+    switchToTab('theory');
+    setTimeout(() => expandAndScrollToLesson(lessonNumber), 120);
+  }
 }
 
 function setupHeaderControls() {

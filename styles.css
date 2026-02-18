@@ -521,6 +521,8 @@ canvas {
   background: #0b0f19;
   z-index: 3;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
 }
 
 .tab, .part-btn {
@@ -546,6 +548,12 @@ canvas {
   padding-top: 10px;
   overflow: visible;
   flex-shrink: 0;
+}
+
+/* Hide staff canvas on tabs that don't use it */
+body[data-active-tab="home"] .staffPanel,
+body[data-active-tab="flashcards"] .staffPanel {
+  display: none;
 }
 
 .test-ok {
@@ -1139,4 +1147,341 @@ canvas {
 .theory-content .sub-lesson-content {
   padding: 16px;
   display: none; /* Start collapsed */
+}
+
+/* SATB empty state */
+.no-hymn {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ========== Homepage ========== */
+
+.home-hero {
+  text-align: center;
+  padding: 32px 16px 24px;
+}
+
+.home-hero h2 {
+  color: var(--accent);
+  font-size: 1.6rem;
+  margin: 0 0 8px;
+}
+
+.home-tagline {
+  color: var(--text);
+  font-size: 1rem;
+  margin: 0 0 4px;
+}
+
+.home-subtitle {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0 0 20px;
+}
+
+.btn-start-learning {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 12px 32px;
+  border-radius: 6px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-start-learning:hover {
+  opacity: 0.85;
+}
+
+/* Concept cards */
+.home-concepts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 0 16px 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.home-concept-card {
+  background: var(--panel);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+.home-concept-card h3 {
+  color: var(--accent);
+  font-size: 0.9rem;
+  margin: 0 0 6px;
+}
+
+.home-concept-card p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Solfege guide section */
+.home-solfege-section {
+  padding: 0 16px 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.home-solfege-section h3 {
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 0 0 10px;
+}
+
+.home-solfege-section #solfegeGuide {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: var(--panel);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+/* Learning roadmap */
+.home-roadmap-section {
+  padding: 0 16px 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.home-roadmap-section h3 {
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 0 0 4px;
+}
+
+.home-roadmap-intro {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin: 0 0 12px;
+}
+
+.home-roadmap {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.home-roadmap-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 12px 10px 10px;
+  cursor: pointer;
+  flex: 1 1 0;
+  min-width: 0;
+  transition: border-color 0.15s;
+  text-align: center;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.home-roadmap-step:hover {
+  border-color: var(--accent);
+}
+
+.home-roadmap-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.home-roadmap-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.home-roadmap-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.home-roadmap-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 1rem;
+  padding: 0 2px;
+}
+
+/* Keyboard shortcuts */
+/* Global controls guide */
+.home-controls-section {
+  padding: 0 16px 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.home-controls-section h3 {
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 0 0 4px;
+}
+
+.home-controls-intro {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin: 0 0 12px;
+}
+
+.home-controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.home-control-item {
+  background: var(--panel);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.home-control-name {
+  display: block;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.home-control-desc {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .home-controls-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.home-shortcuts {
+  padding: 0 16px 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.home-shortcuts h3 {
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+}
+
+.home-shortcut-list {
+  color: var(--muted);
+  font-size: 0.82rem;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.home-shortcut-sep {
+  color: var(--muted);
+  opacity: 0.4;
+}
+
+/* Shared helper for "Learn more" links and "Try it" buttons */
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-family: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.link-btn:hover { color: var(--text); }
+
+.theory-link { margin-top: 10px; }
+
+/* Warmup connection callout in Theory lessons 3-6 */
+.warmup-connection {
+  background: rgba(125, 211, 252, 0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.warmup-connection strong:first-child {
+  color: var(--accent);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+/* Difficulty description text */
+.difficulty-desc {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-top: 4px;
+  min-height: 16px;
+}
+
+/* Homepage mobile */
+@media (max-width: 480px) {
+  .home-concepts {
+    grid-template-columns: 1fr;
+  }
+
+  .home-roadmap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .home-roadmap-step {
+    max-width: none;
+    flex-direction: row;
+    gap: 10px;
+    text-align: left;
+    padding: 10px 14px;
+  }
+
+  .home-roadmap-number {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .home-roadmap-arrow {
+    display: none;
+  }
+
+  .btn-start-learning {
+    width: 100%;
+  }
 }

@@ -638,6 +638,9 @@ export function handleIntervalDifficultyPreset(difficulty) {
   }
   
   updateDifficultyButtonStates('interval', difficulty);
+  // Update live description
+  const descEl = getElementById('intervalDifficultyDesc');
+  if (descEl) descEl.textContent = preset.description;
   transport.stopAllPlayback?.();
 }
 
@@ -658,6 +661,9 @@ export function handleClusterDifficultyPreset(difficulty) {
   }
   
   updateDifficultyButtonStates('cluster', difficulty);
+  // Update live description
+  const descEl = getElementById('clusterDifficultyDesc');
+  if (descEl) descEl.textContent = preset.description;
   transport.stopAllPlayback?.();
 }
 

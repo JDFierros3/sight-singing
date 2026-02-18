@@ -10,7 +10,7 @@ import { stopAllPlayback } from '../components/transport.js';
 import { renderStaff } from '../../rendering/staff.js';
 import { renderTheoryContent, saveExpandedLessons } from './theoryContent.js';
 
-const TAB_NAMES = ['warmup', 'cluster', 'intervals', 'flashcards', 'satb', 'chord-quality', 'theory'];
+const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'satb', 'theory'];
 
 export function initializeTabSystem() {
   // Only attach tab switching to buttons that have data-tab attribute
@@ -32,7 +32,7 @@ export function initializeTabSystem() {
   initializeSidebarScrollPosition();
   
   // Initialize with the default tab from appState
-  const defaultTab = appState.exercise.currentTab || 'warmup';
+  const defaultTab = appState.exercise.currentTab || 'home';
   switchToTab(defaultTab);
   
   // Also update reveal buttons on initial load

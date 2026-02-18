@@ -580,7 +580,7 @@ function updateCurrentHymnDisplay() {
     setTextContent(displayElement, exercise.label);
     displayElement.classList.remove('no-hymn');
   } else {
-    setTextContent(displayElement, 'No hymn selected');
+    setTextContent(displayElement, 'Browse the hymn library to get started');
     displayElement.classList.add('no-hymn');
   }
 }

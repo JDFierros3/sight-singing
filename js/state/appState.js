@@ -57,7 +57,7 @@ function initializeTarget() {
 function initializeExercise() {
   return {
     onScaleOnly: true,
-    currentTab: 'warmup',
+    currentTab: 'home',
     previousTab: null, // Track previous tab for sidebar toggle
     hidden: null,
     interval: null,
