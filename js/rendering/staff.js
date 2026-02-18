@@ -11,7 +11,7 @@ import { drawShapeBadge, drawRoundedRect, drawNoteHeadWithShape } from './shapes
 import { getSolfegeForMidi } from '../utils/musicTheory.js';
 import { getDroneFrequencies } from '../state/appState.js';
 import { drawSharp, drawFlat, drawNatural, drawKeySignature, ensureBravuraLoaded } from './accidentals.js';
-import { spellMidiInKey, getKeySignature, getAccidentalForNote } from '../utils/keySignature.js';
+import { spellMidiInKey, spellChordTone, getKeySignature, getAccidentalForNote } from '../utils/keySignature.js';
 
 let canvas = null;
 let ctx = null;
@@ -964,41 +964,39 @@ function drawChordQualityNotes(noteMapper, dimensions) {
   
   ctx.save();
   
-  // Calculate MIDI values for each chord tone based on inversion
-  let chordTones;
+  // Calculate MIDI values for each chord tone based on inversion,
+  // keeping track of the original chord interval for spelling purposes
+  const base = doMidi + rootSemi;
+  let chordTones; // array of { midi, interval }
   if (inversion === 0) {
-    // Root position: use chord tones as-is
-    chordTones = chordSemis.map(chordSemi => doMidi + rootSemi + chordSemi);
+    chordTones = chordSemis.map(semi => ({ midi: base + semi, interval: semi }));
   } else if (inversion === 1) {
-    // First inversion: move root up an octave, 3rd becomes bass
     if (chordSemis.length >= 2) {
       chordTones = [
-        doMidi + rootSemi + chordSemis[1], // 3rd becomes bass
-        ...chordSemis.slice(2).map(semi => doMidi + rootSemi + semi), // 5th, 7th, etc. stay
-        doMidi + rootSemi + chordSemis[0] + 12 // Root moves up an octave
+        { midi: base + chordSemis[1], interval: chordSemis[1] },
+        ...chordSemis.slice(2).map(semi => ({ midi: base + semi, interval: semi })),
+        { midi: base + chordSemis[0] + 12, interval: chordSemis[0] }
       ];
     } else {
-      chordTones = chordSemis.map(chordSemi => doMidi + rootSemi + chordSemi);
+      chordTones = chordSemis.map(semi => ({ midi: base + semi, interval: semi }));
     }
   } else if (inversion === 2) {
-    // Second inversion: move root and 3rd up an octave, 5th becomes bass
     if (chordSemis.length >= 3) {
       chordTones = [
-        doMidi + rootSemi + chordSemis[2], // 5th becomes bass
-        ...chordSemis.slice(3).map(semi => doMidi + rootSemi + semi), // 7th, etc. stay
-        doMidi + rootSemi + chordSemis[0] + 12, // Root moves up
-        doMidi + rootSemi + chordSemis[1] + 12  // 3rd moves up
+        { midi: base + chordSemis[2], interval: chordSemis[2] },
+        ...chordSemis.slice(3).map(semi => ({ midi: base + semi, interval: semi })),
+        { midi: base + chordSemis[0] + 12, interval: chordSemis[0] },
+        { midi: base + chordSemis[1] + 12, interval: chordSemis[1] }
       ];
     } else {
-      chordTones = chordSemis.map(chordSemi => doMidi + rootSemi + chordSemi);
+      chordTones = chordSemis.map(semi => ({ midi: base + semi, interval: semi }));
     }
   } else {
-    // Fallback to root position
-    chordTones = chordSemis.map(chordSemi => doMidi + rootSemi + chordSemi);
+    chordTones = chordSemis.map(semi => ({ midi: base + semi, interval: semi }));
   }
-  
+
   // Sort by MIDI value (low to high) for better visual arrangement
-  chordTones.sort((a, b) => a - b);
+  chordTones.sort((a, b) => a.midi - b.midi);
   
   // Get active drone frequencies to highlight which tones are playing
   const activeFrequencies = getDroneFrequencies();
@@ -1006,28 +1004,88 @@ function drawChordQualityNotes(noteMapper, dimensions) {
     return Math.round(frequencyToMidi(freq, appState.tuning.a4));
   });
   
+  // Key context for chord-interval-aware spelling
+  const tonicPc = doMidi % 12;
+  const keyMode = 'major';
+  const useKeyAware = appState.display.showAccidentalsAndKey;
+  const rootMidi = base; // absolute MIDI of chord root (doMidi + rootSemi)
+
+  // Letter-to-step index for computing Y from chord-spelled letter
+  const LETTER_STEP = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+  const halfStepPx = dimensions.spacing / 2;
+
+  // Natural pitch class for each letter (used for octave adjustment)
+  const NATURAL_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
   // Draw each chord tone
-  chordTones.forEach((midi, index) => {
-    const y = noteMapper(midi);
-    
+  chordTones.forEach((tone, index) => {
+    // Compute chord-interval-aware spelling once per tone
+    const spelled = useKeyAware
+      ? spellChordTone(tone.midi, rootMidi, tone.interval, tonicPc, keyMode)
+      : null;
+
+    // Compute Y position
+    let y;
+    if (spelled?.letter) {
+      // Use chord-spelled letter for Y so augmented 5th lands on G line, not A line
+      const midiInt = Math.round(tone.midi);
+      const octave = Math.floor(midiInt / 12) - 1;
+      const letterStep = LETTER_STEP[spelled.letter];
+      const naturalPc = NATURAL_PC[spelled.letter];
+      const notePc = ((midiInt % 12) + 12) % 12;
+      // Adjust octave when chord-spelling letter wraps across octave boundary
+      let adjustedOctave = octave;
+      if (notePc < naturalPc && (naturalPc - notePc) > 6) {
+        adjustedOctave = octave + 1;
+      } else if (notePc > naturalPc && (notePc - naturalPc) > 6) {
+        adjustedOctave = octave - 1;
+      }
+      const staffStep = (adjustedOctave - 4) * 7 + letterStep;
+      y = dimensions.middleCY - staffStep * halfStepPx;
+    } else {
+      y = noteMapper(tone.midi);
+    }
+
     if (!Number.isFinite(y) || y < -80 || y > dimensions.height + 80) {
       return;
     }
-    
+
     const x = startX + index * spacing;
-    
+
     // Check if this tone is active in the drone
-    const isActive = activeMidis.some(activeMidi => Math.abs(activeMidi - midi) < 1);
-    
-    // Get solfege for this MIDI note
-    const solfege = getSolfegeForMidi(midi, doMidi);
-    
+    const isActive = activeMidis.some(activeMidi => Math.abs(activeMidi - tone.midi) < 1);
+
+    // Get solfege and accidental from chord spelling
+    let solfege;
+    let noteAccidental = null;
+    if (spelled) {
+      solfege = spelled.solfege || getSolfegeForMidi(tone.midi, doMidi);
+      noteAccidental = spelled.accidental || null;
+    } else {
+      solfege = getSolfegeForMidi(tone.midi, doMidi);
+    }
+
     // Draw ledger lines if needed
     drawLedgerLinesForNote(ctx, x, y, dimensions);
-    
+
+    // Draw accidental if needed
+    if (noteAccidental) {
+      ctx.save();
+      const accidentalX = x - 14;
+      const accidentalY = y - 2;
+      if (noteAccidental === 'sharp') {
+        drawSharp(ctx, accidentalX, accidentalY, 14);
+      } else if (noteAccidental === 'flat') {
+        drawFlat(ctx, accidentalX, accidentalY, 14);
+      } else if (noteAccidental === 'natural') {
+        drawNatural(ctx, accidentalX, accidentalY, 14);
+      }
+      ctx.restore();
+    }
+
     // Draw note with different styling for active vs. inactive
     ctx.save();
-    
+
     if (isActive && appState.drone.on) {
       // Active tone: brighter, with glow
       ctx.globalAlpha = 1.0;
@@ -1046,7 +1104,7 @@ function drawChordQualityNotes(noteMapper, dimensions) {
       ctx.globalAlpha = 0.6;
       drawNoteHeadWithShape(ctx, x, y, solfege, 8);
     }
-    
+
     ctx.restore();
   });
   

@@ -266,8 +266,8 @@ export function switchToTab(tabName) {
   // Update "Show Accidentals & Key" setting based on tab
   const showAccidentalsCheckbox = getElementById('showAccidentalsAndKey');
   if (showAccidentalsCheckbox) {
-    if (appState.exercise.currentTab === 'satb') {
-      // Enable by default for SATB tab
+    if (appState.exercise.currentTab === 'satb' || appState.exercise.currentTab === 'chord-quality') {
+      // Enable by default for SATB and Chord Quality tabs
       updateDisplaySetting('showAccidentalsAndKey', true);
       showAccidentalsCheckbox.checked = true;
     } else {

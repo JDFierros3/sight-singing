@@ -172,6 +172,86 @@ export function spellMidiInKey(noteMidi, tonicPc, mode = 'major') {
 }
 
 /**
+ * Spell a chord tone using interval-aware letter assignment.
+ * Each chord interval maps to an expected letter offset from the root
+ * (stacking by thirds), ensuring e.g. augmented 5th = G# not Ab.
+ *
+ * @param {number} noteMidi - Absolute MIDI note number
+ * @param {number} rootMidi - Absolute MIDI note number of the chord root
+ * @param {number} intervalSemitones - Semitone interval from root (0-11)
+ * @param {number} tonicPc - Key tonic pitch class (0-11)
+ * @param {string} mode - 'major' or 'minor'
+ * @returns {{ letter: string, solfege: string, accidental: string|null }}
+ */
+export function spellChordTone(noteMidi, rootMidi, intervalSemitones, tonicPc, mode = 'major') {
+  // Map each semitone interval to its expected letter offset from root
+  // (how many letter-names above the root this chord tone should be)
+  const INTERVAL_LETTER_OFFSET = [
+    0, // 0: unison/root
+    1, // 1: minor 2nd
+    1, // 2: major 2nd (sus2)
+    2, // 3: minor 3rd
+    2, // 4: major 3rd
+    3, // 5: perfect 4th (sus4)
+    4, // 6: diminished 5th (tritone, b5 in chords)
+    4, // 7: perfect 5th
+    4, // 8: augmented 5th
+    5, // 9: major 6th
+    6, // 10: minor 7th
+    6, // 11: major 7th
+  ];
+
+  // Get root's letter from key-aware spelling
+  const rootSpelled = spellMidiInKey(rootMidi, tonicPc, mode);
+  if (!rootSpelled) return spellMidiInKey(noteMidi, tonicPc, mode);
+
+  const rootLetterIdx = LETTERS.indexOf(rootSpelled.letter);
+  const letterOffset = INTERVAL_LETTER_OFFSET[intervalSemitones % 12] || 0;
+  const targetLetterIdx = (rootLetterIdx + letterOffset) % 7;
+  const targetLetter = LETTERS[targetLetterIdx];
+
+  // Calculate what pitch class the natural version of this letter has
+  const naturalPc = NATURAL_PC[targetLetter];
+  const notePc = ((Math.round(noteMidi) % 12) + 12) % 12;
+
+  // Determine accidental needed to reach the actual pitch
+  const diff = ((notePc - naturalPc) + 12) % 12;
+  let accidental = null;
+  if (diff === 0) {
+    accidental = null;
+  } else if (diff === 1) {
+    accidental = 'sharp';
+  } else if (diff === 11) {
+    accidental = 'flat';
+  }
+
+  // Determine solfege from letter position relative to tonic
+  const keyInfo = getKeySignature(tonicPc, mode);
+  const letterAcc = buildLetterAccidentals(keyInfo);
+  const diatonicMap = diatonicPcByLetter(letterAcc);
+  const tonicLetter = findTonicLetter(tonicPc, diatonicMap);
+  const tonicIdx = LETTERS.indexOf(tonicLetter);
+  const degreeIndex = ((targetLetterIdx - tonicIdx) + 7) % 7;
+  const solfege = SOLFEGE_DEGREES[degreeIndex] || null;
+
+  // Determine if this accidental is already in the key signature (should be suppressed)
+  const keyAccForLetter = letterAcc[targetLetter] || 0;
+  const basePc = diatonicMap[targetLetter];
+  let displayAccidental = null;
+  if (notePc === basePc) {
+    // Note matches the key-signature-adjusted pitch — no accidental needed
+    displayAccidental = null;
+  } else if (notePc === NATURAL_PC[targetLetter] && keyAccForLetter !== 0) {
+    // Natural note on a key-altered letter — show natural sign
+    displayAccidental = 'natural';
+  } else {
+    displayAccidental = accidental;
+  }
+
+  return { letter: targetLetter, solfege, accidental: displayAccidental };
+}
+
+/**
  * Get number of sharps (positive) or flats (negative) for a major key
  * @param {number} tonic - Pitch class (0-11)
  * @returns {number} Number of sharps (positive) or flats (negative)

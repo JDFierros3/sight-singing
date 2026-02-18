@@ -171,10 +171,7 @@ function updatePlayheadPosition() {
   let maxPanReached = false;
   
   if (playheadX > playheadFixedPosition) {
-    // Start panning: calculate offset to keep playhead at fixed position
-    viewportOffset = playheadX - playheadFixedPosition;
-    
-    // Calculate the rightmost note position to know when to stop panning
+    // Calculate the rightmost note position to know if panning is needed at all
     const notes = appState.staff.notes;
     if (notes.length > 0) {
       const lastNote = notes[notes.length - 1];
@@ -182,13 +179,20 @@ function updatePlayheadPosition() {
       const lastNoteTime = lastNote.startTime + (lastNote.duration || 0);
       const timeDiff = lastNoteTime - firstNoteTime;
       const rightmostX = startX + timeDiff * basePixelsPerSecond;
-      
-      // Don't pan beyond the end (when rightmost note would be visible)
+
+      // Only pan if the music extends beyond the viewport
       const maxOffset = rightmostX - viewportWidth + 100; // Add some padding
-      if (viewportOffset >= maxOffset) {
-        viewportOffset = maxOffset;
-        maxPanReached = true; // We've reached max pan, playhead should continue moving right
+      if (maxOffset > 0) {
+        // Start panning: calculate offset to keep playhead at fixed position
+        viewportOffset = playheadX - playheadFixedPosition;
+
+        // Don't pan beyond the end (when rightmost note would be visible)
+        if (viewportOffset >= maxOffset) {
+          viewportOffset = maxOffset;
+          maxPanReached = true; // We've reached max pan, playhead should continue moving right
+        }
       }
+      // If maxOffset <= 0, music fits on screen — no panning needed
     }
   }
   
