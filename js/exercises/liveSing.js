@@ -242,6 +242,7 @@ export async function playLiveSing() {
   appState.livesing.isPlaying = true;
   updateTransportButtons(true);
   updateStatus('Singing');
+  enterPerformanceMode(); // full-screen scrolling notation
 
   const exercise = transposeExercise(base, appState.livesing.doSemis);
 
@@ -314,6 +315,7 @@ function finishLiveSing(status) {
   appState.livesing.isPlaying = false;
   appState.livesing.currentTargetMidi = null;
   stopProgress();
+  exitPerformanceMode();
   updateTransportButtons(false);
   updateStatus(status === 'stopped' ? 'Stopped' : 'Done');
   // Restore the static hymn display so the notation stays visible after stopping.
@@ -358,18 +360,106 @@ export function displayLiveSingHymn() {
 // Render real engraved notation (VexFlow) into the Live Sing visual panel.
 // Guarded so we don't re-engrave the whole score on ear/part/volume changes.
 let lastNotatedKey = null;
-function renderNotation(exercise) {
+let notationLayout = null;
+let notatedExercise = null;
+let playheadEl = null;
+let performRafId = null;
+
+function renderNotation(exercise, force = false) {
   const visual = getElementById('liveSingVisual');
   if (!visual || !exercise) return;
-  const key = `${exercise.id || exercise.label}|${appState.livesing.doSemis}`;
-  if (key === lastNotatedKey && visual.childElementCount > 0) return;
+  notatedExercise = exercise;
+  const performing = document.body.classList.contains('livesing-performing');
+  const width = performing ? window.innerWidth : (visual.clientWidth || 800);
+  const key = `${exercise.id || exercise.label}|${appState.livesing.doSemis}|${performing ? 'full' : Math.round(width)}`;
+  if (!force && key === lastNotatedKey && visual.querySelector('svg')) return;
   lastNotatedKey = key;
   visual.hidden = false;
   try {
-    renderHymnNotation(exercise, visual, { width: visual.clientWidth || 800 });
+    notationLayout = renderHymnNotation(exercise, visual, { width });
+    ensurePlayhead(visual);
   } catch (err) {
     console.warn('Notation render failed:', err);
   }
+}
+
+/* ---------------------------------------------- full-screen performance --- */
+
+// While the exercise is active, expand the notation over everything and scroll
+// it so the playhead stays in view — the controls simply scroll off behind it.
+function enterPerformanceMode() {
+  document.body.classList.add('livesing-performing');
+  renderNotation(notatedExercise || appState.satb.currentExercise, true); // re-engrave at full width
+  ensureExitButton(true);
+  startPlayheadAnimation();
+}
+
+function exitPerformanceMode() {
+  stopPlayheadAnimation();
+  ensureExitButton(false);
+  if (document.body.classList.contains('livesing-performing')) {
+    document.body.classList.remove('livesing-performing');
+    renderNotation(notatedExercise || appState.satb.currentExercise, true); // back to inline width
+  }
+}
+
+function ensurePlayhead(visual) {
+  playheadEl = document.createElement('div');
+  playheadEl.className = 'livesing-playhead';
+  visual.appendChild(playheadEl);
+}
+
+function ensureExitButton(show) {
+  let btn = getElementById('liveSingExitPerform');
+  if (!btn && show) {
+    btn = document.createElement('button');
+    btn.id = 'liveSingExitPerform';
+    btn.className = 'livesing-exit-btn';
+    btn.textContent = 'Stop';
+    btn.onclick = () => stopLiveSing();
+    document.body.appendChild(btn);
+  }
+  if (btn) btn.style.display = show ? 'block' : 'none';
+}
+
+// Map exercise time (seconds at 60bpm) -> x, LINEARLY within each measure so the
+// playhead glides at a steady speed instead of snapping between note positions.
+function buildTimeToX(layout) {
+  const mp = layout.measurePositions || [];
+  const mlen = layout.measureLenSec || 1;
+  return (t) => {
+    if (!mp.length) return 0;
+    if (t <= 0) return mp[0].x;
+    const mi = Math.min(mp.length - 1, Math.floor(t / mlen));
+    const m = mp[mi];
+    const frac = Math.max(0, Math.min(1, (t - m.startTime) / mlen));
+    return m.x + frac * m.width;
+  };
+}
+
+function startPlayheadAnimation() {
+  const visual = getElementById('liveSingVisual');
+  if (!visual || !notationLayout) return;
+  const timeToX = buildTimeToX(notationLayout);
+  const frame = () => {
+    if (!appState.livesing.isPlaying) { performRafId = null; return; }
+    // exercise time = wall elapsed * tempo/60 (matches the player's playhead math)
+    const exerciseTime = (appState.staff.currentTime || 0) * (appState.livesing.tempo / 60);
+    const x = timeToX(exerciseTime);
+    if (playheadEl) {
+      playheadEl.style.left = `${x}px`;
+      playheadEl.style.height = `${notationLayout.height || 210}px`;
+    }
+    // Keep the playhead ~30% from the left; the notation scrolls under it.
+    visual.scrollLeft = Math.max(0, x - visual.clientWidth * 0.3);
+    performRafId = requestAnimationFrame(frame);
+  };
+  performRafId = requestAnimationFrame(frame);
+}
+
+function stopPlayheadAnimation() {
+  if (performRafId) cancelAnimationFrame(performRafId);
+  performRafId = null;
 }
 
 /* ------------------------------------------------------------- helpers ---- */

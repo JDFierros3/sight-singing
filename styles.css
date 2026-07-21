@@ -1582,23 +1582,80 @@ body[data-active-tab="flashcards"] .staffPanel {
 
 .livesing-visual {
   margin-top: 8px;
-  max-height: 60vh;
-  overflow: auto;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;         /* one continuous row that scrolls left-to-right */
+  overflow-y: hidden;
   background: #0d1122;
   border: 1px solid #273056;
   border-radius: 8px;
+  position: relative;       /* anchor for the playhead / crosshair overlay */
 }
 
-/* VexFlow renders in black by default; recolour the engraving for the dark theme. */
-.livesing-visual svg path,
-.livesing-visual svg rect,
-.livesing-visual svg line {
-  fill: #e8ecff;
-  stroke: #e8ecff;
+/* Colours are set at the VexFlow context level (muted staff) + per-notehead
+   (solfege colour), so no CSS fill overrides here — CSS would clobber the
+   per-notehead presentation attributes. */
+
+/* On the Live Sing tab the notation IS the staff — hide the shared shape-note canvas. */
+body[data-active-tab="livesing"] .staffPanel {
+  display: none;
 }
-.livesing-visual svg text {
-  fill: #e8ecff;
-  stroke: none;
+
+/* Moving playhead over the engraving (shown only while performing). */
+.livesing-playhead {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  background: #f87171;
+  opacity: 0.9;
+  pointer-events: none;
+  display: none;
+  z-index: 5;
+}
+
+/* Full-screen performance mode: the notation expands over everything and scrolls;
+   the setup controls simply scroll off behind it. */
+body.livesing-performing #liveSingVisual {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  margin: 0;
+  border-radius: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  align-items: center;                 /* vertically centre the staff */
+  background: var(--bg, #0f1220);
+}
+
+/* Keep the wide staff at natural size (don't let flex shrink it) so it scrolls. */
+body.livesing-performing #liveSingVisual svg {
+  flex: 0 0 auto;
+}
+
+/* Full-height playhead line through the centred staff. */
+body.livesing-performing .livesing-playhead {
+  display: block;
+  height: 100% !important;
+  top: 0;
+}
+
+.livesing-exit-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 3001;
+  background: #f87171;
+  color: #0b0f19;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: none;
 }
 
 /* Landscape phone: keep the notation prominent, compact the controls into a
