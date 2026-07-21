@@ -745,16 +745,22 @@ function drawMicrophoneDot(noteMapper, dimensions) {
   if (!Number.isFinite(micMidi)) {
     return;
   }
-  const targetMidi = calculateTargetMidi();
+  // On the Live Sing tab, aim at the chosen part's note currently sounding, so the
+  // crosshair lands on the notehead when the singer is in tune AND on time.
+  const liveSingTarget = (appState.exercise?.currentTab === 'livesing' && Number.isFinite(appState.livesing?.currentTargetMidi))
+    ? appState.livesing.currentTargetMidi
+    : null;
+  const targetMidi = liveSingTarget != null ? liveSingTarget : calculateTargetMidi();
   const targetFreq = midiToFrequency(targetMidi, appState.tuning.a4);
-  
+
   // For mic feedback, anchor to the correct staff line/space (diatonic),
   // then nudge by cents so sharp/flat is visible without breaking staff placement.
   const y = micYForMidi(micMidi, noteMapper, dimensions);
   const delta = centsBetween(rawHz, targetFreq);
-  
+
   updateCentsDisplay(delta);
-  drawMicPitchLine(y, delta, dimensions, false);
+  // Colour by accuracy only on Live Sing (where there's a real per-note target); other tabs stay neutral.
+  drawMicPitchLine(y, delta, dimensions, false, liveSingTarget != null);
 }
 
 function frequencyToMidiCorrect(freq, a4 = 440) {
@@ -800,15 +806,19 @@ function updateCentsDisplay(delta) {
   setTextContent(micCentsElement, sign + delta.toFixed(1));
 }
 
-function drawMicPitchLine(y, delta, dimensions, _isStable) {
+function drawMicPitchLine(y, delta, dimensions, _isStable, colorByAccuracy = false) {
   if (!ctx) return;
   if (!Number.isFinite(y)) return;
 
   // Clamp so low/high voices always show feedback even if out of view.
   const clampedY = Math.max(-5, Math.min(dimensions.height + 5, y));
-  
-  // Single neutral color (no red→green shifting).
-  const color = '#60a5fa';
+
+  // Neutral blue by default; on Live Sing, shift green→yellow→red by how in-tune you are.
+  let color = '#60a5fa';
+  if (colorByAccuracy) {
+    const cents = Math.abs(delta);
+    color = cents <= 15 ? '#22c55e' : (cents <= 40 ? '#eab308' : '#ef4444');
+  }
   
   // Draw ledger lines if needed
   drawLedgerLines(ctx, clampedY, dimensions);

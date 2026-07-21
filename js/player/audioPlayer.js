@@ -40,10 +40,13 @@ export async function playNote(note, sequenceId, baseGain = 0.15, partVolumes = 
   } else if (note.volume !== undefined) {
     gain = note.volume;
   }
-  
+
+  // Stereo pan: undefined for every existing exercise (-> 0, centered). Only Live Sing sets it.
+  const pan = note.pan ?? 0;
+
   // Try to use soundfont instrument if available
   if (isUsingSoundfont()) {
-    const instrumentNote = playInstrumentNote(note.midi, note.duration, gain, note.part || null);
+    const instrumentNote = playInstrumentNote(note.midi, note.duration, gain, note.part || null, pan);
     if (instrumentNote) {
       // Track this note
       if (!activeOscillators.has(sequenceId)) {
@@ -79,7 +82,7 @@ export async function playNote(note, sequenceId, baseGain = 0.15, partVolumes = 
     }
     activeOscillators.get(sequenceId).add(oscillator);
     
-    connectOscillatorToDestination(oscillator, ctx.destination);
+    connectOscillatorToDestination(oscillator, ctx.destination, pan);
     startOscillator(oscillator);
     
     // Schedule stop after duration

@@ -12,7 +12,8 @@ export const appState = {
   target: initializeTarget(),
   exercise: initializeExercise(),
   staff: initializeStaff(),
-  satb: initializeSATB()
+  satb: initializeSATB(),
+  livesing: initializeLiveSing()
 };
 
 function initializeTuning() {
@@ -122,6 +123,20 @@ function initializeSATB() {
     isPlaying: false,
     midiExercises: [], // Array of exercises loaded from MIDI files
     transposeSemis: 0
+  };
+}
+
+function initializeLiveSing() {
+  return {
+    part: 'S',            // Which voice this singer sings (and hears softly)
+    ear: 'L',             // 'L' | 'R' — which ear the reference tone plays in
+    softness: 0.35,       // Reference-tone volume (0-1)
+    tempo: 60,            // Playback tempo (BPM)
+    isPlaying: false,
+    doHz: null,           // Captured "Set Do" pitch in Hz (movable-Do anchor); null = not set
+    doSemis: 0,           // Semitone shift derived from Set Do (maps hymn tonic onto the hummed pitch)
+    armed: false,         // Listening for onset auto-start
+    currentTargetMidi: null // The chosen part's note currently sounding (drives the crosshair). null = none.
   };
 }
 

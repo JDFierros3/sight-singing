@@ -1485,3 +1485,125 @@ body[data-active-tab="flashcards"] .staffPanel {
     width: 100%;
   }
 }
+
+/* ============================ Live Sing ============================ */
+.livesing-fieldset {
+  border: 1px solid #273056;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.livesing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.livesing-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.livesing-control > label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.livesing-control .row {
+  gap: 6px;
+}
+
+.livesing-hymn #liveSingCurrentHymn {
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #12182a;
+  border: 1px solid #273056;
+}
+
+.livesing-hymn .no-hymn {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.livesing-transport {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.livesing-transport button {
+  flex: 1 1 auto;
+}
+
+/* Big, thumb-friendly primary actions */
+.livesing-transport #btnLiveSingArm,
+.livesing-transport #btnLiveSingPlay,
+.livesing-transport #btnLiveSingStop {
+  min-height: 44px;
+  font-weight: 600;
+}
+
+/* Touch-friendly part / ear pickers */
+#liveSingPartSelection .part-btn,
+#liveSingEarSelection .part-btn {
+  min-width: 46px;
+  min-height: 42px;
+  text-align: center;
+  border-radius: 10px;
+  border-bottom: 1px solid #273056;
+}
+
+#liveSingPartSelection .part-btn.active,
+#liveSingEarSelection .part-btn.active {
+  background: var(--accent);
+  color: #06202b;
+}
+
+/* Tempo-driven progress bar */
+.livesing-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: #12182a;
+  border: 1px solid #273056;
+  margin: 12px 0 8px;
+  overflow: hidden;
+}
+
+.livesing-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.08s linear;
+}
+
+.livesing-visual {
+  margin-top: 8px;
+}
+
+/* Landscape phone: keep the notation prominent, compact the controls into a
+   tight strip so the shared staff above gets the width it needs. */
+@media (orientation: landscape) and (max-height: 600px) {
+  body[data-active-tab="livesing"] .livesing-grid {
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 8px;
+  }
+
+  body[data-active-tab="livesing"] .livesing-control > label {
+    font-size: 11px;
+  }
+
+  /* Reclaim vertical space: the bulky shared ribbon isn't needed during a Live Sing
+     performance (Set Do / Arm replace the global mic controls). Scoped to this tab.
+     The <main> element is already the single scroll container, so no nested scroll. */
+  body[data-active-tab="livesing"] .controlRibbon {
+    display: none;
+  }
+
+  body[data-active-tab="livesing"] .help {
+    display: none; /* save vertical space in landscape */
+  }
+}

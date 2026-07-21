@@ -8,6 +8,7 @@ import { midiToNoteName } from '../utils/musicTheory.js';
 
 let currentSampler = null; // legacy single sampler (kept for non-part playback)
 let partSamplers = null; // Map<string, Tone.Sampler>
+let partPanners = null; // Map<string, Tone.Panner> — routes each part to one ear (Live Sing). pan 0 = centered/transparent.
 let currentInstrumentName = 'sine';
 let isLoading = false;
 let currentSoundfont = null;
@@ -23,6 +24,13 @@ export function unloadInstrument() {
         } catch (e) {}
         try {
           sampler.dispose();
+        } catch (e) {}
+      }
+    }
+    if (partPanners) {
+      for (const panner of partPanners.values()) {
+        try {
+          panner.dispose();
         } catch (e) {}
       }
     }
@@ -47,9 +55,25 @@ export function unloadInstrument() {
   } finally {
     currentSampler = null;
     partSamplers = null;
+    partPanners = null;
     currentInstrumentName = 'sine';
     isLoading = false;
     currentBackend = 'none';
+  }
+}
+
+/**
+ * Live-update the stereo pan for a single SATB part (piano/sampler backend).
+ * pan: -1 = full left, 0 = center, +1 = full right. No-op for the choir/soundfont
+ * backend, which stays centered in v1.
+ */
+export function setPartPan(part, pan) {
+  if (partPanners && partPanners.get(part)) {
+    try {
+      partPanners.get(part).pan.rampTo(pan, 0.02);
+    } catch (e) {
+      partPanners.get(part).pan.value = pan;
+    }
   }
 }
 
@@ -162,21 +186,32 @@ export async function loadInstrument(instrumentName) {
       urls[note] = filename;
     }
     
-    const makeSampler = () => new Tone.Sampler({
-      urls: urls,
-      baseUrl: instrumentConfig.baseUrl,
-      onload: () => {
-        console.log(`✅ ${instrumentConfig.name} loaded successfully!`);
-      },
-      onerror: (error) => {
-        console.error(`❌ Error loading ${instrumentConfig.name}:`, error);
-      }
-    }).toDestination();
+    const makeSampler = (connectToDestination = true) => {
+      const sampler = new Tone.Sampler({
+        urls: urls,
+        baseUrl: instrumentConfig.baseUrl,
+        onload: () => {
+          console.log(`✅ ${instrumentConfig.name} loaded successfully!`);
+        },
+        onerror: (error) => {
+          console.error(`❌ Error loading ${instrumentConfig.name}:`, error);
+        }
+      });
+      // Non-part samplers connect straight to the destination (unchanged behavior).
+      return connectToDestination ? sampler.toDestination() : sampler;
+    };
 
     // For SATB (and any part-based playback), use one sampler per part so volumes can differ.
+    // Each part routes through its own Panner so a single voice can be placed in one ear (Live Sing).
+    // A Panner at 0 is centered/transparent, so SATB (which never sets pan) sounds identical.
     partSamplers = new Map();
+    partPanners = new Map();
     ['S', 'A', 'T', 'B'].forEach(p => {
-      partSamplers.set(p, makeSampler());
+      const sampler = makeSampler(false);
+      const panner = new Tone.Panner(0).toDestination();
+      sampler.connect(panner);
+      partSamplers.set(p, sampler);
+      partPanners.set(p, panner);
     });
     // Also keep a default sampler for non-part playback (warmups/intervals/etc).
     currentSampler = makeSampler();
@@ -208,11 +243,15 @@ export async function loadInstrument(instrumentName) {
  * @param {number} gain - Volume (0-1)
  * @returns {Object|null} - Note object with stop method, or null
  */
-export function playInstrumentNote(midiNote, duration, gain = 0.5, part = null) {
+export function playInstrumentNote(midiNote, duration, gain = 0.5, part = null, pan = 0) {
   try {
     if (currentBackend === 'toneSampler') {
       const sampler = (partSamplers && part && partSamplers.get(part)) ? partSamplers.get(part) : currentSampler;
       if (!sampler) return null;
+      // Place this part in one ear (Live Sing). Center (0) for every other caller.
+      if (pan !== 0 && partPanners && partPanners.get(part)) {
+        partPanners.get(part).pan.value = pan;
+      }
       const noteName = Tone.Frequency(midiNote, 'midi').toNote();
       sampler.volume.value = Tone.gainToDb(gain);
       sampler.triggerAttackRelease(noteName, duration);

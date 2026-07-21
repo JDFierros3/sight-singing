@@ -22,6 +22,10 @@ import * as transport from '../components/transport.js';
 import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode } from '../../exercises/flashcards.js';
 import { openHymnBrowser } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
+import {
+  browseLiveSingHymns, setLiveSingPart, setLiveSingEar, setLiveSingSoftness,
+  setLiveSingTempo, setLiveSingDo, armLiveSing, playLiveSing, stopLiveSing
+} from '../../exercises/liveSing.js';
 
 export function handleA4TuningChange(event) {
   const value = Number(event.target.value) || 440;
@@ -440,6 +444,46 @@ export function handleSATBTransposeChange(event) {
   const semis = parseInt(event.target.value) || 0;
   setSatbTranspose(semis);
   transport.stopAllPlayback?.();
+}
+
+/* ------------------------------------------------------------ Live Sing --- */
+
+export function handleLiveSingBrowseClick() {
+  browseLiveSingHymns();
+}
+
+export function handleLiveSingPartClick(event) {
+  const part = event.target.dataset.part;
+  if (part) setLiveSingPart(part);
+}
+
+export function handleLiveSingEarClick(event) {
+  const ear = event.target.dataset.ear;
+  if (ear) setLiveSingEar(ear);
+}
+
+export function handleLiveSingVolumeChange(event) {
+  setLiveSingSoftness(event.target.value);
+}
+
+export function handleLiveSingTempoChange(event) {
+  setLiveSingTempo(event.target.value);
+}
+
+export function handleLiveSingSetDoClick() {
+  setLiveSingDo();
+}
+
+export function handleLiveSingArmClick() {
+  armLiveSing();
+}
+
+export function handleLiveSingPlayClick() {
+  playLiveSing();
+}
+
+export function handleLiveSingStopClick() {
+  stopLiveSing();
 }
 
 /**

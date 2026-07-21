@@ -99,6 +99,7 @@
             <button class="tab" data-tab="cluster" role="tab" aria-selected="false" aria-controls="panel-cluster">Hidden Cluster</button>
             <button class="tab" data-tab="chord-quality" role="tab" aria-selected="false" aria-controls="panel-chord-quality">Chord Quality</button>
             <button class="tab" data-tab="satb" role="tab" aria-selected="false" aria-controls="panel-satb">SATB Practice</button>
+            <button class="tab" data-tab="livesing" role="tab" aria-selected="false" aria-controls="panel-livesing">Live Sing</button>
             <button class="tab" data-tab="theory" role="tab" aria-selected="false" aria-controls="panel-theory">Music Theory</button>
           </nav>
 
@@ -352,6 +353,73 @@
           
           <div class="help">Tip: leave your own part a little quieter so you can't just follow the recording.</div>
           <p class="theory-link"><button class="link-btn" data-open-theory="6">Learn more: Music Theory &rarr; Lesson 6: Singing SATB Harmony</button></p>
+        </fieldset>
+      </section>
+
+      <section id="panel-livesing" class="panel" role="tabpanel" aria-labelledby="tab-livesing" style="display:none">
+        <fieldset class="livesing-fieldset">
+          <legend>Live Sing <small style="font-weight:normal; color:var(--muted)">(sing together, in person)</small></legend>
+
+          <div class="livesing-grid">
+            <!-- Hymn selection -->
+            <div class="livesing-control livesing-hymn">
+              <label>Hymn</label>
+              <div id="liveSingCurrentHymn" class="no-hymn">Browse the hymn library to get started</div>
+              <button id="btnLiveSingBrowse" class="primary" aria-label="Browse hymns">Browse Hymns</button>
+            </div>
+
+            <!-- Part picker -->
+            <div class="livesing-control">
+              <label>Your Part</label>
+              <div class="row" id="liveSingPartSelection" role="group" aria-label="Select your part">
+                <!-- Built by liveSing.js -->
+              </div>
+            </div>
+
+            <!-- Ear toggle -->
+            <div class="livesing-control">
+              <label>Reference Ear</label>
+              <div class="row" id="liveSingEarSelection" role="group" aria-label="Which ear the reference plays in">
+                <button id="liveSingEarL" class="part-btn active" data-ear="L" aria-label="Left ear">Left</button>
+                <button id="liveSingEarR" class="part-btn" data-ear="R" aria-label="Right ear">Right</button>
+              </div>
+            </div>
+
+            <!-- Reference volume -->
+            <div class="livesing-control">
+              <label for="liveSingVolume">Reference Volume: <span id="liveSingVolumeValue">35</span>%</label>
+              <input id="liveSingVolume" type="range" min="0" max="100" value="35" aria-label="Reference tone volume" />
+            </div>
+
+            <!-- Tempo -->
+            <div class="livesing-control">
+              <label for="liveSingTempo">Tempo: <span id="liveSingTempoValue">60</span> BPM</label>
+              <input id="liveSingTempo" type="range" min="40" max="120" value="60" aria-label="Tempo in BPM" />
+            </div>
+
+            <!-- Set Do -->
+            <div class="livesing-control">
+              <label>Pitch anchor</label>
+              <button id="btnLiveSingSetDo" aria-label="Set Do by humming the leader's pitch">Set Do (hum)</button>
+              <span id="liveSingDoReadout" class="chip" aria-live="polite">Do: —</span>
+            </div>
+
+            <!-- Transport / auto-start -->
+            <div class="livesing-control livesing-transport">
+              <button id="btnLiveSingArm" class="primary" aria-label="Arm auto-start; playback begins when you start singing">Arm &amp; Listen</button>
+              <button id="btnLiveSingPlay" aria-label="Start now">Start Now</button>
+              <button id="btnLiveSingStop" class="bad" style="display:none" aria-label="Stop">Stop</button>
+              <span id="liveSingStatus" class="chip" aria-live="polite">Idle</span>
+            </div>
+          </div>
+
+          <!-- Tempo-driven progress bar (fills over the hymn's duration) -->
+          <div id="liveSingProgress" class="livesing-progress" aria-hidden="true"><div id="liveSingProgressBar" class="livesing-progress-bar"></div></div>
+
+          <!-- Placeholder for Phase-2 engraved notation (v1 uses the shared #staff above) -->
+          <div id="liveSingVisual" class="livesing-visual" hidden></div>
+
+          <div class="help">Everyone: pick your part, hum the leader's starting pitch and tap <b>Set Do</b>, then tap <b>Arm &amp; Listen</b>. Start singing — your phone follows along and plays your part softly in one ear. Put one earbud in.</div>
         </fieldset>
       </section>
 
