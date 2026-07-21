@@ -50,6 +50,15 @@ export function initializeLiveSing() {
   // Highlight the Live Sing part on the shared staff (renderer reads satb.aimPart).
   appState.satb.aimPart = appState.livesing.part;
   syncLiveSingControls();
+
+  // When a hymn is picked from the shared browser while on this tab, refresh our
+  // label + re-anchor the Set-Do transpose and redraw the placeholder staff.
+  window.addEventListener('hymn:selected', () => {
+    if (appState.exercise.currentTab === 'livesing') {
+      recomputeDoSemis();
+      displayLiveSingHymn();
+    }
+  });
 }
 
 function buildLiveSingPartButtons() {
