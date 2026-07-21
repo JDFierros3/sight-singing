@@ -19,7 +19,7 @@ import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence } from '../player/sequenceManager.js';
 import { playNote } from '../player/audioPlayer.js';
-import { setPartPan } from '../audio/instruments.js';
+import { setPartPan, setPlaybackDetune } from '../audio/instruments.js';
 import { renderStaff } from '../rendering/staff.js';
 import { renderHymnNotation } from '../rendering/notationView.js';
 import { openHymnBrowser } from '../ui/components/hymnBrowser.js';
@@ -41,6 +41,7 @@ let progressRafId = null;
 let progressStartMs = 0;
 let progressDurationMs = 0;
 let onsetHoldStart = 0;
+let livesingOrigA4 = null; // restore tuning after exact-Do detune
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
@@ -186,9 +187,15 @@ function recomputeDoSemis() {
   const ex = appState.satb.currentExercise;
   if (!ex || !Number.isFinite(ex.midiKeyMidi) || appState.livesing.doHz == null) {
     appState.livesing.doSemis = 0;
+    appState.livesing.doCents = 0;
     return;
   }
-  const capturedPc = pitchClass(Math.round(frequencyToMidi(appState.livesing.doHz, appState.tuning.a4)));
+  // Compare the hummed pitch to STANDARD tuning (A440): integer semitones set the key,
+  // the leftover cents fine-tune playback to the exact pitch the leader gave.
+  const midiFloat = frequencyToMidi(appState.livesing.doHz, 440);
+  const nearest = Math.round(midiFloat);
+  appState.livesing.doCents = (midiFloat - nearest) * 100;
+  const capturedPc = pitchClass(nearest);
   const tonicPc = pitchClass(ex.midiKeyMidi);
   let shift = ((capturedPc - tonicPc) % 12 + 12) % 12;
   if (shift > 6) shift -= 12;
@@ -242,6 +249,13 @@ export async function playLiveSing() {
   appState.livesing.isPlaying = true;
   updateTransportButtons(true);
   updateStatus('Singing');
+
+  // Tune the reference to the EXACT hummed Do: cents-detune both audio paths.
+  const cents = appState.livesing.doHz != null ? (appState.livesing.doCents || 0) : 0;
+  livesingOrigA4 = appState.tuning.a4;
+  appState.tuning.a4 = 440 * Math.pow(2, cents / 1200); // sine-oscillator path
+  setPlaybackDetune(cents);                               // piano/sampler path
+
   enterPerformanceMode(); // full-screen scrolling notation
 
   const exercise = transposeExercise(base, appState.livesing.doSemis);
@@ -314,6 +328,9 @@ export function stopLiveSing() {
 function finishLiveSing(status) {
   appState.livesing.isPlaying = false;
   appState.livesing.currentTargetMidi = null;
+  // Restore standard tuning after the exact-Do detune.
+  if (livesingOrigA4 != null) { appState.tuning.a4 = livesingOrigA4; livesingOrigA4 = null; }
+  setPlaybackDetune(0);
   stopProgress();
   exitPerformanceMode();
   updateTransportButtons(false);

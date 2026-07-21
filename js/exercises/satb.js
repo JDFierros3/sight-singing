@@ -345,11 +345,9 @@ export async function initializeSATBControls() {
   
   // Build volume controls
   buildPartVolumeControls();
-  
-  // Pre-load all MIDI files from /midi folder (must complete before displaying)
-  await preloadAllMidiFiles();
 
-  // Additively load the OpenPsalm library (CC-BY, accurate SATB parsed from source).
+  // Hymn library: OpenPsalm only (CC-BY, accurate SATB parsed from source).
+  // The legacy MIDI library (heuristic voice-splitting, undocumented licensing) is retired.
   await loadOpenPsalmLibrary();
   
   // Initialize hymn browser UI

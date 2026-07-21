@@ -136,6 +136,7 @@ function initializeLiveSing() {
     isPlaying: false,
     doHz: null,           // Captured "Set Do" pitch in Hz (movable-Do anchor); null = not set
     doSemis: 0,           // Semitone shift derived from Set Do (maps hymn tonic onto the hummed pitch)
+    doCents: 0,           // Fine-tune (cents) so the reference sounds at the EXACT hummed pitch
     armed: false,         // Listening for onset auto-start
     currentTargetMidi: null // The chosen part's note currently sounding (drives the crosshair). null = none.
   };

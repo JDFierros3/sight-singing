@@ -63,6 +63,18 @@ export function unloadInstrument() {
 }
 
 /**
+ * Fine-tune all sampler playback by `cents` (Tone.Sampler.detune). Used by Live Sing to
+ * match the exact hummed "Set Do" pitch. The sine-oscillator path is tuned via a4 instead.
+ */
+export function setPlaybackDetune(cents) {
+  const value = Number(cents) || 0;
+  try {
+    if (partSamplers) for (const s of partSamplers.values()) { if (s.detune) s.detune.value = value; }
+    if (currentSampler && currentSampler.detune) currentSampler.detune.value = value;
+  } catch (e) {}
+}
+
+/**
  * Live-update the stereo pan for a single SATB part (piano/sampler backend).
  * pan: -1 = full left, 0 = center, +1 = full right. No-op for the choir/soundfont
  * backend, which stays centered in v1.
