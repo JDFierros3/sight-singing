@@ -26,17 +26,22 @@ function durToVex(seconds) {
   return { dur: best[1], dots: best[2] };
 }
 
-// MIDI -> VexFlow key string ("g/4") + accidental ('#','b','n', or null), key-aware.
+// Solfege degree -> VexFlow shape-note notehead code (Aikin 7-shape, matching shapes.js):
+// Do=triangle, Re=moon, Mi=diamond, Fa=right-triangle, Sol=oval, La=square, Ti=cone/round-down.
+const SHAPE_CODE = { Do: 'DO', Re: 'RE', Mi: 'MI', Fa: 'FAUP', Sol: 'SO', La: 'LA', Ti: 'TI' };
+
+// MIDI -> { key: "g/4/DO" (with shape-note notehead), accidental }, key-aware.
 function midiToVexKey(midi, tonicPc, mode) {
-  const spelled = spellMidiInKey(midi, tonicPc, mode) || { letter: 'c', accidental: null };
+  const spelled = spellMidiInKey(midi, tonicPc, mode) || { letter: 'c', accidental: null, solfege: 'Do' };
   const letter = spelled.letter;
   // Octave from MIDI, corrected for the spelled letter at octave boundaries (B#/Cb).
   let octave = Math.floor(midi / 12) - 1;
   const pc = ((midi % 12) + 12) % 12;
   if (letter === 'b' && pc <= 1) octave -= 1;      // Cb spelled as b just below C
   if (letter === 'c' && pc >= 11) octave += 1;     // B# spelled as c just above B
+  const shape = SHAPE_CODE[spelled.solfege] || 'SO';
   const accMap = { sharp: '#', flat: 'b', natural: 'n' };
-  return { key: `${letter}/${octave}`, accidental: accMap[spelled.accidental] || null };
+  return { key: `${letter}/${octave}/${shape}`, accidental: accMap[spelled.accidental] || null };
 }
 
 /**
