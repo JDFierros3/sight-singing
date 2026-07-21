@@ -52,12 +52,14 @@ export function initializeLiveSing() {
   // Highlight the Live Sing part on the shared staff (renderer reads satb.aimPart).
   appState.satb.aimPart = appState.livesing.part;
   syncLiveSingControls();
+  applyHymnTempo(); // start from the auto-selected hymn's own tempo
 
   // When a hymn is picked from the shared browser while on this tab, refresh our
-  // label + re-anchor the Set-Do transpose and redraw the placeholder staff.
+  // label + re-anchor the Set-Do transpose, adopt the hymn's tempo, and redraw.
   window.addEventListener('hymn:selected', () => {
     if (appState.exercise.currentTab === 'livesing') {
       recomputeDoSemis();
+      applyHymnTempo();
       displayLiveSingHymn();
     }
   });
@@ -127,7 +129,16 @@ export function setLiveSingSoftness(percent) {
 
 export function setLiveSingTempo(bpm) {
   appState.livesing.tempo = Number(bpm) || 60;
-  setTextContent(getElementById('liveSingTempoValue'), String(Math.round(appState.livesing.tempo)));
+  const rounded = Math.round(appState.livesing.tempo);
+  setTextContent(getElementById('liveSingTempoValue'), String(rounded));
+  const slider = getElementById('liveSingTempo');
+  if (slider && Number(slider.value) !== rounded) slider.value = String(rounded);
+}
+
+// Default the tempo to the current hymn's own tempo (OpenPsalm tempo_bpm) instead of 60.
+function applyHymnTempo() {
+  const t = appState.satb.currentExercise?.tempoBpm;
+  if (t) setLiveSingTempo(t);
 }
 
 export function setLiveSingLookahead(ms) {

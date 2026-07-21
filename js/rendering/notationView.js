@@ -96,9 +96,8 @@ export function renderHymnNotation(exercise, container, options = {}) {
   // Wide inter-staff gap so the inner-voice stems (alto down, tenor up) leave a clear
   // band in the middle for the lyrics — no overlap.
   const bassY = trebleY + 170;
-  const systemHeight = 290;
-  const trebleBottom = trebleY + 40;    // 5th line of the treble staff
-  const lyricsY = (trebleBottom + bassY) / 2 + 4; // centred between the two staves
+  const systemHeight = 320;
+  let lyricsY = bassY;                   // set precisely from the rendered staves (below)
 
   let maxNotes = 1;
   for (let mi = 0; mi < measureCount; mi++) {
@@ -135,6 +134,8 @@ export function renderHymnNotation(exercise, container, options = {}) {
     if (first) {
       treble.addClef('treble').addKeySignature(keySpec).addTimeSignature(`${num}/${den}`);
       bass.addClef('bass').addKeySignature(keySpec).addTimeSignature(`${num}/${den}`);
+      // Centre the lyric baseline exactly between the treble bottom line and bass top line.
+      lyricsY = (treble.getYForLine(4) + bass.getYForLine(0)) / 2 + 5;
     }
     treble.setContext(ctx).draw();
     bass.setContext(ctx).draw();
