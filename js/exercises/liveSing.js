@@ -91,6 +91,10 @@ function syncLiveSingControls() {
   if (volVal) setTextContent(volVal, String(pct));
   if (tempo) tempo.value = String(appState.livesing.tempo);
   if (tempoVal) setTextContent(tempoVal, String(appState.livesing.tempo));
+  const look = getElementById('liveSingLookahead');
+  const lookVal = getElementById('liveSingLookaheadValue');
+  if (look) look.value = String(appState.livesing.lookaheadMs);
+  if (lookVal) setTextContent(lookVal, String(appState.livesing.lookaheadMs));
   updateEarButtons();
   updateHymnLabel();
 }
@@ -123,6 +127,11 @@ export function setLiveSingSoftness(percent) {
 export function setLiveSingTempo(bpm) {
   appState.livesing.tempo = Number(bpm) || 60;
   setTextContent(getElementById('liveSingTempoValue'), String(Math.round(appState.livesing.tempo)));
+}
+
+export function setLiveSingLookahead(ms) {
+  appState.livesing.lookaheadMs = Math.max(0, Number(ms) || 0);
+  setTextContent(getElementById('liveSingLookaheadValue'), String(Math.round(appState.livesing.lookaheadMs)));
 }
 
 export function browseLiveSingHymns() {
@@ -250,8 +259,15 @@ export async function playLiveSing() {
   const partVolumes = { S: 0, A: 0, T: 0, B: 0 };
   partVolumes[chosen] = appState.livesing.softness;
 
+  // Look-ahead: fire the reference audio this many wall-clock seconds before the
+  // visual playhead reaches the note, so singers hear upcoming pitches early.
+  const lookaheadSec = (appState.livesing.lookaheadMs || 0) / 1000;
+
   const audioSetup = async (scaledStanza, sequenceId) => {
-    scheduleNotes(scaledStanza.notes, sequenceId, async (note, seqId) => {
+    const audioNotes = lookaheadSec > 0
+      ? scaledStanza.notes.map(n => ({ ...n, startTime: Math.max(0, n.startTime - lookaheadSec) }))
+      : scaledStanza.notes;
+    scheduleNotes(audioNotes, sequenceId, async (note, seqId) => {
       if (!isValidSequence(seqId) || !appState.livesing.isPlaying) return;
       const isChosen = note.part === chosen;
       // Pan the chosen voice into the selected ear (read live so an ear change mid-song applies).

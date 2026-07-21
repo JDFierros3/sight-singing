@@ -397,6 +397,12 @@
               <input id="liveSingTempo" type="range" min="40" max="120" value="60" aria-label="Tempo in BPM" />
             </div>
 
+            <!-- Look-ahead: play the reference ahead of the playhead -->
+            <div class="livesing-control">
+              <label for="liveSingLookahead">Hear ahead: <span id="liveSingLookaheadValue">0</span> ms</label>
+              <input id="liveSingLookahead" type="range" min="0" max="1000" step="25" value="0" aria-label="Play reference ahead of the playhead, in milliseconds" />
+            </div>
+
             <!-- Set Do -->
             <div class="livesing-control">
               <label>Pitch anchor</label>

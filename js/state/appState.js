@@ -132,6 +132,7 @@ function initializeLiveSing() {
     ear: 'L',             // 'L' | 'R' — which ear the reference tone plays in
     softness: 0.35,       // Reference-tone volume (0-1)
     tempo: 60,            // Playback tempo (BPM)
+    lookaheadMs: 0,       // Reference plays this many ms AHEAD of the playhead (0 = on the line)
     isPlaying: false,
     doHz: null,           // Captured "Set Do" pitch in Hz (movable-Do anchor); null = not set
     doSemis: 0,           // Semitone shift derived from Set Do (maps hymn tonic onto the hummed pitch)

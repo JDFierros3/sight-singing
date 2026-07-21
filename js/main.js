@@ -75,6 +75,7 @@ const {
   handleLiveSingEarClick = () => {},
   handleLiveSingVolumeChange = () => {},
   handleLiveSingTempoChange = () => {},
+  handleLiveSingLookaheadChange = () => {},
   handleLiveSingSetDoClick = () => {},
   handleLiveSingArmClick = () => {},
   handleLiveSingPlayClick = () => {},
@@ -182,6 +183,9 @@ function setupLiveSingControls() {
 
   const tempo = getElementById('liveSingTempo');
   if (tempo) tempo.addEventListener('input', handleLiveSingTempoChange);
+
+  const lookahead = getElementById('liveSingLookahead');
+  if (lookahead) lookahead.addEventListener('input', handleLiveSingLookaheadChange);
 
   const setDo = getElementById('btnLiveSingSetDo');
   if (setDo) setDo.onclick = handleLiveSingSetDoClick;
