@@ -24,47 +24,51 @@ export async function parseMidiFile(arrayBuffer) {
   let keyMidi = null;
   
   if (keySignature) {
-    // @tonejs/midi keySignature.key is in range -7 to +7 (circle of fifths)
-    // Negative = flats, positive = sharps
-    // Convert to pitch class (0-11): C=0, C#=1, D=2, D#=3, E=4, F=5, F#=6, G=7, G#=8, A=9, A#=10, B=11
-    // Circle of fifths: 0=C(0), 1=G(7), 2=D(2), 3=A(9), 4=E(4), 5=B(11), 6=F#(6), 7=C#(1)
-    //                   -1=F(5), -2=Bb(10), -3=Eb(3), -4=Ab(8), -5=Db(1), -6=Gb(6), -7=Cb(11)
+    // @tonejs/midi keySignature.key can be:
+    //   - A number (-7 to +7, circle of fifths): some MIDI libraries
+    //   - A string ("C", "Bb", "F#", etc.): @tonejs/midi v2
     const keyValue = keySignature.key;
 
-    // Some MIDI files/libraries may provide non-numeric key identifiers.
-    // If we don't get a finite number, ignore and fall back to note-based detection.
-    if (!Number.isFinite(keyValue)) {
-      keyMidi = null;
-    } else {
-    
-    // Map circle of fifths to pitch class
+    // Map key name strings to pitch class
+    const keyNameToPC = {
+      'Cb': 11, 'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3,
+      'Eb': 3, 'E': 4, 'E#': 5, 'Fb': 4, 'F': 5, 'F#': 6,
+      'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9, 'A#': 10,
+      'Bb': 10, 'B': 11, 'B#': 0
+    };
+
+    // Map circle of fifths (-7 to +7) to pitch class
     const circleOfFifthsMap = [
-      0,   // -7: Cb -> B (11) - but we'll handle this separately
-      11,  // -6: Gb -> F# (6) - but Gb is enharmonic to F#, so 6
-      1,   // -5: Db -> C# (1)
+      11,  // -7: Cb (11)
+      6,   // -6: Gb (6)
+      1,   // -5: Db (1)
       8,   // -4: Ab (8)
       3,   // -3: Eb (3)
       10,  // -2: Bb (10)
       5,   // -1: F (5)
-      0,   // 0: C (0)
-      7,   // 1: G (7)
-      2,   // 2: D (2)
-      9,   // 3: A (9)
-      4,   // 4: E (4)
-      11,  // 5: B (11)
-      6,   // 6: F# (6)
-      1    // 7: C# (1)
+      0,   //  0: C (0)
+      7,   //  1: G (7)
+      2,   //  2: D (2)
+      9,   //  3: A (9)
+      4,   //  4: E (4)
+      11,  //  5: B (11)
+      6,   //  6: F# (6)
+      1    //  7: C# (1)
     ];
-    
-    // Convert -7 to +7 range to array index (0-14)
-    const index = keyValue + 7;
+
+    if (typeof keyValue === 'string' && keyValue in keyNameToPC) {
+      // @tonejs/midi v2 returns key as a string like "Bb"
+      keyMidi = keyNameToPC[keyValue];
+    } else if (Number.isFinite(keyValue)) {
+      // Numeric circle of fifths value (-7 to +7)
+      const index = keyValue + 7;
       if (index >= 0 && index < circleOfFifthsMap.length) {
         keyMidi = circleOfFifthsMap[index];
       } else {
-        // Fallback: use modulo
         keyMidi = ((keyValue % 12) + 12) % 12;
       }
     }
+    // If neither, keyMidi stays null and we fall back to note-based detection
   }
   
   return {
@@ -167,32 +171,58 @@ export function separatePartsByRange(notes) {
  * @returns {Object} Mapping of track indices to parts { 0: 'S', 1: 'A', ... }
  */
 export function detectPartsFromTracks(tracks) {
+  // First, try to detect parts from track names (e.g., "Soprano", "Alto", "Tenor", "Bass")
+  const nameMapping = {};
+  const namePatterns = {
+    'S': /soprano/i,
+    'A': /alto/i,
+    'T': /tenor/i,
+    'B': /bass/i
+  };
+
+  tracks.forEach((track, index) => {
+    if (track.notes.length === 0) return;
+    const name = track.name || '';
+    for (const [part, pattern] of Object.entries(namePatterns)) {
+      if (pattern.test(name) && !Object.values(nameMapping).includes(part)) {
+        nameMapping[index] = part;
+        break;
+      }
+    }
+  });
+
+  // If we found all 4 parts by name, use that mapping
+  const foundParts = new Set(Object.values(nameMapping));
+  if (foundParts.size === 4 && foundParts.has('S') && foundParts.has('A') && foundParts.has('T') && foundParts.has('B')) {
+    return nameMapping;
+  }
+
+  // Fallback: sort tracks by average pitch (highest to lowest)
   const trackRanges = tracks.map(track => {
     if (track.notes.length === 0) return null;
-    
+
     const midis = track.notes.map(n => n.midi);
     const minMidi = Math.min(...midis);
     const maxMidi = Math.max(...midis);
     const avgMidi = midis.reduce((a, b) => a + b, 0) / midis.length;
-    
+
     return { minMidi, maxMidi, avgMidi };
   });
-  
-  // Sort tracks by average pitch (highest to lowest)
+
   const sortedTracks = trackRanges
     .map((range, index) => ({ range, index }))
     .filter(item => item.range !== null)
     .sort((a, b) => b.range.avgMidi - a.range.avgMidi);
-  
+
   const partMapping = {};
   const partOrder = ['S', 'A', 'T', 'B'];
-  
+
   sortedTracks.forEach((track, i) => {
     if (i < partOrder.length) {
       partMapping[track.index] = partOrder[i];
     }
   });
-  
+
   return partMapping;
 }
 
@@ -873,7 +903,7 @@ export async function parseMidiToExercise(arrayBuffer, label, options = {}) {
   if (Number.isFinite(midiData.keyMidi)) {
     // Extract mode from key signature if available, default to major
     const keySignature = midiData.keySignature;
-    const mode = (keySignature && keySignature.scale === 1) ? 'minor' : 'major';
+    const mode = (keySignature && (keySignature.scale === 'minor' || keySignature.scale === 1)) ? 'minor' : 'major';
     keyGuess = { tonic: midiData.keyMidi, mode: mode };
   } else {
     // No explicit key signature in MIDI file

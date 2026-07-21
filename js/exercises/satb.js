@@ -345,9 +345,10 @@ export async function initializeSATBControls() {
   
   // Build volume controls
   buildPartVolumeControls();
-  
-  // Pre-load all MIDI files from /midi folder (must complete before displaying)
-  await preloadAllMidiFiles();
+
+  // Hymn library: OpenPsalm only (CC-BY, accurate SATB parsed from source).
+  // The legacy MIDI library (heuristic voice-splitting, undocumented licensing) is retired.
+  await loadOpenPsalmLibrary();
   
   // Initialize hymn browser UI
   const { initializeHymnBrowser, updateCurrentHymnDisplay } = await import('../ui/components/hymnBrowser.js');
@@ -501,6 +502,28 @@ export async function preloadAllMidiFiles() {
   } catch (error) {
     console.warn('Error preloading MIDI files:', error);
     // Don't throw - this is optional, app can work without MIDI files
+  }
+}
+
+/**
+ * Load the OpenPsalm hymn library (openpsalm/songs.json), built from the CC-BY
+ * OP-songs repo. These exercises are already in the app's format (parts + key),
+ * so they slot straight into the shared hymn library alongside the MIDI hymns.
+ */
+export async function loadOpenPsalmLibrary() {
+  try {
+    const response = await fetch('./openpsalm/songs.json');
+    if (!response.ok) {
+      console.warn('OpenPsalm library not found (openpsalm/songs.json)');
+      return;
+    }
+    const songs = await response.json();
+    for (const song of songs) {
+      appState.satb.midiExercises.push(song);
+    }
+    console.log(`Loaded ${songs.length} OpenPsalm exercises`);
+  } catch (error) {
+    console.warn('Error loading OpenPsalm library:', error);
   }
 }
 

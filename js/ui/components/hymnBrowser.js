@@ -431,7 +431,10 @@ function selectExercise(exercise, index) {
   
   // Update current hymn display
   updateCurrentHymnDisplay();
-  
+
+  // Notify other tabs (e.g. Live Sing) so they can refresh their own label/anchor.
+  window.dispatchEvent(new CustomEvent('hymn:selected', { detail: { exercise } }));
+
   // Close browser
   closeHymnBrowser();
 }

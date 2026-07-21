@@ -10,7 +10,7 @@ import { stopAllPlayback } from '../components/transport.js';
 import { renderStaff } from '../../rendering/staff.js';
 import { renderTheoryContent, saveExpandedLessons } from './theoryContent.js';
 
-const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'satb', 'theory'];
+const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'satb', 'livesing', 'theory'];
 
 export function initializeTabSystem() {
   // Only attach tab switching to buttons that have data-tab attribute
@@ -215,7 +215,7 @@ export function switchToTab(tabName) {
   
   // Only stop playback and clear staff when actually switching tabs (not just toggling sidebar)
   stopAllPlayback();
-  
+
   // Normal tab switching - update current tab
   if (tabName !== 'theory' || !isLargeScreen) {
     // Store previous tab before switching (only if sidebar is not open)
@@ -242,15 +242,14 @@ export function switchToTab(tabName) {
   appState.exercise.showAnswers.intervals = false;
   appState.exercise.showAnswers.cluster = false;
   
-  // Clear SATB-specific notes when switching away from SATB
+  // Clear SATB-specific notes when switching away from SATB / Live Sing (both display a hymn on the staff)
   // Note: We keep keyTonic/keyMode since rendering logic checks currentTab before using them
-  // When switching back to SATB, they'll be restored from the exercise
-  if (tabName !== 'satb') {
+  // When switching back, they'll be restored from the exercise
+  if (tabName !== 'satb' && tabName !== 'livesing') {
     appState.staff.notes = [];
     appState.staff.satbPreviewMode = false;
-    // Only clear key info if we're not on SATB (rendering logic will use movable Do for other tabs)
-    // This allows rendering logic to determine the key based on currentTab
-    if (appState.exercise.currentTab !== 'satb') {
+    // Only clear key info if we're not on a hymn tab (rendering logic will use movable Do for other tabs)
+    if (appState.exercise.currentTab !== 'satb' && appState.exercise.currentTab !== 'livesing') {
       appState.staff.keyTonic = undefined;
       appState.staff.keyMode = undefined;
     }
@@ -266,8 +265,8 @@ export function switchToTab(tabName) {
   // Update "Show Accidentals & Key" setting based on tab
   const showAccidentalsCheckbox = getElementById('showAccidentalsAndKey');
   if (showAccidentalsCheckbox) {
-    if (appState.exercise.currentTab === 'satb' || appState.exercise.currentTab === 'chord-quality') {
-      // Enable by default for SATB and Chord Quality tabs
+    if (appState.exercise.currentTab === 'satb' || appState.exercise.currentTab === 'chord-quality' || appState.exercise.currentTab === 'livesing') {
+      // Enable by default for SATB, Chord Quality, and Live Sing tabs (real notation)
       updateDisplaySetting('showAccidentalsAndKey', true);
       showAccidentalsCheckbox.checked = true;
     } else {
@@ -292,6 +291,21 @@ export function switchToTab(tabName) {
         displaySATBExerciseOnStaff(currentExercise);
       } else if (exercises.length > 0) {
         // Fallback to first exercise if no selection
+        appState.satb.currentExercise = exercises[0];
+        displaySATBExerciseOnStaff(exercises[0]);
+      }
+    }, 10);
+  }
+
+  // Live Sing displays the selected hymn on the shared staff (placeholder visual for v1),
+  // reusing the SATB renderer. Real engraved notation arrives in Phase 2.
+  if (appState.exercise.currentTab === 'livesing') {
+    setTimeout(() => {
+      const exercises = getAllSATBExercises();
+      const currentExercise = appState.satb.currentExercise;
+      if (currentExercise) {
+        displaySATBExerciseOnStaff(currentExercise);
+      } else if (exercises.length > 0) {
         appState.satb.currentExercise = exercises[0];
         displaySATBExerciseOnStaff(exercises[0]);
       }

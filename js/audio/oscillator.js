@@ -86,6 +86,9 @@ export function stopOscillator(oscillator) {
           if (oscillator.g) {
             oscillator.g.disconnect();
           }
+          if (oscillator.p) {
+            oscillator.p.disconnect();
+          }
         } catch (error) {
           // May already be stopped/disconnected
         }
@@ -101,16 +104,29 @@ export function stopOscillator(oscillator) {
       if (oscillator.g) {
         oscillator.g.disconnect();
       }
+      if (oscillator.p) {
+        oscillator.p.disconnect();
+      }
     } catch (e) {
       // Ignore
     }
   }
 }
 
-export function connectOscillatorToDestination(oscillator, destination) {
+export function connectOscillatorToDestination(oscillator, destination, pan = 0) {
   if (oscillator && oscillator.osc && oscillator.g) {
     oscillator.osc.connect(oscillator.g);
-    oscillator.g.connect(destination);
+    // pan === 0 (every existing caller) keeps the original osc -> gain -> destination graph.
+    // A non-zero pan (Live Sing) inserts a StereoPanner to place the tone in one ear.
+    if (pan !== 0) {
+      const panner = oscillator.osc.context.createStereoPanner();
+      panner.pan.value = pan;
+      oscillator.g.connect(panner);
+      panner.connect(destination);
+      oscillator.p = panner; // stash for cleanup in stopOscillator
+    } else {
+      oscillator.g.connect(destination);
+    }
   }
 }
 
