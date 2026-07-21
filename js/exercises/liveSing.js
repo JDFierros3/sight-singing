@@ -390,14 +390,18 @@ function ensurePlayhead(visual) {
 
 // The singer's detected pitch as a horizontal line on the staff, coloured by how close
 // it is to the chosen part's current note (green/yellow/red) — the "crosshair" feedback.
-let micYEma = null;
+// The line is denoised HERE (median-of-3 + a fast EMA) rather than relying on the global
+// hold-gated `stableHz`, whose Tolerance-driven hold time (~240ms) made it lag onto only
+// long notes. This keeps the line responsive and independent of the Tolerance slider.
+const MIC_EMA_ALPHA = 0.4;   // ~3–4 frames to settle: responsive but not twitchy
+let micMidiEma = null;
+let micMidiHistory = [];
 let partFitCache = { key: null, fit: null };
 
 function updateMicLine() {
   if (!micLineEl || !notationLayout) return;
-  // Use the de-jittered pitch (hold-gated) so the line doesn't flicker on every frame.
-  const hz = pitchState.stableHz || 0;
-  if (hz <= 0) { micLineEl.style.display = 'none'; micYEma = null; return; }
+  const hz = pitchState.hz || 0; // per-frame detection (RMS-gated) — no hold delay
+  if (hz <= 0) { micLineEl.style.display = 'none'; resetMicLine(); return; }
 
   let sungMidi = frequencyToMidi(hz, appState.tuning.a4);
   if (!Number.isFinite(sungMidi)) { micLineEl.style.display = 'none'; return; }
@@ -407,20 +411,35 @@ function updateMicLine() {
   const target = appState.livesing.currentTargetMidi;
   if (Number.isFinite(target)) sungMidi = foldToOctave(sungMidi, target);
 
-  // Map the pitch to a staff-y using the CHOSEN part's own notes, so a bass singer's line
-  // sits on the bass staff (a single global fit is thrown off by the lyric gap between staves).
-  const y = pitchToYForPart(appState.livesing.part, sungMidi);
+  // Median of the last 3 frames rejects lone spikes; the EMA then smooths what's left.
+  const denoised = pushMedian(sungMidi);
+  micMidiEma = micMidiEma == null ? denoised : micMidiEma * (1 - MIC_EMA_ALPHA) + denoised * MIC_EMA_ALPHA;
+
+  // Map to a staff-y using the CHOSEN part's own notes, so a bass singer's line sits on
+  // the bass staff (a single global fit is thrown off by the lyric gap between staves).
+  const y = pitchToYForPart(appState.livesing.part, micMidiEma);
   if (y == null) { micLineEl.style.display = 'none'; return; }
-  micYEma = micYEma == null ? y : micYEma * 0.6 + y * 0.4; // smooth the on-screen line
-  micLineEl.style.top = `${micYEma}px`;
+  micLineEl.style.top = `${y}px`;
   micLineEl.style.display = 'block';
 
   if (Number.isFinite(target)) {
-    const cents = Math.abs(sungMidi - target) * 100; // folded, so octave glitches don't read red
+    const cents = Math.abs(micMidiEma - target) * 100; // folded, so octave glitches don't read red
     micLineEl.style.background = cents <= 20 ? '#22c55e' : (cents <= 50 ? '#eab308' : '#ef4444');
   } else {
     micLineEl.style.background = '#60a5fa';
   }
+}
+
+function resetMicLine() {
+  micMidiEma = null;
+  micMidiHistory = [];
+}
+
+// Rolling median of the last 3 pitch samples — kills single-frame detection spikes.
+function pushMedian(midi) {
+  micMidiHistory.push(midi);
+  if (micMidiHistory.length > 3) micMidiHistory.shift();
+  return [...micMidiHistory].sort((a, b) => a - b)[Math.floor(micMidiHistory.length / 2)];
 }
 
 // Shift `midi` by whole octaves until it's within a tritone of `ref` (pitch-class match).
