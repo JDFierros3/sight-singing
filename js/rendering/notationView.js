@@ -197,17 +197,18 @@ export function renderHymnNotation(exercise, container, options = {}) {
     x += w;
   }
 
-  // Verse-1 lyrics under the melody: one syllable per soprano note (OpenPsalm guarantees
-  // syllable count == soprano note count).
-  const syllables = verse1Syllables(exercise.lyrics);
+  // Verse-1 lyrics under the melody: the library aligns one syllable to each soprano
+  // note (built from slur/beam melismas + chorus/stanza markers), with '' where a note
+  // is held under the previous syllable — so syllables sit under the notes they're sung on.
+  const syllables = lyricsForNotes(exercise);
   if (syllables.length) {
     ctx.save();
     ctx.setFont('Georgia, serif', 11, '');
     ctx.setFillStyle('#dbe4ff');
     ctx.setStrokeStyle('#dbe4ff');
     partPositions.S.forEach((p, i) => {
-      if (i >= syllables.length) return;
-      const syl = syllables[i].replace(/--/g, '');
+      const syl = (syllables[i] || '').replace(/--/g, '');
+      if (!syl) return;
       try { ctx.fillText(syl, p.x - 3, lyricsY); } catch (e) {}
     });
     ctx.restore();
@@ -244,9 +245,12 @@ export function renderHymnNotation(exercise, container, options = {}) {
   };
 }
 
-// Split an OpenPsalm verse into syllables (one per melody note); drops "--" joiners
-// and any @shared-section markers.
-function verse1Syllables(lyrics) {
+// Verse-1 syllables aligned to soprano notes. Prefer the library's per-note alignment
+// (handles melismas + chorus/stanza sections); fall back to a naive whitespace split of
+// the raw verse text for any older data lacking `lyricsByNote`.
+function lyricsForNotes(exercise) {
+  if (Array.isArray(exercise.lyricsByNote)) return exercise.lyricsByNote;
+  const lyrics = exercise.lyrics;
   if (!lyrics) return [];
   const v = lyrics['1'] || lyrics[1] || Object.values(lyrics)[0];
   const text = v && typeof v === 'object' ? (v.text || '') : (typeof v === 'string' ? v : '');

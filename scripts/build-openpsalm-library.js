@@ -86,9 +86,24 @@ function stripFlags(token) {
     .replace(/[()~![\]]/g, '');      // slur, tie, fermata, beam
 }
 
+// Detect the melisma/section flags on a RAW token (before stripFlags removes them):
+//   ( ) slurs and [ ] manual beams both group notes under one syllable (LilyPond
+//   treats them as melismata); @xxx marks the start of a lyric section (chorus/stanza).
+function tokenFlags(tok) {
+  const marker = (tok.match(/@([a-z0-9]+)/i) || [])[1] || null;
+  return {
+    marker,
+    slurOpen: tok.includes('('), slurClose: tok.includes(')'),
+    beamOpen: tok.includes('['), beamClose: tok.includes(']')
+  };
+}
+
 /**
  * Parse one part's note stream into [{ midi, startTime, duration }].
  * Monophonic per voice: for a chord/divisi <..> we take the first (primary) pitch.
+ * Each note also carries transient `_marker` (lyric-section start) and `_melisma`
+ * (this note is sung under the previous syllable) used only to align lyrics; both
+ * are stripped before the note is written to the library.
  */
 function parseNotes(noteStream, partName) {
   // Flatten measures; join chord fragments that got split on the space inside <..>.
@@ -109,6 +124,9 @@ function parseNotes(noteStream, partName) {
   let tuplet = null;      // { ratio } while inside { N ... }
   let pendingTie = false;
   let lastNote = null;
+  let inSlur = false;     // inside a ( ... ) slur => melisma
+  let inBeam = false;     // inside a [ ... ] manual beam => melisma
+  let pendingMarker = null; // a standalone @section marker attaches to the next note
 
   const noteRe = /^([a-g])(is|es)?('*|,*)(\d+)?(\.*)$/;
 
@@ -121,12 +139,23 @@ function parseNotes(noteStream, partName) {
       tuplet = { ratio: m / n };
       continue;
     }
-    if (tok.startsWith('@')) continue; // standalone marker (e.g. @s1)
+    if (/^@[a-z0-9]+$/i.test(tok)) { pendingMarker = tok.slice(1); continue; } // standalone marker (e.g. @s1)
+
+    // Slur/beam state governs whether THIS note is a melisma continuation (sung under
+    // the previous syllable). The opening note of a group is a syllable onset; the rest
+    // are continuations. Read the flags from the raw token before stripFlags clears them.
+    const flags = tokenFlags(tok);
+    const wasSlur = inSlur, wasBeam = inBeam;
+    if (flags.slurOpen) inSlur = true;
+    if (flags.beamOpen) inBeam = true;
+    const melisma = (wasSlur && !flags.slurOpen) || (wasBeam && !flags.beamOpen);
+    const marker = flags.marker || pendingMarker;
+    const closeGroups = () => { if (flags.slurClose) inSlur = false; if (flags.beamClose) inBeam = false; };
 
     // Chord / divisi: take the first pitch, duration after '>'
     if (tok.startsWith('<')) {
       const m = tok.match(/^<\s*([^>]*)>(\d+)?(\.*)/);
-      if (!m) continue;
+      if (!m) { closeGroups(); continue; }
       const firstPitch = stripFlags(m[1].trim().split(/\s+/)[0]);
       const pm = firstPitch.match(noteRe);
       const durNum = m[2] ? parseInt(m[2], 10) : lastDur;
@@ -136,12 +165,14 @@ function parseNotes(noteStream, partName) {
       if (tuplet) dur *= tuplet.ratio;
       if (pm) {
         const midi = pitchToMidi(pm[1], pm[2], pm[3]);
-        const note = { midi, startTime: round(time), duration: round(dur), part: partName };
+        const note = { midi, startTime: round(time), duration: round(dur), part: partName, _melisma: melisma, _marker: marker };
         notes.push(note);
         lastNote = note;
+        pendingMarker = null;
         pendingTie = /~/.test(tok);
       }
       time += dur;
+      closeGroups();
       continue;
     }
 
@@ -156,11 +187,12 @@ function parseNotes(noteStream, partName) {
       if (tuplet) dur *= tuplet.ratio;
       time += dur;
       pendingTie = false;
+      closeGroups();
       continue;
     }
 
     const pm = clean.match(noteRe);
-    if (!pm) continue; // unknown token — skip defensively
+    if (!pm) { closeGroups(); continue; } // unknown token — skip defensively
     const durNum = pm[4] ? parseInt(pm[4], 10) : lastDur;
     if (pm[4]) lastDur = durNum;
     let dur = durationToSeconds(durNum, (pm[5] || '').length);
@@ -168,24 +200,83 @@ function parseNotes(noteStream, partName) {
     const midi = pitchToMidi(pm[1], pm[2], pm[3]);
 
     if (pendingTie && lastNote && lastNote.midi === midi) {
-      // Tie: extend the previous note instead of re-attacking.
+      // Tie: extend the previous note instead of re-attacking (a tie is one syllable).
       lastNote.duration = round(lastNote.duration + dur);
       time += dur;
       pendingTie = /~/.test(tok);
+      closeGroups();
       continue;
     }
 
-    const note = { midi, startTime: round(time), duration: round(dur), part: partName };
+    const note = { midi, startTime: round(time), duration: round(dur), part: partName, _melisma: melisma, _marker: marker };
     notes.push(note);
     lastNote = note;
+    pendingMarker = null;
     time += dur;
     pendingTie = /~/.test(tok);
+    closeGroups();
   }
 
   return notes;
 }
 
 function round(x) { return Math.round(x * 1000) / 1000; }
+
+// Split a verse's text into singable syllables (drop "--" hyphen-joiners + @markers).
+function splitSyllables(text) {
+  if (!text) return [];
+  return text.split(/\s+/).filter(t => t && t !== '--' && !t.startsWith('@'));
+}
+
+// Find a verse's text by lyric key, tolerating case + chorus aliases (c / ch / chorus).
+function lyricTextFor(lyrics, key) {
+  if (!lyrics) return null;
+  const k = String(key || '1');
+  if (lyrics[k]) return lyrics[k].text;
+  const ci = Object.keys(lyrics).find(x => x.toLowerCase() === k.toLowerCase());
+  if (ci) return lyrics[ci].text;
+  if (/^c/i.test(k)) {
+    const ck = Object.keys(lyrics).find(x => /^(chorus|c|ch)$/i.test(x));
+    if (ck) return lyrics[ck].text;
+  }
+  return null;
+}
+
+/**
+ * Align verse-1 lyrics to the soprano notes, returning one string per soprano note
+ * ('' where a note is a melisma continuation or a syllable is unavailable). The `@`
+ * section markers partition the notes into verse/chorus/stanza runs, each drawing from
+ * its matching lyric section; assignment is re-anchored per section so a count mismatch
+ * in one section can't drift the rest of the song.
+ */
+function alignVerse1(sopNotes, lyrics) {
+  // Partition notes into sections; a note carrying a marker begins a new section.
+  const sections = [];
+  let cur = { key: '1', notes: [] };
+  for (const n of sopNotes) {
+    if (n._marker && cur.notes.length) { sections.push(cur); cur = { key: n._marker, notes: [] }; }
+    else if (n._marker) cur.key = n._marker; // marker on the very first note
+    cur.notes.push(n);
+  }
+  sections.push(cur);
+
+  const out = [];
+  for (const sec of sections) {
+    const syl = splitSyllables(lyricTextFor(lyrics, sec.key));
+    let s = 0;
+    for (const n of sec.notes) {
+      if (n._melisma) out.push('');                 // sung under the previous syllable
+      else out.push(s < syl.length ? syl[s++] : ''); // next syllable, or blank if exhausted
+    }
+  }
+  return out;
+}
+
+// Remove the transient lyric-alignment flags before a note is written to the library.
+function stripNoteFlags(notes) {
+  for (const n of notes) { delete n._melisma; delete n._marker; }
+  return notes;
+}
 
 // Map an OpenPsalm choral_type / part name to S/A/T/B.
 function partLetter(name, choralType) {
@@ -266,9 +357,13 @@ async function main() {
       }
       if (matchedParts === 0) { skipped.push({ id, title: song.title, reason: 'no SATB parts parsed' }); continue; }
 
+      const lyricsObj = song.lyrics || {};
+      // Align verse-1 lyrics to the soprano notes BEFORE stripping the alignment flags.
+      const lyricsByNote = alignVerse1(parts.S, lyricsObj);
+      for (const letter of ['S', 'A', 'T', 'B']) stripNoteFlags(parts[letter]);
+
       const duration = Math.max(0, ...Object.values(parts).flat().map(n => n.startTime + n.duration));
       const key = parseKey(song.key_signature);
-      const lyricsObj = song.lyrics || {};
 
       included.push({
         id: `op-${id}`,
@@ -288,6 +383,7 @@ async function main() {
         timeSigDen: song.time_sig_denominator || 4,
         phraseBreaks: song.phrase_breaks || [],
         lyrics: lyricsObj,
+        lyricsByNote, // verse-1 syllable aligned to each soprano note ('' = melisma/none)
         copyrights: song.copyrights
       });
       process.stdout.write(`  ✓ ${id} ${song.title}\n`);
