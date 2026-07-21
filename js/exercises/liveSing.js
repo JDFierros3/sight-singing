@@ -12,8 +12,7 @@ import { appState } from '../state/appState.js';
 import { ensureAudioContext } from '../audio/context.js';
 import { startMicrophone } from '../audio/microphone.js';
 import { pitchState } from '../pitch/detection.js';
-import { frequencyToMidi, midiToFrequency, centsBetween } from '../utils/audioMath.js';
-import { NOTE_NAMES } from '../config/constants.js';
+import { frequencyToMidi } from '../utils/audioMath.js';
 import { getAccidentalForNote } from '../utils/keySignature.js';
 import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
@@ -391,20 +390,70 @@ function ensurePlayhead(visual) {
 
 // The singer's detected pitch as a horizontal line on the staff, coloured by how close
 // it is to the chosen part's current note (green/yellow/red) — the "crosshair" feedback.
+let micYEma = null;
+let partFitCache = { key: null, fit: null };
+
 function updateMicLine() {
-  if (!micLineEl || !notationLayout || !notationLayout.pitchToY) return;
-  const hz = pitchState.smoothedHz || pitchState.hz || 0;
-  if (hz <= 0) { micLineEl.style.display = 'none'; return; }
-  const sungMidi = frequencyToMidi(hz, appState.tuning.a4);
-  micLineEl.style.top = `${notationLayout.pitchToY(sungMidi)}px`;
-  micLineEl.style.display = 'block';
+  if (!micLineEl || !notationLayout) return;
+  // Use the de-jittered pitch (hold-gated) so the line doesn't flicker on every frame.
+  const hz = pitchState.stableHz || 0;
+  if (hz <= 0) { micLineEl.style.display = 'none'; micYEma = null; return; }
+
+  let sungMidi = frequencyToMidi(hz, appState.tuning.a4);
+  if (!Number.isFinite(sungMidi)) { micLineEl.style.display = 'none'; return; }
+
+  // Fold octave detection glitches (autocorrelation half/double frequency) toward the
+  // note being sung, so the line tracks pitch-class instead of leaping a full octave.
   const target = appState.livesing.currentTargetMidi;
+  if (Number.isFinite(target)) sungMidi = foldToOctave(sungMidi, target);
+
+  // Map the pitch to a staff-y using the CHOSEN part's own notes, so a bass singer's line
+  // sits on the bass staff (a single global fit is thrown off by the lyric gap between staves).
+  const y = pitchToYForPart(appState.livesing.part, sungMidi);
+  if (y == null) { micLineEl.style.display = 'none'; return; }
+  micYEma = micYEma == null ? y : micYEma * 0.6 + y * 0.4; // smooth the on-screen line
+  micLineEl.style.top = `${micYEma}px`;
+  micLineEl.style.display = 'block';
+
   if (Number.isFinite(target)) {
-    const cents = Math.abs(centsBetween(hz, midiToFrequency(target, appState.tuning.a4)));
+    const cents = Math.abs(sungMidi - target) * 100; // folded, so octave glitches don't read red
     micLineEl.style.background = cents <= 20 ? '#22c55e' : (cents <= 50 ? '#eab308' : '#ef4444');
   } else {
     micLineEl.style.background = '#60a5fa';
   }
+}
+
+// Shift `midi` by whole octaves until it's within a tritone of `ref` (pitch-class match).
+function foldToOctave(midi, ref) {
+  while (midi - ref > 6) midi -= 12;
+  while (ref - midi > 6) midi += 12;
+  return midi;
+}
+
+// Linear midi->y fit built from just the chosen part's noteheads (one staff, no lyric-gap
+// discontinuity). Falls back to the layout's global fit if the part has too few notes.
+function pitchToYForPart(part, midi) {
+  const pts = notationLayout?.partPositions?.[part] || [];
+  const cacheKey = `${part}|${pts.length}|${lastNotatedKey}`;
+  if (partFitCache.key !== cacheKey) {
+    partFitCache = { key: cacheKey, fit: linearFitMidiToY(pts) };
+  }
+  const fit = partFitCache.fit;
+  if (fit) return fit.a * midi + fit.b;
+  return notationLayout?.pitchToY ? notationLayout.pitchToY(midi) : null;
+}
+
+function linearFitMidiToY(points) {
+  const distinct = new Set(points.map(p => p.midi));
+  if (points.length < 2 || distinct.size < 2) return null;
+  const n = points.length;
+  let sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const p of points) { sx += p.midi; sy += p.y; sxx += p.midi * p.midi; sxy += p.midi * p.y; }
+  const denom = n * sxx - sx * sx;
+  if (denom === 0) return null;
+  const a = (n * sxy - sx * sy) / denom;
+  const b = (sy - a * sx) / n;
+  return { a, b };
 }
 
 function ensureExitButton(show) {
@@ -492,12 +541,6 @@ function transposeExercise(exercise, semis) {
 
 function pitchClass(midi) {
   return ((midi % 12) + 12) % 12;
-}
-
-function noteName(midi) {
-  const pc = pitchClass(midi);
-  const octave = Math.floor(midi / 12) - 1;
-  return `${NOTE_NAMES[pc]}${octave}`;
 }
 
 /* --------------------------------------------------------------- ui state - */
