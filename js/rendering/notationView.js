@@ -141,7 +141,10 @@ export function renderHymnNotation(exercise, container, options = {}) {
     bass.setContext(ctx).draw();
     if (first) new VF.StaveConnector(treble, bass).setType('brace').setContext(ctx).draw();
     new VF.StaveConnector(treble, bass).setType('singleLeft').setContext(ctx).draw();
-    measurePositions.push({ x, width: w, startTime: mi * measureLenSec });
+    // Map playhead time across the NOTE area (after the clef/key/time on measure 1),
+    // not the full measure, so the playhead tracks the notes from the very first beat.
+    const noteStartX = treble.getNoteStartX();
+    measurePositions.push({ x: noteStartX, width: Math.max(20, (x + w) - noteStartX), startTime: mi * measureLenSec });
 
     // One voice per part for THIS measure only (proper per-measure formatting).
     const built = {};

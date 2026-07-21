@@ -397,17 +397,23 @@
               <input id="liveSingTempo" type="range" min="40" max="200" value="90" aria-label="Tempo in BPM" />
             </div>
 
-            <!-- Look-ahead: play the reference ahead of the playhead -->
+            <!-- Key: transpose the hymn -->
             <div class="livesing-control">
-              <label for="liveSingLookahead">Hear ahead: <span id="liveSingLookaheadValue">0</span> ms</label>
-              <input id="liveSingLookahead" type="range" min="0" max="1000" step="25" value="0" aria-label="Play reference ahead of the playhead, in milliseconds" />
-            </div>
-
-            <!-- Set Do -->
-            <div class="livesing-control">
-              <label>Pitch anchor</label>
-              <button id="btnLiveSingSetDo" aria-label="Set Do by humming the leader's pitch">Set Do (hum)</button>
-              <span id="liveSingDoReadout" class="chip" aria-live="polite">Do: —</span>
+              <label for="liveSingKey">Key</label>
+              <select id="liveSingKey" aria-label="Transpose the hymn to a key">
+                <option value="0">C</option>
+                <option value="1">Db</option>
+                <option value="2">D</option>
+                <option value="3">Eb</option>
+                <option value="4">E</option>
+                <option value="5">F</option>
+                <option value="6">Gb</option>
+                <option value="7">G</option>
+                <option value="8">Ab</option>
+                <option value="9">A</option>
+                <option value="10">Bb</option>
+                <option value="11">B</option>
+              </select>
             </div>
 
             <!-- Transport / auto-start -->
@@ -425,7 +431,7 @@
           <!-- Placeholder for Phase-2 engraved notation (v1 uses the shared #staff above) -->
           <div id="liveSingVisual" class="livesing-visual" hidden></div>
 
-          <div class="help">Everyone: pick your part, hum the leader's starting pitch and tap <b>Set Do</b>, then tap <b>Arm &amp; Listen</b>. Start singing — your phone follows along and plays your part softly in one ear. Put one earbud in.</div>
+          <div class="help">Everyone: pick your part and the song's key, then tap <b>Arm &amp; Listen</b>. Start singing — your phone follows along and plays your part softly in one ear. Put one earbud in.</div>
         </fieldset>
       </section>
 

@@ -24,7 +24,7 @@ import { openHymnBrowser } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
 import {
   browseLiveSingHymns, setLiveSingPart, setLiveSingEar, setLiveSingSoftness,
-  setLiveSingTempo, setLiveSingLookahead, setLiveSingDo, armLiveSing, playLiveSing, stopLiveSing
+  setLiveSingTempo, setLiveSingKey, armLiveSing, playLiveSing, stopLiveSing
 } from '../../exercises/liveSing.js';
 
 export function handleA4TuningChange(event) {
@@ -470,12 +470,8 @@ export function handleLiveSingTempoChange(event) {
   setLiveSingTempo(event.target.value);
 }
 
-export function handleLiveSingLookaheadChange(event) {
-  setLiveSingLookahead(event.target.value);
-}
-
-export function handleLiveSingSetDoClick() {
-  setLiveSingDo();
+export function handleLiveSingKeyChange(event) {
+  setLiveSingKey(event.target.value);
 }
 
 export function handleLiveSingArmClick() {

@@ -19,7 +19,7 @@ import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence } from '../player/sequenceManager.js';
 import { playNote } from '../player/audioPlayer.js';
-import { setPartPan, setPlaybackDetune } from '../audio/instruments.js';
+import { setPartPan } from '../audio/instruments.js';
 import { renderStaff } from '../rendering/staff.js';
 import { renderHymnNotation } from '../rendering/notationView.js';
 import { openHymnBrowser } from '../ui/components/hymnBrowser.js';
@@ -41,7 +41,6 @@ let progressRafId = null;
 let progressStartMs = 0;
 let progressDurationMs = 0;
 let onsetHoldStart = 0;
-let livesingOrigA4 = null; // restore tuning after exact-Do detune
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
@@ -52,14 +51,15 @@ export function initializeLiveSing() {
   // Highlight the Live Sing part on the shared staff (renderer reads satb.aimPart).
   appState.satb.aimPart = appState.livesing.part;
   syncLiveSingControls();
-  applyHymnTempo(); // start from the auto-selected hymn's own tempo
+  applyHymnTempo();   // start from the auto-selected hymn's own tempo
+  syncKeyDropdown();  // and its own key
 
-  // When a hymn is picked from the shared browser while on this tab, refresh our
-  // label + re-anchor the Set-Do transpose, adopt the hymn's tempo, and redraw.
+  // When a hymn is picked from the shared browser while on this tab, adopt its
+  // key + tempo and redraw.
   window.addEventListener('hymn:selected', () => {
     if (appState.exercise.currentTab === 'livesing') {
-      recomputeDoSemis();
       applyHymnTempo();
+      syncKeyDropdown();
       displayLiveSingHymn();
     }
   });
@@ -94,10 +94,6 @@ function syncLiveSingControls() {
   if (volVal) setTextContent(volVal, String(pct));
   if (tempo) tempo.value = String(appState.livesing.tempo);
   if (tempoVal) setTextContent(tempoVal, String(appState.livesing.tempo));
-  const look = getElementById('liveSingLookahead');
-  const lookVal = getElementById('liveSingLookaheadValue');
-  if (look) look.value = String(appState.livesing.lookaheadMs);
-  if (lookVal) setTextContent(lookVal, String(appState.livesing.lookaheadMs));
   updateEarButtons();
   updateHymnLabel();
 }
@@ -141,76 +137,36 @@ function applyHymnTempo() {
   if (t) setLiveSingTempo(t);
 }
 
-export function setLiveSingLookahead(ms) {
-  appState.livesing.lookaheadMs = Math.max(0, Number(ms) || 0);
-  setTextContent(getElementById('liveSingLookaheadValue'), String(Math.round(appState.livesing.lookaheadMs)));
-}
-
 export function browseLiveSingHymns() {
   openHymnBrowser();
 }
 
-/* ------------------------------------------------------------ "Set Do" ---- */
+/* --------------------------------------------------------------- key ------ */
 
-export async function setLiveSingDo() {
-  await ensureAudioContext();
-  await startMicrophone();
-  updateStatus('Listening… hum the pitch');
-  const hz = await captureStablePitch(2600);
-  if (!hz) {
-    updateStatus('Didn’t catch it — try Set Do again');
-    return;
-  }
-  appState.livesing.doHz = hz;
-  const midi = Math.round(frequencyToMidi(hz, appState.tuning.a4));
-  setTextContent(getElementById('liveSingDoReadout'), `Do: ${noteName(midi)}`);
-  recomputeDoSemis();
-  displayLiveSingHymn();
-  updateStatus('Do set — Arm & Listen when ready');
-}
-
-// Resolve once the mic has held a steady pitch, or on timeout (returns 0 if none).
-function captureStablePitch(timeoutMs) {
-  return new Promise(resolve => {
-    const start = performance.now();
-    let steadyHz = 0;
-    let steadySince = 0;
-    const tick = () => {
-      const hz = pitchState.stableHz;
-      const now = performance.now();
-      if (hz > 0) {
-        if (steadyHz && Math.abs(1200 * Math.log2(hz / steadyHz)) < 45) {
-          if (now - steadySince >= 450) { resolve(hz); return; }
-        } else {
-          steadyHz = hz;
-          steadySince = now;
-        }
-      }
-      if (now - start >= timeoutMs) { resolve(steadyHz || 0); return; }
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  });
-}
-
-// Semitone shift mapping the hymn tonic onto the hummed Do (nearest octave: -5..+6).
-function recomputeDoSemis() {
+// Transpose the hymn to the chosen key (pitch class 0-11). doSemis is the nearest
+// shift from the hymn's tonic to that key (-5..+6).
+export function setLiveSingKey(pc) {
   const ex = appState.satb.currentExercise;
-  if (!ex || !Number.isFinite(ex.midiKeyMidi) || appState.livesing.doHz == null) {
+  const target = Number(pc);
+  if (!ex || !Number.isFinite(ex.midiKeyMidi) || !Number.isFinite(target)) {
     appState.livesing.doSemis = 0;
-    appState.livesing.doCents = 0;
-    return;
+  } else {
+    const tonicPc = pitchClass(ex.midiKeyMidi);
+    let shift = ((target - tonicPc) % 12 + 12) % 12;
+    if (shift > 6) shift -= 12;
+    appState.livesing.doSemis = shift;
   }
-  // Compare the hummed pitch to STANDARD tuning (A440): integer semitones set the key,
-  // the leftover cents fine-tune playback to the exact pitch the leader gave.
-  const midiFloat = frequencyToMidi(appState.livesing.doHz, 440);
-  const nearest = Math.round(midiFloat);
-  appState.livesing.doCents = (midiFloat - nearest) * 100;
-  const capturedPc = pitchClass(nearest);
-  const tonicPc = pitchClass(ex.midiKeyMidi);
-  let shift = ((capturedPc - tonicPc) % 12 + 12) % 12;
-  if (shift > 6) shift -= 12;
-  appState.livesing.doSemis = shift;
+  displayLiveSingHymn();
+}
+
+// Point the Key dropdown at the current hymn's own key and reset the transpose.
+function syncKeyDropdown() {
+  appState.livesing.doSemis = 0;
+  const sel = getElementById('liveSingKey');
+  const ex = appState.satb.currentExercise;
+  if (sel && ex && Number.isFinite(ex.midiKeyMidi)) {
+    sel.value = String(pitchClass(ex.midiKeyMidi));
+  }
 }
 
 /* ---------------------------------------------------- onset auto-start ---- */
@@ -261,12 +217,6 @@ export async function playLiveSing() {
   updateTransportButtons(true);
   updateStatus('Singing');
 
-  // Tune the reference to the EXACT hummed Do: cents-detune both audio paths.
-  const cents = appState.livesing.doHz != null ? (appState.livesing.doCents || 0) : 0;
-  livesingOrigA4 = appState.tuning.a4;
-  appState.tuning.a4 = 440 * Math.pow(2, cents / 1200); // sine-oscillator path
-  setPlaybackDetune(cents);                               // piano/sampler path
-
   startMicrophone().catch(() => {}); // so the pitch (crosshair) line has input
 
   enterPerformanceMode(); // full-screen scrolling notation
@@ -287,15 +237,8 @@ export async function playLiveSing() {
   const partVolumes = { S: 0, A: 0, T: 0, B: 0 };
   partVolumes[chosen] = appState.livesing.softness;
 
-  // Look-ahead: fire the reference audio this many wall-clock seconds before the
-  // visual playhead reaches the note, so singers hear upcoming pitches early.
-  const lookaheadSec = (appState.livesing.lookaheadMs || 0) / 1000;
-
   const audioSetup = async (scaledStanza, sequenceId) => {
-    const audioNotes = lookaheadSec > 0
-      ? scaledStanza.notes.map(n => ({ ...n, startTime: Math.max(0, n.startTime - lookaheadSec) }))
-      : scaledStanza.notes;
-    scheduleNotes(audioNotes, sequenceId, async (note, seqId) => {
+    scheduleNotes(scaledStanza.notes, sequenceId, async (note, seqId) => {
       if (!isValidSequence(seqId) || !appState.livesing.isPlaying) return;
       const isChosen = note.part === chosen;
       // Pan the chosen voice into the selected ear (read live so an ear change mid-song applies).
@@ -341,9 +284,6 @@ export function stopLiveSing() {
 function finishLiveSing(status) {
   appState.livesing.isPlaying = false;
   appState.livesing.currentTargetMidi = null;
-  // Restore standard tuning after the exact-Do detune.
-  if (livesingOrigA4 != null) { appState.tuning.a4 = livesingOrigA4; livesingOrigA4 = null; }
-  setPlaybackDetune(0);
   stopProgress();
   exitPerformanceMode();
   updateTransportButtons(false);

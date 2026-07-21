@@ -132,11 +132,8 @@ function initializeLiveSing() {
     ear: 'L',             // 'L' | 'R' — which ear the reference tone plays in
     softness: 0.35,       // Reference-tone volume (0-1)
     tempo: 60,            // Playback tempo (BPM)
-    lookaheadMs: 0,       // Reference plays this many ms AHEAD of the playhead (0 = on the line)
     isPlaying: false,
-    doHz: null,           // Captured "Set Do" pitch in Hz (movable-Do anchor); null = not set
-    doSemis: 0,           // Semitone shift derived from Set Do (maps hymn tonic onto the hummed pitch)
-    doCents: 0,           // Fine-tune (cents) so the reference sounds at the EXACT hummed pitch
+    doSemis: 0,           // Semitone transpose from the hymn's key to the chosen Key
     armed: false,         // Listening for onset auto-start
     currentTargetMidi: null // The chosen part's note currently sounding (drives the crosshair). null = none.
   };
