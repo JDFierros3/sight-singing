@@ -1546,7 +1546,6 @@ body[data-active-tab="flashcards"] .staffPanel {
 }
 
 /* Big, thumb-friendly primary actions */
-.livesing-transport #btnLiveSingArm,
 .livesing-transport #btnLiveSingPlay,
 .livesing-transport #btnLiveSingStop {
   min-height: 44px;

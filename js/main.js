@@ -24,7 +24,7 @@ import * as scrollingStaff from './rendering/scrollingStaff.js';
 import { handleGlobalPlay, handleGlobalStop, refreshGlobalTransportUI } from './ui/components/transport.js';
 import { beepDo } from './audio/doPitch.js';
 import { changeSatbTranspose } from './exercises/satb.js';
-import { initializeLiveSing, checkLiveSingAutoStart } from './exercises/liveSing.js';
+import { initializeLiveSing } from './exercises/liveSing.js';
 // Tests are imported when needed
 // import './tests/tests.js';
 
@@ -76,7 +76,6 @@ const {
   handleLiveSingVolumeChange = () => {},
   handleLiveSingTempoChange = () => {},
   handleLiveSingKeyChange = () => {},
-  handleLiveSingArmClick = () => {},
   handleLiveSingPlayClick = () => {},
   handleLiveSingStopClick = () => {}
 } = inputs;
@@ -185,9 +184,6 @@ function setupLiveSingControls() {
 
   const key = getElementById('liveSingKey');
   if (key) key.addEventListener('change', handleLiveSingKeyChange);
-
-  const arm = getElementById('btnLiveSingArm');
-  if (arm) arm.onclick = handleLiveSingArmClick;
 
   const play = getElementById('btnLiveSingPlay');
   if (play) play.onclick = handleLiveSingPlayClick;
@@ -568,7 +564,6 @@ function handleToggleMicEvent() {
 function startRenderLoop() {
   function tick() {
     getCurrentPitch();
-    checkLiveSingAutoStart(); // fires playback when armed and singing is detected
     renderStaff();
     refreshGlobalTransportUI();
     requestAnimationFrame(tick);

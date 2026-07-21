@@ -134,7 +134,6 @@ function initializeLiveSing() {
     tempo: 60,            // Playback tempo (BPM)
     isPlaying: false,
     doSemis: 0,           // Semitone transpose from the hymn's key to the chosen Key
-    armed: false,         // Listening for onset auto-start
     currentTargetMidi: null // The chosen part's note currently sounding (drives the crosshair). null = none.
   };
 }

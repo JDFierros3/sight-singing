@@ -216,11 +216,6 @@ export function switchToTab(tabName) {
   // Only stop playback and clear staff when actually switching tabs (not just toggling sidebar)
   stopAllPlayback();
 
-  // Leaving Live Sing disarms onset auto-start listening.
-  if (tabName !== 'livesing' && appState.livesing) {
-    appState.livesing.armed = false;
-  }
-  
   // Normal tab switching - update current tab
   if (tabName !== 'theory' || !isLargeScreen) {
     // Store previous tab before switching (only if sidebar is not open)
