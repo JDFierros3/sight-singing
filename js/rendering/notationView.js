@@ -93,9 +93,9 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const leftPad = 10;
   const clefExtra = 74;                 // clef + key + time signature on measure 1
   const trebleY = 20;
-  const bassY = trebleY + 94;
-  const systemHeight = 285;             // extra room for a lyric line under the staff
-  const lyricsY = bassY + 118;          // below the bass staff + stems
+  const bassY = trebleY + 116;          // widened gap so lyrics fit between the staves
+  const systemHeight = 235;
+  const lyricsY = trebleY + 92;         // between the treble and bass staves
 
   let maxNotes = 1;
   for (let mi = 0; mi < measureCount; mi++) {
@@ -206,6 +206,21 @@ export function renderHymnNotation(exercise, container, options = {}) {
     ctx.restore();
   }
 
+  // Linear fit y = a*midi + b (logical) so any sung pitch maps to a staff y (for the mic line).
+  const fitPts = [];
+  for (const part of ['S', 'A', 'T', 'B']) for (const p of partPositions[part]) fitPts.push([p.midi, p.y]);
+  let a = 0, b = systemHeight / 2;
+  if (fitPts.length >= 2) {
+    const n = fitPts.length;
+    const sx = fitPts.reduce((s, p) => s + p[0], 0);
+    const sy = fitPts.reduce((s, p) => s + p[1], 0);
+    const sxx = fitPts.reduce((s, p) => s + p[0] * p[0], 0);
+    const sxy = fitPts.reduce((s, p) => s + p[0] * p[1], 0);
+    const denom = n * sxx - sx * sx;
+    if (denom !== 0) { a = (n * sxy - sx * sy) / denom; b = (sy - a * sx) / n; }
+  }
+  const pitchToY = (midi) => (a * midi + b) * scale;
+
   // Return positions in FINAL (scaled) pixel space so the playhead/scroll use them directly.
   const scalePos = (arr) => arr.map(p => ({ ...p, x: p.x * scale, y: p.y * scale }));
   const scaledParts = {};
@@ -216,6 +231,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
     partPositions: scaledParts,
     measurePositions: scaledMeasures,
     measureLenSec,
+    pitchToY,
     width: totalWidth * scale,
     height: systemHeight * scale
   };

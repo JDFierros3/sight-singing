@@ -12,7 +12,7 @@ import { appState } from '../state/appState.js';
 import { ensureAudioContext } from '../audio/context.js';
 import { startMicrophone } from '../audio/microphone.js';
 import { pitchState } from '../pitch/detection.js';
-import { frequencyToMidi } from '../utils/audioMath.js';
+import { frequencyToMidi, midiToFrequency, centsBetween } from '../utils/audioMath.js';
 import { NOTE_NAMES } from '../config/constants.js';
 import { getAccidentalForNote } from '../utils/keySignature.js';
 import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
@@ -256,6 +256,8 @@ export async function playLiveSing() {
   appState.tuning.a4 = 440 * Math.pow(2, cents / 1200); // sine-oscillator path
   setPlaybackDetune(cents);                               // piano/sampler path
 
+  startMicrophone().catch(() => {}); // so the pitch (crosshair) line has input
+
   enterPerformanceMode(); // full-screen scrolling notation
 
   const exercise = transposeExercise(base, appState.livesing.doSemis);
@@ -380,6 +382,7 @@ let lastNotatedKey = null;
 let notationLayout = null;
 let notatedExercise = null;
 let playheadEl = null;
+let micLineEl = null;
 let performRafId = null;
 
 function renderNotation(exercise, force = false) {
@@ -426,6 +429,31 @@ function ensurePlayhead(visual) {
   playheadEl = document.createElement('div');
   playheadEl.className = 'livesing-playhead';
   visual.appendChild(playheadEl);
+  // Mic pitch line lives in the notation wrapper so it aligns with the staff and scrolls with it.
+  const wrap = visual.querySelector('.livesing-notation-wrap');
+  if (wrap) {
+    micLineEl = document.createElement('div');
+    micLineEl.className = 'livesing-micline';
+    wrap.appendChild(micLineEl);
+  }
+}
+
+// The singer's detected pitch as a horizontal line on the staff, coloured by how close
+// it is to the chosen part's current note (green/yellow/red) — the "crosshair" feedback.
+function updateMicLine() {
+  if (!micLineEl || !notationLayout || !notationLayout.pitchToY) return;
+  const hz = pitchState.smoothedHz || pitchState.hz || 0;
+  if (hz <= 0) { micLineEl.style.display = 'none'; return; }
+  const sungMidi = frequencyToMidi(hz, appState.tuning.a4);
+  micLineEl.style.top = `${notationLayout.pitchToY(sungMidi)}px`;
+  micLineEl.style.display = 'block';
+  const target = appState.livesing.currentTargetMidi;
+  if (Number.isFinite(target)) {
+    const cents = Math.abs(centsBetween(hz, midiToFrequency(target, appState.tuning.a4)));
+    micLineEl.style.background = cents <= 20 ? '#22c55e' : (cents <= 50 ? '#eab308' : '#ef4444');
+  } else {
+    micLineEl.style.background = '#60a5fa';
+  }
 }
 
 function ensureExitButton(show) {
@@ -471,6 +499,7 @@ function startPlayheadAnimation() {
     }
     // Keep the playhead ~30% from the left; the notation scrolls under it.
     visual.scrollLeft = Math.max(0, x - visual.clientWidth * 0.3);
+    updateMicLine();
     performRafId = requestAnimationFrame(frame);
   };
   performRafId = requestAnimationFrame(frame);
