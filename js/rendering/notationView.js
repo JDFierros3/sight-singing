@@ -93,9 +93,12 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const leftPad = 10;
   const clefExtra = 74;                 // clef + key + time signature on measure 1
   const trebleY = 20;
-  const bassY = trebleY + 116;          // widened gap so lyrics fit between the staves
-  const systemHeight = 235;
-  const lyricsY = trebleY + 92;         // between the treble and bass staves
+  // Wide inter-staff gap so the inner-voice stems (alto down, tenor up) leave a clear
+  // band in the middle for the lyrics — no overlap.
+  const bassY = trebleY + 170;
+  const systemHeight = 290;
+  const trebleBottom = trebleY + 40;    // 5th line of the treble staff
+  const lyricsY = (trebleBottom + bassY) / 2 + 4; // centred between the two staves
 
   let maxNotes = 1;
   for (let mi = 0; mi < measureCount; mi++) {
