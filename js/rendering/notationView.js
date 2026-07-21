@@ -12,6 +12,9 @@ import { getShapeColor } from './shapes.js';
 
 const LETTER_STEP = { c: 0, d: 1, e: 2, f: 3, g: 4, a: 5, b: 6 };
 
+// Intrinsic height of one engraved system (treble + lyric band + bass), before scaling.
+const SYSTEM_HEIGHT = 320;
+
 // Seconds-at-60bpm -> { dur, dots } (quarter = 1s).
 const DUR_TABLE = [
   [4, 'w', 0], [3, 'h', 1], [2, 'h', 0], [1.5, 'q', 1], [1, 'q', 0],
@@ -59,7 +62,12 @@ export function renderHymnNotation(exercise, container, options = {}) {
   if (!Vex || !Vex.Flow || !exercise || !container) return null;
   const VF = Vex.Flow;
 
-  const scale = Math.max(0.5, options.scale || 1); // native zoom (full-screen enlarges everything)
+  // Native zoom. In full-screen we scale to FIT the system into the available height
+  // (options.fitHeight) so the staff is never taller than the screen — critical in
+  // landscape, where the viewport is short. Otherwise honour an explicit scale.
+  const scale = options.fitHeight
+    ? Math.max(1.0, Math.min(2.8, options.fitHeight / SYSTEM_HEIGHT))
+    : Math.max(0.5, options.scale || 1);
 
   container.innerHTML = '';
 
@@ -96,7 +104,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
   // Wide inter-staff gap so the inner-voice stems (alto down, tenor up) leave a clear
   // band in the middle for the lyrics — no overlap.
   const bassY = trebleY + 170;
-  const systemHeight = 320;
+  const systemHeight = SYSTEM_HEIGHT;
   let lyricsY = bassY;                   // set precisely from the rendered staves (below)
 
   let maxNotes = 1;

@@ -58,6 +58,15 @@ export function initializeLiveSing() {
       displayLiveSingHymn();
     }
   });
+
+  // Re-fit the full-screen notation when the phone rotates or the browser chrome resizes.
+  let resizeDebounce = null;
+  const onViewport = () => {
+    clearTimeout(resizeDebounce);
+    resizeDebounce = setTimeout(handleViewportChange, 150);
+  };
+  window.addEventListener('resize', onViewport);
+  window.addEventListener('orientationchange', onViewport);
 }
 
 function buildLiveSingPartButtons() {
@@ -292,6 +301,7 @@ let notatedExercise = null;
 let playheadEl = null;
 let micLineEl = null;
 let performRafId = null;
+let timeToX = null; // exercise-time -> x mapping, rebuilt whenever the notation re-renders
 
 function renderNotation(exercise, force = false) {
   const visual = getElementById('liveSingVisual');
@@ -299,18 +309,29 @@ function renderNotation(exercise, force = false) {
   notatedExercise = exercise;
   const performing = document.body.classList.contains('livesing-performing');
   const width = performing ? window.innerWidth : (visual.clientWidth || 800);
-  // Full-screen enlarges the whole staff so it fills the screen (native scale, not CSS zoom).
-  const scale = performing ? Math.max(1.4, Math.min(3, (window.innerHeight * 0.5) / 210)) : 1;
-  const key = `${exercise.id || exercise.label}|${appState.livesing.doSemis}|${performing ? 'full' + scale.toFixed(2) : Math.round(width)}`;
+  // Full-screen: scale the staff to FIT the viewport height so it's never taller than
+  // the screen (landscape phones are short). Keyed on both dimensions so a rotation or
+  // URL-bar resize re-engraves at the new size.
+  const fitHeight = performing ? Math.max(200, window.innerHeight - 16) : null;
+  const dims = performing ? `full${Math.round(window.innerWidth)}x${Math.round(window.innerHeight)}` : Math.round(width);
+  const key = `${exercise.id || exercise.label}|${appState.livesing.doSemis}|${dims}`;
   if (!force && key === lastNotatedKey && visual.querySelector('svg')) return;
   lastNotatedKey = key;
   visual.hidden = false;
   try {
-    notationLayout = renderHymnNotation(exercise, visual, { width, scale });
+    notationLayout = renderHymnNotation(exercise, visual, { width, fitHeight, scale: performing ? undefined : 1 });
+    timeToX = notationLayout ? buildTimeToX(notationLayout) : null;
     ensurePlayhead(visual);
   } catch (err) {
     console.warn('Notation render failed:', err);
   }
+}
+
+// Re-engrave when the viewport changes (rotation, URL-bar show/hide) while performing,
+// so the full-screen staff always fits. The key check makes trivial resizes a no-op.
+function handleViewportChange() {
+  if (!document.body.classList.contains('livesing-performing')) return;
+  renderNotation(notatedExercise || appState.satb.currentExercise, false);
 }
 
 /* ---------------------------------------------- full-screen performance --- */
@@ -464,15 +485,16 @@ function buildTimeToX(layout) {
 function startPlayheadAnimation() {
   const visual = getElementById('liveSingVisual');
   if (!visual || !notationLayout) return;
-  const timeToX = buildTimeToX(notationLayout);
+  if (!timeToX) timeToX = buildTimeToX(notationLayout);
   const frame = () => {
     if (!appState.livesing.isPlaying) { performRafId = null; return; }
-    // exercise time = wall elapsed * tempo/60 (matches the player's playhead math)
+    // exercise time = wall elapsed * tempo/60 (matches the player's playhead math).
+    // Read timeToX/notationLayout live (module vars) so a mid-song re-render (rotation) is picked up.
     const exerciseTime = (appState.staff.currentTime || 0) * (appState.livesing.tempo / 60);
-    const x = timeToX(exerciseTime);
+    const x = timeToX ? timeToX(exerciseTime) : 0;
     if (playheadEl) {
       playheadEl.style.left = `${x}px`;
-      playheadEl.style.height = `${notationLayout.height || 210}px`;
+      playheadEl.style.height = `${notationLayout?.height || 210}px`;
     }
     // Keep the playhead ~30% from the left; the notation scrolls under it.
     visual.scrollLeft = Math.max(0, x - visual.clientWidth * 0.3);
