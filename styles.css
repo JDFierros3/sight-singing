@@ -1582,6 +1582,23 @@ body[data-active-tab="flashcards"] .staffPanel {
 
 .livesing-visual {
   margin-top: 8px;
+  max-height: 60vh;
+  overflow: auto;
+  background: #0d1122;
+  border: 1px solid #273056;
+  border-radius: 8px;
+}
+
+/* VexFlow renders in black by default; recolour the engraving for the dark theme. */
+.livesing-visual svg path,
+.livesing-visual svg rect,
+.livesing-visual svg line {
+  fill: #e8ecff;
+  stroke: #e8ecff;
+}
+.livesing-visual svg text {
+  fill: #e8ecff;
+  stroke: none;
 }
 
 /* Landscape phone: keep the notation prominent, compact the controls into a

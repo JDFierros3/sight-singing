@@ -21,6 +21,7 @@ import { isValidSequence } from '../player/sequenceManager.js';
 import { playNote } from '../player/audioPlayer.js';
 import { setPartPan } from '../audio/instruments.js';
 import { renderStaff } from '../rendering/staff.js';
+import { renderHymnNotation } from '../rendering/notationView.js';
 import { openHymnBrowser } from '../ui/components/hymnBrowser.js';
 
 const PARTS = [
@@ -335,6 +336,24 @@ export function displayLiveSingHymn() {
 
   renderStaff();
   updateHymnLabel();
+  renderNotation(ex);
+}
+
+// Render real engraved notation (VexFlow) into the Live Sing visual panel.
+// Guarded so we don't re-engrave the whole score on ear/part/volume changes.
+let lastNotatedKey = null;
+function renderNotation(exercise) {
+  const visual = getElementById('liveSingVisual');
+  if (!visual || !exercise) return;
+  const key = `${exercise.id || exercise.label}|${appState.livesing.doSemis}`;
+  if (key === lastNotatedKey && visual.childElementCount > 0) return;
+  lastNotatedKey = key;
+  visual.hidden = false;
+  try {
+    renderHymnNotation(exercise, visual, { width: visual.clientWidth || 800 });
+  } catch (err) {
+    console.warn('Notation render failed:', err);
+  }
 }
 
 /* ------------------------------------------------------------- helpers ---- */
@@ -362,6 +381,7 @@ function transposeExercise(exercise, semis) {
   if (Number.isFinite(exercise.midiKeyMidi)) {
     clone.midiKeyMidi = pitchClass(exercise.midiKeyMidi + semis);
   }
+  clone.keySignature = null; // transposed: let notation derive the key from the new tonic
   return clone;
 }
 

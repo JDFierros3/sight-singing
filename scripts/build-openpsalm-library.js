@@ -281,8 +281,12 @@ async function main() {
         duration: round(duration),
         midiKeyMidi: key.tonicPc,
         midiKeyMode: key.mode,
+        keySignature: song.key_signature || null,
         isMidiExercise: true, // reuse the SATB rendering/solfege path (key-based)
         tempoBpm: song.tempo_bpm || 60,
+        timeSigNum: song.time_sig_numerator || 4,
+        timeSigDen: song.time_sig_denominator || 4,
+        phraseBreaks: song.phrase_breaks || [],
         lyrics: lyricsObj,
         copyrights: song.copyrights
       });
