@@ -27,13 +27,11 @@ function durToVex(seconds) {
   return { dur: best[1], dots: best[2] };
 }
 
-// Solfege -> VexFlow shape-note notehead code (Aikin 7-shape, matching shapes.js).
-// These are the codes VexFlow accepts as a key suffix ("g/4/DO"). They render FILLED
-// regardless of duration — open (half/whole) shape heads are a VexFlow/Bravura
-// limitation (the duration-aware internal codes aren't valid key suffixes).
+// Solfege -> VexFlow shape-note notehead code (Aikin 7-shape). VexFlow draws these on
+// the note's own stem, so they align perfectly. They render filled at any duration.
 const SHAPE_CODE = { Do: 'DO', Re: 'RE', Mi: 'MI', Fa: 'FAUP', Sol: 'SO', La: 'LA', Ti: 'TI' };
 
-// MIDI -> { key (with shape-note notehead), accidental, color }, key-aware.
+// MIDI -> { key (with shape notehead), accidental, color }, key-aware.
 function midiToVexKey(midi, tonicPc, mode) {
   const spelled = spellMidiInKey(midi, tonicPc, mode) || { letter: 'c', accidental: null, solfege: 'Do' };
   const letter = spelled.letter;
@@ -47,7 +45,7 @@ function midiToVexKey(midi, tonicPc, mode) {
   return {
     key: `${letter}/${octave}/${shape}`,
     accidental: accMap[spelled.accidental] || null,
-    color: getShapeColor(spelled.solfege) // solfege colour to match the app's shape notes
+    color: getShapeColor(spelled.solfege)
   };
 }
 
@@ -60,6 +58,8 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const Vex = window.Vex;
   if (!Vex || !Vex.Flow || !exercise || !container) return null;
   const VF = Vex.Flow;
+
+  const scale = Math.max(0.5, options.scale || 1); // native zoom (full-screen enlarges everything)
 
   container.innerHTML = '';
 
@@ -92,9 +92,9 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const perNote = isMobile ? 34 : 46;
   const leftPad = 10;
   const clefExtra = 74;                 // clef + key + time signature on measure 1
-  const trebleY = 14;
+  const trebleY = 20;
   const bassY = trebleY + 94;
-  const systemHeight = 210;
+  const systemHeight = 250;
 
   let maxNotes = 1;
   for (let mi = 0; mi < measureCount; mi++) {
@@ -103,9 +103,17 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const measureWidth = Math.min(520, Math.max(isMobile ? 150 : 210, maxNotes * perNote));
   const totalWidth = leftPad * 2 + clefExtra + measureCount * measureWidth;
 
-  const renderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
-  renderer.resize(totalWidth, systemHeight);
+  // Wrapper holds the VexFlow SVG + our notehead-overlay canvas together, so they
+  // stay pixel-aligned and centre/scroll as one unit.
+  const wrap = document.createElement('div');
+  wrap.className = 'livesing-notation-wrap';
+  wrap.style.cssText = `position:relative;width:${totalWidth * scale}px;height:${systemHeight * scale}px;flex:0 0 auto;`;
+  container.appendChild(wrap);
+
+  const renderer = new VF.Renderer(wrap, VF.Renderer.Backends.SVG);
+  renderer.resize(totalWidth * scale, systemHeight * scale);
   const ctx = renderer.getContext();
+  ctx.scale(scale, scale); // draw in logical coords; VexFlow output is scale× larger
   // Match the app's staff scheme: muted staff/stems/clefs; noteheads carry their solfege colour.
   ctx.setFillStyle('#9aa4b2');
   ctx.setStrokeStyle('#9aa4b2');
@@ -149,7 +157,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
           const sn = new VF.StaveNote({ keys: [key], duration: dur, clef, stem_direction: stemDir });
           if (accidental) sn.addModifier(new VF.Accidental(accidental));
           if (dots) VF.Dot.buildAndAttach([sn], { all: true });
-          try { sn.setKeyStyle(0, { fillStyle: color, strokeStyle: color }); } catch (e) {}
+          try { sn.setKeyStyle(0, { fillStyle: color, strokeStyle: color }); } catch (e) {} // solfege-coloured shape head
           tickables.push(sn);
           meta.push(n);
         }
@@ -171,17 +179,29 @@ export function renderHymnNotation(exercise, container, options = {}) {
       const stave = (part === 'S' || part === 'A') ? treble : bass;
       b.voice.draw(ctx, stave);
       b.tickables.forEach((t, i) => {
-        const n = b.meta[i];
-        if (!n || !t.getAbsoluteX) return;
+        const m = b.meta[i];
+        if (!m || !t.getAbsoluteX) return;
         let y = trebleY + 40;
         try { y = t.getYs ? t.getYs()[0] : y; } catch (e) {}
-        partPositions[part].push({ x: t.getAbsoluteX(), y, midi: n.midi, startTime: n.startTime });
+        partPositions[part].push({ x: t.getAbsoluteX(), y, midi: m.midi, startTime: m.startTime });
       });
     }
     x += w;
   }
 
-  return { partPositions, measurePositions, measureLenSec, width: totalWidth, height: systemHeight };
+  // Return positions in FINAL (scaled) pixel space so the playhead/scroll use them directly.
+  const scalePos = (arr) => arr.map(p => ({ ...p, x: p.x * scale, y: p.y * scale }));
+  const scaledParts = {};
+  for (const part of ['S', 'A', 'T', 'B']) scaledParts[part] = scalePos(partPositions[part]);
+  const scaledMeasures = measurePositions.map(m => ({ x: m.x * scale, width: m.width * scale, startTime: m.startTime }));
+
+  return {
+    partPositions: scaledParts,
+    measurePositions: scaledMeasures,
+    measureLenSec,
+    width: totalWidth * scale,
+    height: systemHeight * scale
+  };
 }
 
 // Map the song's key to a VexFlow key-signature spec ("G", "Eb", "F#", "Am"->"Am").

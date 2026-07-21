@@ -371,12 +371,14 @@ function renderNotation(exercise, force = false) {
   notatedExercise = exercise;
   const performing = document.body.classList.contains('livesing-performing');
   const width = performing ? window.innerWidth : (visual.clientWidth || 800);
-  const key = `${exercise.id || exercise.label}|${appState.livesing.doSemis}|${performing ? 'full' : Math.round(width)}`;
+  // Full-screen enlarges the whole staff so it fills the screen (native scale, not CSS zoom).
+  const scale = performing ? Math.max(1.4, Math.min(3, (window.innerHeight * 0.5) / 210)) : 1;
+  const key = `${exercise.id || exercise.label}|${appState.livesing.doSemis}|${performing ? 'full' + scale.toFixed(2) : Math.round(width)}`;
   if (!force && key === lastNotatedKey && visual.querySelector('svg')) return;
   lastNotatedKey = key;
   visual.hidden = false;
   try {
-    notationLayout = renderHymnNotation(exercise, visual, { width });
+    notationLayout = renderHymnNotation(exercise, visual, { width, scale });
     ensurePlayhead(visual);
   } catch (err) {
     console.warn('Notation render failed:', err);

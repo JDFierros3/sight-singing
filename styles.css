@@ -1491,6 +1491,12 @@ body[data-active-tab="flashcards"] .staffPanel {
   border: 1px solid #273056;
   border-radius: 12px;
   padding: 12px;
+  /* Fieldsets default to min-width:min-content, which would expand to fit the very
+     wide notation and drag the controls off-screen. Keep it at panel width so only
+     #liveSingVisual scrolls horizontally. */
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .livesing-grid {
@@ -1580,6 +1586,24 @@ body[data-active-tab="flashcards"] .staffPanel {
   transition: width 0.08s linear;
 }
 
+.livesing-visual .livesing-notation-wrap svg {
+  display: block;           /* avoid inline-baseline gap under the SVG */
+}
+
+/* Muted staff / stems / clefs / signatures / accidentals. Noteheads are intentionally
+   NOT matched here so they keep the per-note solfege colour VexFlow sets inline. */
+.livesing-notation-wrap svg .vf-stave path,
+.livesing-notation-wrap svg .vf-stavebarline path,
+.livesing-notation-wrap svg .vf-clef path,
+.livesing-notation-wrap svg .vf-keysignature path,
+.livesing-notation-wrap svg .vf-timesignature path,
+.livesing-notation-wrap svg .vf-stem,
+.livesing-notation-wrap svg .vf-stem rect,
+.livesing-notation-wrap svg .vf-modifiers path {
+  fill: #9aa4b2;
+  stroke: #9aa4b2;
+}
+
 .livesing-visual {
   margin-top: 8px;
   width: 100%;
@@ -1632,7 +1656,7 @@ body.livesing-performing #liveSingVisual {
 }
 
 /* Keep the wide staff at natural size (don't let flex shrink it) so it scrolls. */
-body.livesing-performing #liveSingVisual svg {
+body.livesing-performing #liveSingVisual .livesing-notation-wrap {
   flex: 0 0 auto;
 }
 
