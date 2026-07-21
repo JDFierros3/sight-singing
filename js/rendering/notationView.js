@@ -94,7 +94,8 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const clefExtra = 74;                 // clef + key + time signature on measure 1
   const trebleY = 20;
   const bassY = trebleY + 94;
-  const systemHeight = 250;
+  const systemHeight = 285;             // extra room for a lyric line under the staff
+  const lyricsY = bassY + 118;          // below the bass staff + stems
 
   let maxNotes = 1;
   for (let mi = 0; mi < measureCount; mi++) {
@@ -189,6 +190,22 @@ export function renderHymnNotation(exercise, container, options = {}) {
     x += w;
   }
 
+  // Verse-1 lyrics under the melody: one syllable per soprano note (OpenPsalm guarantees
+  // syllable count == soprano note count).
+  const syllables = verse1Syllables(exercise.lyrics);
+  if (syllables.length) {
+    ctx.save();
+    ctx.setFont('Georgia, serif', 11, '');
+    ctx.setFillStyle('#dbe4ff');
+    ctx.setStrokeStyle('#dbe4ff');
+    partPositions.S.forEach((p, i) => {
+      if (i >= syllables.length) return;
+      const syl = syllables[i].replace(/--/g, '');
+      try { ctx.fillText(syl, p.x - 3, lyricsY); } catch (e) {}
+    });
+    ctx.restore();
+  }
+
   // Return positions in FINAL (scaled) pixel space so the playhead/scroll use them directly.
   const scalePos = (arr) => arr.map(p => ({ ...p, x: p.x * scale, y: p.y * scale }));
   const scaledParts = {};
@@ -202,6 +219,15 @@ export function renderHymnNotation(exercise, container, options = {}) {
     width: totalWidth * scale,
     height: systemHeight * scale
   };
+}
+
+// Split an OpenPsalm verse into syllables (one per melody note); drops "--" joiners
+// and any @shared-section markers.
+function verse1Syllables(lyrics) {
+  if (!lyrics) return [];
+  const v = lyrics['1'] || lyrics[1] || Object.values(lyrics)[0];
+  const text = v && typeof v === 'object' ? (v.text || '') : (typeof v === 'string' ? v : '');
+  return text.split(/\s+/).filter(t => t && t !== '--' && !t.startsWith('@'));
 }
 
 // Map the song's key to a VexFlow key-signature spec ("G", "Eb", "F#", "Am"->"Am").
