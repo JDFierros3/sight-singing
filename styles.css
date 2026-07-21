@@ -1490,7 +1490,8 @@ body[data-active-tab="flashcards"] .staffPanel {
 .livesing-fieldset {
   border: 1px solid #273056;
   border-radius: 12px;
-  padding: 12px;
+  /* Fluid padding: tighter on small phones, roomier on tablets/desktop. */
+  padding: clamp(10px, 3vw, 16px);
   /* Fieldsets default to min-width:min-content, which would expand to fit the very
      wide notation and drag the controls off-screen. Keep it at panel width so only
      #liveSingVisual scrolls horizontally. */
@@ -1499,10 +1500,13 @@ body[data-active-tab="flashcards"] .staffPanel {
   overflow: hidden;
 }
 
+/* Fully fluid control grid: one column on phones (each slider/picker gets full width),
+   filling to 2–3+ columns as the screen widens — no fixed breakpoints. The min(100%, …)
+   guard keeps a single column from ever overflowing a narrow viewport. */
 .livesing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: clamp(10px, 2.5vw, 16px);
   align-items: start;
 }
 
@@ -1514,12 +1518,21 @@ body[data-active-tab="flashcards"] .staffPanel {
 }
 
 .livesing-control > label {
-  font-size: 12px;
+  font-size: clamp(12px, 3.4vw, 13px);
   color: var(--muted);
 }
 
+/* Segmented pickers (part S/A/T/B, ear L/R) share the row width evenly and stay tappable. */
 .livesing-control .row {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+}
+
+/* Sliders and selects fill their cell so they're easy to hit on touch. */
+.livesing-control input[type="range"],
+.livesing-control select {
+  width: 100%;
 }
 
 .livesing-hymn #liveSingCurrentHymn {
@@ -1552,10 +1565,11 @@ body[data-active-tab="flashcards"] .staffPanel {
   font-weight: 600;
 }
 
-/* Touch-friendly part / ear pickers */
+/* Touch-friendly part / ear pickers — each fills an equal share of the row. */
 #liveSingPartSelection .part-btn,
 #liveSingEarSelection .part-btn {
-  min-width: 46px;
+  flex: 1 1 0;
+  min-width: 44px;
   min-height: 42px;
   text-align: center;
   border-radius: 10px;
