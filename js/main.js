@@ -25,6 +25,7 @@ import { handleGlobalPlay, handleGlobalStop, refreshGlobalTransportUI } from './
 import { beepDo } from './audio/doPitch.js';
 import { changeSatbTranspose } from './exercises/satb.js';
 import { initializeLiveSing } from './exercises/liveSing.js';
+import { hadOpenPsalmHandoff } from './exercises/openPsalmHandoff.js';
 // Tests are imported when needed
 // import './tests/tests.js';
 
@@ -135,6 +136,14 @@ async function buildUserInterface() {
 
   initializeTabSystem();
   buildHomepage();
+
+  // Land the singer on their song when they arrived via an OpenPsalm.com handoff link.
+  if (hadOpenPsalmHandoff()) {
+    switchToTab('satb');
+    window.dispatchEvent(new CustomEvent('hymn:selected', {
+      detail: { exercise: appState.satb.currentExercise }
+    }));
+  }
 
   // Initialize staff panning (for manual panning when not playing)
   initializeStaffPanning();
