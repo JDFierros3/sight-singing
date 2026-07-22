@@ -35,29 +35,10 @@ The app is organized into tabs:
 - **Warmup** — guided vocal warmup sequences.
 - **Flashcards** — shape ⇄ solfège drills.
 - **SATB Practice** — load a hymn and play its four voices with adjustable per-part volume.
-- **Live Sing** — congregational sing-along (see below).
+- **Live Sing** — *(beta, work in progress)* sing a hymn together in person; each phone softly plays your chosen part in one ear while engraved shape-note notation scrolls. The app's home page explains it.
 - **Music Theory** — reference material.
 
 Feedback is always **green / yellow / red** (in-tune / close / off) — this is a practice tool, so there's **no scoring or judgment**.
-
-### Live Sing
-
-For singing together, in person, with no backend:
-
-- Everyone loads the **same hymn** on their own phone, picks their **part** (S/A/T/B) and the **key**, and puts in **one earbud**.
-- Tap **Start** together on the leader's count. A **3-2-1 count-in** buffers audio + notation so the first notes don't drop, and gives the group a shared downbeat.
-- The app plays **your chosen voice softly in one ear** (stereo-panned) while real engraved shape-note notation **scrolls full-screen**.
-- Your microphone drives a **pitch line** over the staff, colored by how in-tune you are with the note under the playhead.
-
-Because every phone plays the same hymn at the same fixed tempo, a synchronized start keeps everyone together for the whole song — no networking required.
-
-### Notation
-
-Live Sing renders real engraved notation with [VexFlow](https://github.com/0xfe/vexflow):
-
-- **7-shape shape-note noteheads**, **colored by solfège**.
-- **Beaming**, **ties** (including across barlines), **slurs**, and **fermatas**.
-- **Lyrics** aligned to the melody note-by-note (handling melismas and chorus/stanza sections), centered between the treble and bass staves.
 
 ---
 

@@ -58,6 +58,15 @@ export function buildHomepage() {
       </div>
     </div>
 
+    <div class="home-livesing-section">
+      <h3>Sing Together <span class="home-beta-badge">Beta &middot; WIP</span></h3>
+      <div class="home-concept-card home-livesing-card">
+        <p><strong>Live Sing Together</strong> lets a group sing the same hymn, in person, each following along on their own phone — no accounts, no server. Pick your part (S/A/T/B) and the key, put in <strong>one earbud</strong>, and everyone taps Start on a shared <strong>3&middot;2&middot;1 count-in</strong>. Your phone softly plays <em>your</em> voice in that one ear while real shape-note notation scrolls full-screen, with a live pitch line showing how in-tune you are.</p>
+        <p class="home-livesing-note">This tab is an early <strong>work in progress</strong> — expect rough edges, and try it on a phone in landscape.</p>
+        <button class="btn-start-learning" data-tab="livesing">Try Live Sing</button>
+      </div>
+    </div>
+
     <div class="home-controls-section">
       <h3>Global Controls</h3>
       <p class="home-controls-intro">These controls live in the header bar and apply across all exercises.</p>
@@ -127,5 +136,11 @@ export function buildHomepage() {
         switchToTab(step.dataset.tab);
       }
     });
+  }
+
+  // "Try Live Sing" button
+  const liveBtn = host.querySelector('.home-livesing-card [data-tab="livesing"]');
+  if (liveBtn) {
+    liveBtn.addEventListener('click', () => switchToTab('livesing'));
   }
 }
