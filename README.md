@@ -1,109 +1,123 @@
-# Shape‑Note Ear Trainer (V2)
+# Shape-Note Ear Trainer
 
-A lightweight, one-page **shape‑note / solfege ear trainer** aimed at singers who read shape‑note hymnals and want to practice **movable‑Do**, **drones**, **intervals**, warmups, and basic **SATB** hymn practice.
+A static, single-page web app for singers who read **movable-Do solfège** and **shape notes**. Practice pitch against drones, drill intervals and chord qualities, run vocal warmups, play SATB hymns — and sing along with a congregation using the **Live Sing** tab.
+
+No framework, no bundler, no build step to run it. Just vanilla JavaScript ES modules and a local web server.
+
+**Live demo:** https://jdfierros3.github.io/sight-singing/ (deployed from `master` via GitHub Pages)
+
+---
 
 ## Run locally
 
-This is a static site. You just need any local web server (recommended so ES modules load correctly).
-
-### Option A: Python (installed on most machines)
+It's a static site, but ES modules need to be served over HTTP (not opened as a `file://`).
 
 ```bash
+# Option A — Python (already on most machines)
 python -m http.server 8000
-```
 
-Then open `http://localhost:8000` in your browser.
-
-### Option B: Node
-
-```bash
+# Option B — Node
 npx --yes serve .
 ```
 
+Then open `http://localhost:8000`. Grant microphone access when prompted for the pitch-feedback features.
+
+---
+
+## What's in it
+
+The app is organized into tabs:
+
+- **Home** — sing against a drone; movable-Do reference with shape-note staff feedback.
+- **Interval Training** — hear and identify intervals at easy/medium/hard difficulty.
+- **Hidden Cluster** — dictation-style cluster exercises.
+- **Chord Quality** — identify diatonic triad qualities (shape-note harmony).
+- **Warmup** — guided vocal warmup sequences.
+- **Flashcards** — shape ⇄ solfège drills.
+- **SATB Practice** — load a hymn and play its four voices with adjustable per-part volume.
+- **Live Sing** — congregational sing-along (see below).
+- **Music Theory** — reference material.
+
+Feedback is always **green / yellow / red** (in-tune / close / off) — this is a practice tool, so there's **no scoring or judgment**.
+
+### Live Sing
+
+For singing together, in person, with no backend:
+
+- Everyone loads the **same hymn** on their own phone, picks their **part** (S/A/T/B) and the **key**, and puts in **one earbud**.
+- Tap **Start** together on the leader's count. A **3-2-1 count-in** buffers audio + notation so the first notes don't drop, and gives the group a shared downbeat.
+- The app plays **your chosen voice softly in one ear** (stereo-panned) while real engraved shape-note notation **scrolls full-screen**.
+- Your microphone drives a **pitch line** over the staff, colored by how in-tune you are with the note under the playhead.
+
+Because every phone plays the same hymn at the same fixed tempo, a synchronized start keeps everyone together for the whole song — no networking required.
+
+### Notation
+
+Live Sing renders real engraved notation with [VexFlow](https://github.com/0xfe/vexflow):
+
+- **7-shape shape-note noteheads**, **colored by solfège**.
+- **Beaming**, **ties** (including across barlines), **slurs**, and **fermatas**.
+- **Lyrics** aligned to the melody note-by-note (handling melismas and chorus/stanza sections), centered between the treble and bass staves.
+
+---
+
+## Hymn library (OpenPsalm, CC-BY)
+
+Hymns come from the public-domain, CC-BY-4.0 [OP-songs](https://github.com/squinky86/OP-songs) repository (openpsalm.com). The committed library is **`openpsalm/songs.json`** (121 songs), with attribution preserved in **`openpsalm/SOURCES.md`**.
+
+Each song carries per-voice SATB note streams, verse lyrics (syllable-aligned), key, time signature, tempo, and license metadata.
+
+**You don't need to build anything to use the app** — `songs.json` is committed. The build script is only for regenerating/expanding the library:
+
+```bash
+npm install                              # dev dependencies (build scripts only)
+npm run build-openpsalm-library          # fetch OP-songs, license-filter, write openpsalm/songs.json
+```
+
+The script (`scripts/build-openpsalm-library.js`) fetches the OP-songs repo, includes **only** songs clearly marked public-domain + CC-BY, parses the LilyPond-subset note streams into the app's format, aligns lyrics to notes, and preserves attribution.
+
+---
+
+## Tech stack
+
+- **Vanilla JS, ES modules** — no framework, no bundler, no transpiler.
+- **Single global state** object (`js/state/appState.js`), mutated directly; a `requestAnimationFrame` loop picks up changes.
+- Runtime libraries loaded from **CDN** (no install needed to run): [VexFlow](https://github.com/0xfe/vexflow) (notation), [Tone.js](https://tonejs.github.io/) (sampled piano), [soundfont-player](https://github.com/danigb/soundfont-player) (choir), [@tonejs/midi](https://github.com/Tonejs/Midi) (MIDI parsing).
+- **Web Audio API** for drones/oscillators and stereo panning; `getUserMedia` + autocorrelation pitch detection for the mic.
+- `devDependencies` in `package.json` are used **only** by the Node build scripts, never at runtime.
+
 ## Project structure
 
-- `index.html`: single-page UI
-- `styles/` + `styles.css`: styling
-- `js/`: app code
-  - `js/state/`: state management (`appState.js`)
-  - `js/rendering/`: staff + shapes rendering
-  - `js/audio/`: WebAudio (drones, mic, oscillators)
-  - `js/exercises/`: warmups / intervals / cluster / SATB
-  - `js/utils/`: music theory, MIDI parsing, math, DOM helpers
-  - `js/tests/`: simple in-browser test runner
-- `midi/`: MIDI files used for SATB practice (e.g. `330-Amazing_Grace.mid`)
+```
+index.html            single-page UI
+styles.css            the app's stylesheet
+js/
+  state/              appState.js — the single global state object
+  config/             shared musical constants (SOLFEGE, CHORDS, ranges, ...)
+  audio/              Web Audio: context, oscillators, instruments, microphone, panning
+  pitch/              autocorrelation pitch detection
+  rendering/          canvas staff + shape drawing; notationView.js (VexFlow engraving)
+  exercises/          intervals, cluster, chord-quality, warmup, satb, liveSing
+  player/             sequence/note scheduling and playback
+  ui/                 tabs, components, handlers
+  utils/              music theory, key signatures, MIDI parsing, DOM helpers
+  tests/              in-browser test runner (opt-in, see below)
+openpsalm/            songs.json (the hymn library) + SOURCES.md (attribution)
+scripts/              Node build scripts (developer tooling)
+```
 
-## MIDI Library
+> **Note on legacy files.** The live app is the nested module tree under `js/`. A set of flat V1 files (`js/state.js`, `js/audio.js`, `js/ui.js`, etc.) and the `styles/` folder are **dead code** — nothing in the live tree imports them. Likewise `scripts/build-midi-library.js` / `download-hymns.js` / the `midi/` MIDI pipeline are superseded by the OpenPsalm library. See `CLAUDE.md` for details.
 
-The app supports loading MIDI files for SATB hymn practice. MIDI files are stored in the `/midi` folder and automatically discovered on startup.
+## Tests
 
-### Building the MIDI Library
+Tests are in-browser only. To run them, uncomment the `import './tests/tests.js'` line in `js/main.js`, serve the app, and check the rendered test output.
 
-**Note for End Users**: The MIDI library (files in `/midi` folder and `metadata.json`) is already included in the repository. You don't need to run the build script to use the app - just clone and run!
+## Attribution & licensing
 
-**For Developers/Maintainers**: The build script is used to expand the library with new hymns:
+- **Hymn arrangements** are © Jon Hood / OpenPsalm, released under **CC-BY 4.0**; the underlying hymns are public domain. Attribution for every included song is in `openpsalm/SOURCES.md` — keep it if you redistribute the data.
+- **VexFlow** (MIT), **Tone.js** (MIT), **soundfont-player** (MIT), **@tonejs/midi** (MIT) are loaded at runtime from CDN.
+- No license has been declared for this project's own source code yet; add a `LICENSE` file before relying on it.
 
-1. **Install dependencies** (required for build script):
-   ```bash
-   npm install @tonejs/midi
-   ```
+## Conventions
 
-2. **Download MIDI files** from Hymnary.org into a temporary folder (e.g., `./downloaded-midis`). Files will have numbered filenames (e.g., `330.mid`, `1234.mid`).
-
-3. **Run the build script** to organize and rename files:
-   ```bash
-   node scripts/build-midi-library.js --input ./downloaded-midis --output ./midi --interactive
-   ```
-   
-   The script will:
-   - Extract tune names from MIDI metadata when possible
-   - Prompt you to map numbered files to hymn/tune names (in interactive mode)
-   - Rename files to `{HymnName}_{TUNE_NAME}.mid` format
-   - Merge into existing `midi/metadata.json` (won't overwrite existing entries)
-   - Detect keys from MIDI file content (stored for reference only)
-   - Skip files that already exist (safe to run incrementally)
-
-4. **Alternative: Manual mapping file**
-   
-   Create a `mappings.json` file:
-   ```json
-   {
-     "330.mid": { "tuneName": "NEW BRITAIN", "hymnName": "Amazing Grace" },
-     "1234.mid": { "tuneName": "OLD HUNDREDTH", "hymnName": "Doxology" }
-   }
-   ```
-   
-   Then run:
-   ```bash
-   node scripts/build-midi-library.js --input ./downloaded-midis --output ./midi --mappings ./mappings.json
-   ```
-
-5. **Commit the results**: After running the script, commit both:
-   - The processed MIDI files in `/midi` folder (renamed with proper names)
-   - The updated `midi/metadata.json` file
-   
-   This ensures end users can use the app without needing to run the build script themselves.
-
-**Workflow Summary**:
-- Build script is a **developer tool** - run it when adding new hymns to the library
-- Script is **incremental** - safe to run multiple times, merges into existing metadata
-- **Commit everything** - MIDI files + metadata.json should be in the repository
-- End users just clone and run - no build step needed
-
-### Using the Hymn Browser
-
-- Click "Browse Hymns" button in the SATB tab to open the searchable hymn browser
-- Search by hymn name or tune name
-- Use keyboard navigation: Arrow keys to navigate, Enter to select, Escape to close
-- Selected hymns display on the staff with proper key signatures and solfege
-
-### Key Detection
-
-**Important**: Keys are always detected from MIDI file content, never from website metadata. This ensures accurate key signatures even when Hymnary.org metadata is incorrect.
-
-## Notes
-
-- **Microphone** requires `getUserMedia` and will prompt for permission.
-- MIDI parsing uses `@tonejs/midi` via CDN import in `js/utils/midiParser.js`.
-
-
+This is a **solfège-first, shape-note** app: the UI always shows movable-Do syllables and shapes — **never absolute note names** (C, D, E…). Note names and MIDI are internal calculation only. Diatonic triads follow traditional shape-note qualities.
