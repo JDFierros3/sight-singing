@@ -30,6 +30,36 @@ function durToVex(seconds) {
   return { dur: best[1], dots: best[2] };
 }
 
+// Expand a note into per-measure "pieces". A note's written tie segments (tieDurs) — and
+// any single note that spills over a barline — are split so each piece sits inside one
+// measure; consecutive pieces of the same note are tied. This is what lets a note held
+// across a barline render as two tied noteheads instead of vanishing from the next bar.
+function notePieces(n, measureLenSec) {
+  const segs = (Array.isArray(n.tieDurs) && n.tieDurs.length > 1)
+    ? cumulativeSegments(n.startTime, n.tieDurs)
+    : [{ start: n.startTime, dur: n.duration }];
+  const pieces = [];
+  for (const seg of segs) {
+    let { start, dur } = seg;
+    while (dur > 1e-6) {
+      const mi = Math.floor((start + 1e-4) / measureLenSec);
+      const measureEnd = (mi + 1) * measureLenSec;
+      const pieceDur = Math.min(dur, measureEnd - start);
+      pieces.push({ start, dur: pieceDur, mi });
+      start += pieceDur;
+      dur -= pieceDur;
+    }
+  }
+  return pieces;
+}
+
+function cumulativeSegments(start, durs) {
+  const out = [];
+  let t = start;
+  for (const d of durs) { out.push({ start: t, dur: d }); t += d; }
+  return out;
+}
+
 // Solfege -> VexFlow shape-note notehead code (Aikin 7-shape). VexFlow draws these on
 // the note's own stem, so they align perfectly. They render filled at any duration.
 const SHAPE_CODE = { Do: 'DO', Re: 'RE', Mi: 'MI', Fa: 'FAUP', Sol: 'SO', La: 'LA', Ti: 'TI' };
@@ -78,17 +108,22 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const measureLenSec = num * (4 / den);          // seconds per measure at 60bpm
   const keySpec = vexKeySpec(exercise.keySignature, tonicPc, mode);
 
-  // Bucket notes by measure. Clamp each note's DISPLAY duration to the measure so a
-  // long/tied note can't overflow into the next bar (which broke the layout).
+  // Bucket note PIECES by measure (see notePieces). Each piece carries its render duration
+  // and the tie/slur/fermata info needed to draw those marks.
   const byPart = { S: [], A: [], T: [], B: [] };
   let measureCount = 0;
   for (const part of ['S', 'A', 'T', 'B']) {
     for (const n of (exercise.parts?.[part] || [])) {
-      const mi = Math.floor((n.startTime + 1e-4) / measureLenSec);
-      const measureEnd = (mi + 1) * measureLenSec;
-      const displayDur = Math.min(n.duration, measureEnd - n.startTime) || n.duration;
-      (byPart[part][mi] = byPart[part][mi] || []).push({ ...n, displayDur });
-      measureCount = Math.max(measureCount, mi + 1);
+      const pieces = notePieces(n, measureLenSec);
+      pieces.forEach((pc, idx) => {
+        pc.midi = n.midi;
+        pc.tieToNext = idx < pieces.length - 1;                    // held into the next piece
+        pc.isOnset = idx === 0;                                    // first head = the note's attack
+        pc.fermata = idx === pieces.length - 1 && !!n.fermata;     // hold sits on the final head
+        pc.slurId = idx === 0 ? (n.slurId ?? null) : null;         // slur anchors on the attack
+        (byPart[part][pc.mi] = byPart[part][pc.mi] || []).push(pc);
+        measureCount = Math.max(measureCount, pc.mi + 1);
+      });
     }
   }
   if (measureCount === 0) return null;
@@ -131,6 +166,9 @@ export function renderHymnNotation(exercise, container, options = {}) {
 
   const partPositions = { S: [], A: [], T: [], B: [] };
   const measurePositions = [];
+  // Collected during the measure loop, drawn after everything is formatted (positions set).
+  const tieChain = { S: [], A: [], T: [], B: [] };   // ordered { sn, tieToNext } per real head
+  const slurGroups = { S: {}, A: {}, T: {}, B: {} };  // slurId -> [staveNote, ...]
 
   let x = leftPad;
   for (let mi = 0; mi < measureCount; mi++) {
@@ -169,13 +207,18 @@ export function renderHymnNotation(exercise, container, options = {}) {
       } else {
         for (const n of measure) {
           const { key, accidental, color } = midiToVexKey(n.midi, tonicPc, mode);
-          const { dur, dots } = durToVex(n.displayDur);
+          const { dur, dots } = durToVex(n.dur);
           const sn = new VF.StaveNote({ keys: [key], duration: dur, clef, stem_direction: stemDir });
           if (accidental) sn.addModifier(new VF.Accidental(accidental));
           if (dots) VF.Dot.buildAndAttach([sn], { all: true });
           try { sn.setKeyStyle(0, { fillStyle: color, strokeStyle: color }); } catch (e) {} // solfege-coloured shape head
+          if (n.fermata) {
+            try { sn.addModifier(new VF.Articulation('a@a').setPosition(VF.Modifier.Position.ABOVE)); } catch (e) {}
+          }
           tickables.push(sn);
           meta.push(n);
+          tieChain[part].push({ sn, tieToNext: !!n.tieToNext });
+          if (n.slurId != null) (slurGroups[part][n.slurId] = slurGroups[part][n.slurId] || []).push(sn);
         }
       }
       const voice = new VF.Voice({ num_beats: num, beat_value: den }).setStrict(false).addTickables(tickables);
@@ -203,13 +246,35 @@ export function renderHymnNotation(exercise, container, options = {}) {
       (b.beams || []).forEach(beam => { try { beam.setContext(ctx).draw(); } catch (e) {} });
       b.tickables.forEach((t, i) => {
         const m = b.meta[i];
-        if (!m || !t.getAbsoluteX) return;
+        // Record one position per note ONSET (not per tied continuation), so lyric alignment
+        // and the pitch-line fit stay one-entry-per-note.
+        if (!m || !m.isOnset || !t.getAbsoluteX) return;
         let y = trebleY + 40;
         try { y = t.getYs ? t.getYs()[0] : y; } catch (e) {}
-        partPositions[part].push({ x: t.getAbsoluteX(), y, midi: m.midi, startTime: m.startTime });
+        partPositions[part].push({ x: t.getAbsoluteX(), y, midi: m.midi, startTime: m.start });
       });
     }
     x += w;
+  }
+
+  // Ties: connect each held head to the next head of the same note (incl. across barlines).
+  for (const part of ['S', 'A', 'T', 'B']) {
+    const chain = tieChain[part];
+    for (let i = 0; i < chain.length - 1; i++) {
+      if (!chain[i].tieToNext) continue;
+      try {
+        new VF.StaveTie({ first_note: chain[i].sn, last_note: chain[i + 1].sn, first_indices: [0], last_indices: [0] })
+          .setContext(ctx).draw();
+      } catch (e) {}
+    }
+  }
+  // Slurs: one curve per slur group, from its first head to its last.
+  for (const part of ['S', 'A', 'T', 'B']) {
+    for (const id of Object.keys(slurGroups[part])) {
+      const g = slurGroups[part][id];
+      if (g.length < 2) continue;
+      try { new VF.Curve(g[0], g[g.length - 1], {}).setContext(ctx).draw(); } catch (e) {}
+    }
   }
 
   // Verse-1 lyrics under the melody: the library aligns one syllable to each soprano

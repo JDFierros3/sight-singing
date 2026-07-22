@@ -94,7 +94,8 @@ function tokenFlags(tok) {
   return {
     marker,
     slurOpen: tok.includes('('), slurClose: tok.includes(')'),
-    beamOpen: tok.includes('['), beamClose: tok.includes(']')
+    beamOpen: tok.includes('['), beamClose: tok.includes(']'),
+    fermata: tok.includes('!')   // ! marks a fermata (hold)
   };
 }
 
@@ -127,6 +128,8 @@ function parseNotes(noteStream, partName) {
   let inSlur = false;     // inside a ( ... ) slur => melisma
   let inBeam = false;     // inside a [ ... ] manual beam => melisma
   let pendingMarker = null; // a standalone @section marker attaches to the next note
+  let slurCounter = 0;    // each slur gets a shared id so notation can draw one curve over it
+  let currentSlurId = null;
 
   const noteRe = /^([a-g])(is|es)?('*|,*)(\d+)?(\.*)$/;
 
@@ -146,11 +149,17 @@ function parseNotes(noteStream, partName) {
     // are continuations. Read the flags from the raw token before stripFlags clears them.
     const flags = tokenFlags(tok);
     const wasSlur = inSlur, wasBeam = inBeam;
-    if (flags.slurOpen) inSlur = true;
+    if (flags.slurOpen) { inSlur = true; currentSlurId = ++slurCounter; }
     if (flags.beamOpen) inBeam = true;
     const melisma = (wasSlur && !flags.slurOpen) || (wasBeam && !flags.beamOpen);
     const marker = flags.marker || pendingMarker;
-    const closeGroups = () => { if (flags.slurClose) inSlur = false; if (flags.beamClose) inBeam = false; };
+    // This note belongs to a slur if it opened one or is inside one.
+    const slurId = (flags.slurOpen || wasSlur) ? currentSlurId : null;
+    const fermata = flags.fermata || undefined;
+    const closeGroups = () => {
+      if (flags.slurClose) { inSlur = false; currentSlurId = null; }
+      if (flags.beamClose) inBeam = false;
+    };
 
     // Chord / divisi: take the first pitch, duration after '>'
     if (tok.startsWith('<')) {
@@ -165,7 +174,7 @@ function parseNotes(noteStream, partName) {
       if (tuplet) dur *= tuplet.ratio;
       if (pm) {
         const midi = pitchToMidi(pm[1], pm[2], pm[3]);
-        const note = { midi, startTime: round(time), duration: round(dur), part: partName, _melisma: melisma, _marker: marker };
+        const note = { midi, startTime: round(time), duration: round(dur), part: partName, _melisma: melisma, _marker: marker, _slurId: slurId, _fermata: fermata, _tieDurs: [round(dur)] };
         notes.push(note);
         lastNote = note;
         pendingMarker = null;
@@ -200,15 +209,18 @@ function parseNotes(noteStream, partName) {
     const midi = pitchToMidi(pm[1], pm[2], pm[3]);
 
     if (pendingTie && lastNote && lastNote.midi === midi) {
-      // Tie: extend the previous note instead of re-attacking (a tie is one syllable).
+      // Tie: extend the previous note for playback (one sustained sound), but record each
+      // written segment's duration so notation can redraw them as separate tied noteheads.
       lastNote.duration = round(lastNote.duration + dur);
+      (lastNote._tieDurs = lastNote._tieDurs || [lastNote.duration]).push(round(dur));
+      if (flags.fermata) lastNote._fermata = true;
       time += dur;
       pendingTie = /~/.test(tok);
       closeGroups();
       continue;
     }
 
-    const note = { midi, startTime: round(time), duration: round(dur), part: partName, _melisma: melisma, _marker: marker };
+    const note = { midi, startTime: round(time), duration: round(dur), part: partName, _melisma: melisma, _marker: marker, _slurId: slurId, _fermata: fermata, _tieDurs: [round(dur)] };
     notes.push(note);
     lastNote = note;
     pendingMarker = null;
@@ -273,8 +285,16 @@ function alignVerse1(sopNotes, lyrics) {
 }
 
 // Remove the transient lyric-alignment flags before a note is written to the library.
-function stripNoteFlags(notes) {
-  for (const n of notes) { delete n._melisma; delete n._marker; }
+// Promote the notation flags we want to keep into permanent fields, then drop the
+// transient underscore-prefixed ones (used only during parsing/lyric alignment).
+function finalizeNotes(notes) {
+  for (const n of notes) {
+    if (n._fermata) n.fermata = true;
+    if (n._slurId != null) n.slurId = n._slurId;
+    // tieDurs only matters when a note is actually a tie of 2+ written segments.
+    if (Array.isArray(n._tieDurs) && n._tieDurs.length > 1) n.tieDurs = n._tieDurs;
+    delete n._melisma; delete n._marker; delete n._slurId; delete n._fermata; delete n._tieDurs;
+  }
   return notes;
 }
 
@@ -360,7 +380,7 @@ async function main() {
       const lyricsObj = song.lyrics || {};
       // Align verse-1 lyrics to the soprano notes BEFORE stripping the alignment flags.
       const lyricsByNote = alignVerse1(parts.S, lyricsObj);
-      for (const letter of ['S', 'A', 'T', 'B']) stripNoteFlags(parts[letter]);
+      for (const letter of ['S', 'A', 'T', 'B']) finalizeNotes(parts[letter]);
 
       const duration = Math.max(0, ...Object.values(parts).flat().map(n => n.startTime + n.duration));
       const key = parseKey(song.key_signature);

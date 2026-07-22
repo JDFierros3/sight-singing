@@ -4,7 +4,7 @@ Songs derived from the [OP-songs](https://github.com/squinky86/OP-songs) reposit
 Arrangements © Jon Hood / OpenPsalm, released under CC-BY 4.0. Underlying hymns are public domain.
 Only songs clearly marked public-domain + CC-BY are included; each song's copyright lines are preserved below.
 
-## Included (117)
+## Included (121)
 
 ### Abide with Me: Fast Falls the Eventide — [source](https://openpsalm.com/songs/1)
 - Lyrics: Henry F. Lyte, 1847 (public domain)
@@ -617,6 +617,26 @@ Only songs clearly marked public-domain + CC-BY are included; each song's copyri
 ### Come to Jesus Today — [source](https://openpsalm.com/songs/130)
 - Lyrics: Eden Reeder Latta, 1878 (public domain)
 - Music: John Harrison Tenney, 1878 (public domain)
+- Arrangement by OpenPsalm, 2026 and released under the CC-BY 4.0 license
+
+### The Prince of Peace — [source](https://openpsalm.com/songs/133)
+- Lyrics: John Morrison, 1781 (public domain)
+- Music: L. Ernhardt, 1837 (public domain)
+- Arrangement by OpenPsalm, 2026 and released under the CC-BY 4.0 license
+
+### Moment by Moment (Dying with Jesus) — [source](https://openpsalm.com/songs/134)
+- Lyrics: Daniel W. Whittle, 1893 (public domain)
+- Music: 'Moment by Moment' by May Whittle Moody, 1893 (public domain)
+- Courtesy of the [Cyber Hymnal™](http://www.hymntime.com/tch)
+- Arrangement by OpenPsalm, 2026 and released under the CC-BY 4.0 license
+
+### Bringing in the Sheaves — [source](https://openpsalm.com/songs/135)
+- Lyrics: Knowles Shaw, 1874 (public domain)
+- Music: George A. Minor, 1880 (public domain)
+- Arrangement by OpenPsalm, 2026 and released under the CC-BY 4.0 license
+
+### Call for Workers (In the Vineyard of the Lord) — [source](https://openpsalm.com/songs/136)
+- Lyrics and Music: John Henry Sheppard, 1906 (public domain)
 - Arrangement by OpenPsalm, 2026 and released under the CC-BY 4.0 license
 
 ## Skipped (15)
