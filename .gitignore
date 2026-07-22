@@ -1,13 +1,12 @@
-# Cursor 
-.cursor/
-
-# Temporary folder for downloaded MIDI files from Hymnary.org (before processing)
-downloaded-midis/
-
-# Node modules (if npm install is run for build script)
+# Node modules (only needed to run the OpenPsalm build script)
 node_modules/
+
+# Local Claude Code settings — machine-specific, not shared
+.claude/settings.local.json
+
+# Editor / tooling
+.cursor/
 
 # OS files
 .DS_Store
 Thumbs.db
-

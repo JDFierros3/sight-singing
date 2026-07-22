@@ -103,10 +103,9 @@ js/
   utils/              music theory, key signatures, MIDI parsing, DOM helpers
   tests/              in-browser test runner (opt-in, see below)
 openpsalm/            songs.json (the hymn library) + SOURCES.md (attribution)
-scripts/              Node build scripts (developer tooling)
+scripts/              build-openpsalm-library.js (developer tooling)
+assets/fonts/         Bravura music font (SMuFL accidentals)
 ```
-
-> **Note on legacy files.** The live app is the nested module tree under `js/`. A set of flat V1 files (`js/state.js`, `js/audio.js`, `js/ui.js`, etc.) and the `styles/` folder are **dead code** — nothing in the live tree imports them. Likewise `scripts/build-midi-library.js` / `download-hymns.js` / the `midi/` MIDI pipeline are superseded by the OpenPsalm library. See `CLAUDE.md` for details.
 
 ## Tests
 
@@ -116,7 +115,7 @@ Tests are in-browser only. To run them, uncomment the `import './tests/tests.js'
 
 - **Hymn arrangements** are © Jon Hood / OpenPsalm, released under **CC-BY 4.0**; the underlying hymns are public domain. Attribution for every included song is in `openpsalm/SOURCES.md` — keep it if you redistribute the data.
 - **VexFlow** (MIT), **Tone.js** (MIT), **soundfont-player** (MIT), **@tonejs/midi** (MIT) are loaded at runtime from CDN.
-- No license has been declared for this project's own source code yet; add a `LICENSE` file before relying on it.
+- This project's own source code is licensed **MIT** — see [`LICENSE`](LICENSE).
 
 ## Conventions
 

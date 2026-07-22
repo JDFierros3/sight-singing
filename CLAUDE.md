@@ -16,14 +16,13 @@ npx --yes serve .
 
 Open `http://localhost:8000`. A local server is required for ES module loading.
 
-## MIDI Library Scripts
+## Hymn Library Script
 
-Only needed when adding new hymns to the library (the `/midi` folder is already committed):
+The hymn library (`openpsalm/songs.json`) is already committed — end users need nothing. Only run this to regenerate/expand it from the CC-BY OP-songs repo:
 
 ```bash
-npm install                  # install devDependencies (@tonejs/midi, cheerio, node-fetch)
-node scripts/build-midi-library.js --input ./downloaded-midis --output ./midi --interactive
-node scripts/build-midi-library.js --input ./downloaded-midis --output ./midi --mappings ./mappings.json
+npm install                            # devDependencies: @iarna/toml (build script only)
+npm run build-openpsalm-library        # -> openpsalm/songs.json + SOURCES.md
 ```
 
 ## Tests
@@ -35,7 +34,7 @@ Tests are in-browser only (`js/tests/runner.js` + `js/tests/tests.js`). The impo
 ### Entry Point & the Live Module Tree
 `index.html` loads root `styles.css` and dynamically imports `js/main.js`, whose `initializeApplication()` builds the UI, wires handlers, and starts the render loop. **The live code is the nested module tree under `js/` (`js/state/`, `js/audio/`, `js/rendering/`, `js/exercises/`, `js/ui/`, `js/player/`, `js/config/`, `js/utils/`).**
 
-> ⚠️ **Dead legacy code — do not edit these.** A set of flat V1 files exists alongside the modules and only import each other; nothing in the live tree loads them: `js/state.js`, `js/util.js`, `js/audio.js`, `js/pitch.js`, `js/staff.js`, `js/ui.js`, `js/exercises.js`, `js/tests.js`. Live state is `js/state/appState.js` (NOT `js/state.js`); live audio is `js/audio/`, etc. Likewise the `styles/` folder (`variables.css`, `base.css`, …) is unreferenced — the only live stylesheet is the root `styles.css`. Editing the flat files or `styles/` has zero effect on the running app.
+Live state is `js/state/appState.js`, live audio is `js/audio/`, etc. The only live stylesheet is the root `styles.css`. (The former flat V1 files `js/*.js` and the unused `styles/` folder were removed — the sole top-level JS entry point is `js/main.js`.)
 
 ### Constants
 Shared musical constants live in `js/config/constants.js`: `SOLFEGE`, `DEGREE_SEMITONES`, `CHORDS`, `NATURAL_CHORD_QUALITIES`, `PART_RANGES`, `SEMITONE_TO_SOLFEGE`, and the `INTERVAL_/CLUSTER_DIFFICULTY_PRESETS`. Import from here rather than redefining.
@@ -69,7 +68,7 @@ All solfege is relative to `appState.tuning.doMidi`. SATB exercises temporarily 
 
 - **One handler per export:** `js/ui/handlers/inputs.js` exports one named function per event handler; `main.js` destructures them all.
 - **DOM access:** All `getElementById` calls go through `js/utils/dom.js` wrapper (logs warnings on miss).
-- **No external dependencies at dev time:** CDN-loaded libraries (Tone.js, soundfont-player, @tonejs/midi) are imported at runtime. `devDependencies` in package.json are only for the MIDI build scripts.
+- **No external dependencies at dev time:** CDN-loaded libraries (Tone.js, soundfont-player, @tonejs/midi, VexFlow) are imported at runtime. The one `devDependency` (`@iarna/toml`) is only for the OpenPsalm build script.
 - **Shape-note shapes:** Do=triangle, Re=diamond, Mi=right triangle, Fa=downward triangle, Sol=circle, La=square, Ti=left triangle (drawn in `js/rendering/shapes.js`).
 - **Staff rendering is diatonic:** Note positions use letter-name steps (not semitones), with key-aware enharmonic spelling via `js/utils/keySignature.js`.
 - **Dark theme:** CSS custom properties defined in `:root` of the root `styles.css` (`--bg: #0f1220`, `--panel: #171a2b`, etc.).

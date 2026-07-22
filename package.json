@@ -1,17 +1,13 @@
 {
   "name": "shape-note-ear-trainer",
   "version": "2.0.0",
-  "description": "Shape-note / solfege ear trainer for singers",
+  "description": "Shape-note / solfège ear trainer for singers",
+  "license": "MIT",
   "scripts": {
-    "build-midi-library": "node scripts/build-midi-library.js",
-    "download-hymns": "node scripts/download-hymns.js",
     "build-openpsalm-library": "node scripts/build-openpsalm-library.js"
   },
   "devDependencies": {
-    "@iarna/toml": "^2.2.5",
-    "@tonejs/midi": "^2.0.28",
-    "cheerio": "^1.1.2",
-    "node-fetch": "^2.7.0"
+    "@iarna/toml": "^2.2.5"
   },
   "private": true
 }
