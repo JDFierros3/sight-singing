@@ -1685,17 +1685,18 @@ body.livesing-performing #liveSingVisual {
   max-width: 100dvw;
   margin: 0;
   border-radius: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
+  /* The staff is driven by a transform (not scrolling) in performance mode, so hide overflow. */
+  overflow: hidden;
   display: flex;
   align-items: center;                 /* vertically centre the staff */
   background: var(--bg, #0f1220);
 }
 
-/* Keep the wide staff at natural size (don't let flex shrink it) so it scrolls. */
+/* Keep the wide staff at natural size (don't let flex shrink it); promote it to its own
+   compositor layer so the per-frame translate is GPU-accelerated and smooth on mobile. */
 body.livesing-performing #liveSingVisual .livesing-notation-wrap {
   flex: 0 0 auto;
+  will-change: transform;
 }
 
 /* Full-height playhead line through the centred staff. */

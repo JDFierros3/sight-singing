@@ -564,11 +564,15 @@ function handleToggleMicEvent() {
 function startRenderLoop() {
   function tick() {
     getCurrentPitch();
-    renderStaff();
+    // On the Live Sing tab the shared canvas is hidden (the VexFlow SVG is the staff), so a
+    // full canvas redraw every frame is pure waste — that tab drives its own notation loop.
+    if (appState.exercise.currentTab !== 'livesing') {
+      renderStaff();
+    }
     refreshGlobalTransportUI();
     requestAnimationFrame(tick);
   }
-  
+
   tick();
 }
 

@@ -209,19 +209,17 @@ export async function playLiveSing() {
   const audioSetup = async (scaledStanza, sequenceId) => {
     scheduleNotes(scaledStanza.notes, sequenceId, async (note, seqId) => {
       if (!isValidSequence(seqId) || !appState.livesing.isPlaying) return;
-      const isChosen = note.part === chosen;
+      // Only the chosen voice sounds — skip the other three entirely instead of spawning
+      // silent (gain-0) audio nodes for every note (4x the audio work at high tempo).
+      if (note.part !== chosen) return;
       // Pan the chosen voice into the selected ear (read live so an ear change mid-song applies).
-      const pan = isChosen ? (EAR_PAN[appState.livesing.ear] || 0) : 0;
-      if (isChosen) {
-        appState.livesing.currentTargetMidi = note.midi; // drives the crosshair target
-      }
-      // baseGain 1 so gain === partVolume (softness for the chosen part, 0 for the rest).
+      const pan = EAR_PAN[appState.livesing.ear] || 0;
+      appState.livesing.currentTargetMidi = note.midi; // drives the crosshair target
+      // baseGain 1 so gain === partVolume (the chosen part's softness).
       await playNote({ ...note, pan }, seqId, 1, partVolumes);
-      if (isChosen) {
-        await waitWithValidation(note.duration * 1000, seqId, () => appState.livesing.isPlaying);
-        if (appState.livesing.currentTargetMidi === note.midi) {
-          appState.livesing.currentTargetMidi = null;
-        }
+      await waitWithValidation(note.duration * 1000, seqId, () => appState.livesing.isPlaying);
+      if (appState.livesing.currentTargetMidi === note.midi) {
+        appState.livesing.currentTargetMidi = null;
       }
     });
   };
@@ -300,6 +298,7 @@ let notationLayout = null;
 let notatedExercise = null;
 let playheadEl = null;
 let micLineEl = null;
+let notationWrapEl = null;
 let performRafId = null;
 let timeToX = null; // exercise-time -> x mapping, rebuilt whenever the notation re-renders
 
@@ -358,12 +357,12 @@ function ensurePlayhead(visual) {
   playheadEl = document.createElement('div');
   playheadEl.className = 'livesing-playhead';
   visual.appendChild(playheadEl);
-  // Mic pitch line lives in the notation wrapper so it aligns with the staff and scrolls with it.
-  const wrap = visual.querySelector('.livesing-notation-wrap');
-  if (wrap) {
+  // Mic pitch line lives in the notation wrapper so it aligns with the staff and moves with it.
+  notationWrapEl = visual.querySelector('.livesing-notation-wrap');
+  if (notationWrapEl) {
     micLineEl = document.createElement('div');
     micLineEl.className = 'livesing-micline';
-    wrap.appendChild(micLineEl);
+    notationWrapEl.appendChild(micLineEl);
   }
 }
 
@@ -486,18 +485,22 @@ function startPlayheadAnimation() {
   const visual = getElementById('liveSingVisual');
   if (!visual || !notationLayout) return;
   if (!timeToX) timeToX = buildTimeToX(notationLayout);
+  // Playhead is pinned ~30% from the left; the STAFF slides under it via a GPU transform
+  // (translate3d) instead of scrollLeft. Scrolling a several-thousand-px SVG every frame
+  // forces layout/re-raster and is the main source of mobile choppiness; a transform is
+  // composited off the main thread.
   const frame = () => {
     if (!appState.livesing.isPlaying) { performRafId = null; return; }
     // exercise time = wall elapsed * tempo/60 (matches the player's playhead math).
     // Read timeToX/notationLayout live (module vars) so a mid-song re-render (rotation) is picked up.
     const exerciseTime = (appState.staff.currentTime || 0) * (appState.livesing.tempo / 60);
     const x = timeToX ? timeToX(exerciseTime) : 0;
+    const screenX = visual.clientWidth * 0.3;
+    if (notationWrapEl) notationWrapEl.style.transform = `translate3d(${Math.round(screenX - x)}px,0,0)`;
     if (playheadEl) {
-      playheadEl.style.left = `${x}px`;
+      playheadEl.style.left = `${Math.round(screenX)}px`;
       playheadEl.style.height = `${notationLayout?.height || 210}px`;
     }
-    // Keep the playhead ~30% from the left; the notation scrolls under it.
-    visual.scrollLeft = Math.max(0, x - visual.clientWidth * 0.3);
     updateMicLine();
     performRafId = requestAnimationFrame(frame);
   };

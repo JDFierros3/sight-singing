@@ -41,50 +41,79 @@ export function calculateRMS(buffer) {
   return Math.sqrt(sum / buffer.length);
 }
 
+// Pitch detection only needs to cover sung/played fundamentals. Decimating the buffer
+// before the O(n^2) autocorrelation, and bounding the lag search to this range, cuts the
+// cost ~25x (the whole point — the full 2048-sample version cost ~18ms/call and ran every
+// frame, which froze weaker phones). Parabolic peak refinement keeps sub-sample precision.
+const DECIMATE = 4;      // 44.1kHz -> ~11kHz working rate; Nyquist still far above the voice
+const MIN_HZ = 65;       // below a bass low C
+const MAX_HZ = 1200;     // above a soprano high
+
 export function detectPitchWithAutocorrelation(buffer, sampleRate) {
   if (!buffer || buffer.length === 0) {
     return -1;
   }
-  
+
   const rms = calculateRMS(buffer);
   if (rms < 0.005) {
     return -1;
   }
-  
-  const trimmedBuffer = trimBufferEdges(buffer);
-  if (trimmedBuffer.length < 32) {
+
+  const work = decimateBuffer(buffer, DECIMATE);
+  const rate = sampleRate / DECIMATE;
+  if (work.length < 64) {
     return -1;
   }
-  
-  const autocorrelation = computeAutocorrelation(trimmedBuffer);
-  const peakIndex = findAutocorrelationPeak(autocorrelation);
-  
+
+  const minLag = Math.max(2, Math.floor(rate / MAX_HZ));
+  const maxLag = Math.min(work.length - 1, Math.ceil(rate / MIN_HZ));
+
+  const autocorrelation = computeAutocorrelation(work, maxLag);
+  const peakIndex = findAutocorrelationPeak(autocorrelation, minLag);
+
   if (peakIndex <= 0) {
     return -1;
   }
-  
-  const refinedPeak = refinePeakPosition(autocorrelation, peakIndex);
-  const period = refinedPeak;
-  
-  return sampleRate / period;
+
+  const period = refinePeakPosition(autocorrelation, peakIndex);
+  if (period <= 0) {
+    return -1;
+  }
+
+  return rate / period;
 }
 
-export function findAutocorrelationPeak(acArray) {
-  let skipIndex = 0;
+// Average-and-downsample by `factor` (the averaging is a cheap anti-alias pre-filter).
+function decimateBuffer(buffer, factor) {
+  if (factor <= 1) return buffer;
+  const outLen = Math.floor(buffer.length / factor);
+  const out = new Float32Array(outLen);
+  for (let i = 0; i < outLen; i++) {
+    let sum = 0;
+    const base = i * factor;
+    for (let k = 0; k < factor; k++) sum += buffer[base + k];
+    out[i] = sum / factor;
+  }
+  return out;
+}
+
+export function findAutocorrelationPeak(acArray, minLag = 0) {
+  // Skip the descending slope from the minimum lag so we lock onto the first true peak.
+  let skipIndex = Math.max(0, minLag);
   while (skipIndex < acArray.length - 1 && acArray[skipIndex] > acArray[skipIndex + 1]) {
     skipIndex++;
   }
-  
-  let maxValue = -1;
+
+  let maxValue = -Infinity;
   let maxPosition = -1;
-  
+
   for (let i = skipIndex; i < acArray.length; i++) {
     if (acArray[i] > maxValue) {
       maxValue = acArray[i];
       maxPosition = i;
     }
   }
-  
+
   return maxPosition;
 }
 
@@ -100,7 +129,19 @@ export function refinePeakPosition(acArray, peakIndex) {
   return peakIndex + shift;
 }
 
+// Detection runs at ~30 Hz, not once per animation frame. Pitch doesn't change meaningfully
+// between 16ms frames, and the autocorrelation is the loop's single most expensive step —
+// halving how often it runs (vs 60fps) is a free win, especially on mobile.
+let _lastDetectAt = 0;
+const DETECT_INTERVAL_MS = 33;
+
 export function getCurrentPitch() {
+  const now = performance.now();
+  if (now - _lastDetectAt < DETECT_INTERVAL_MS) {
+    return pitchState.hz; // keep the last reading; smoothing/decay are time-based, so this is safe
+  }
+  _lastDetectAt = now;
+
   const buffer = readMicrophoneBuffer();
   if (!buffer) {
     pitchState.hz = 0;
@@ -191,41 +232,21 @@ function isMicrophoneReady() {
   return microphone.analyser !== null;
 }
 
-function trimBufferEdges(buffer) {
-  // Lower threshold so quieter voices (especially higher pitches) still retain enough data.
-  // The old value (0.2) could trim nearly everything and break detection.
-  const threshold = 0.05;
-  let startIndex = 0;
-  let endIndex = buffer.length - 1;
-  
-  while (startIndex < buffer.length && Math.abs(buffer[startIndex]) < threshold) {
-    startIndex++;
-  }
-  
-  while (endIndex > 0 && Math.abs(buffer[endIndex]) < threshold) {
-    endIndex--;
-  }
-
-  // If we trimmed too aggressively, fall back to the full buffer.
-  if (endIndex - startIndex < 64) {
-    return buffer;
-  }
-
-  return buffer.slice(startIndex, endIndex + 1);
-}
-
-function computeAutocorrelation(buffer) {
+function computeAutocorrelation(buffer, maxLag) {
   const length = buffer.length;
-  const autocorrelation = new Float32Array(length);
-  
-  for (let i = 0; i < length; i++) {
+  // Only compute lags up to maxLag (the longest period we care about) — the dominant cost.
+  const limit = Math.min((maxLag ?? length - 1) + 1, length);
+  const autocorrelation = new Float32Array(limit);
+
+  for (let i = 0; i < limit; i++) {
     let sum = 0;
-    for (let j = 0; j < length - i; j++) {
+    const end = length - i;
+    for (let j = 0; j < end; j++) {
       sum += buffer[j] * buffer[j + i];
     }
     autocorrelation[i] = sum;
   }
-  
+
   return autocorrelation;
 }
 
