@@ -325,6 +325,22 @@ export function isUsingSoundfont() {
 }
 
 /**
+ * Resolve once the current instrument is fully ready to play (samples decoded), so the
+ * first notes of a sequence don't get dropped while assets are still loading. Safe no-op
+ * for the sine-oscillator path. Bounded so it can never hang the caller.
+ */
+export async function ensureInstrumentReady() {
+  let waited = 0;
+  while (isLoading && waited < 6000) {
+    await new Promise(r => setTimeout(r, 50));
+    waited += 50;
+  }
+  if (typeof Tone !== 'undefined' && typeof Tone.loaded === 'function') {
+    try { await Tone.loaded(); } catch (e) {}
+  }
+}
+
+/**
  * Stop all currently playing instrument notes
  */
 export function stopAllInstrumentNotes() {

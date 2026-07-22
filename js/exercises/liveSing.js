@@ -18,7 +18,7 @@ import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence } from '../player/sequenceManager.js';
 import { playNote } from '../player/audioPlayer.js';
-import { setPartPan } from '../audio/instruments.js';
+import { setPartPan, ensureInstrumentReady } from '../audio/instruments.js';
 import { renderStaff } from '../rendering/staff.js';
 import { renderHymnNotation } from '../rendering/notationView.js';
 import { openHymnBrowser } from '../ui/components/hymnBrowser.js';
@@ -176,19 +176,31 @@ function syncKeyDropdown() {
 /* ---------------------------------------------------------- playback ------ */
 
 export async function playLiveSing() {
-  await ensureAudioContext();
-  if (appState.livesing.isPlaying) return;
+  if (appState.livesing.isPlaying || appState.livesing.preparing) return;
 
   const base = appState.satb.currentExercise;
   if (!base) { updateStatus('Pick a hymn first'); return; }
 
+  // --- Buffer everything BEFORE the first note, so the start doesn't skip. ---
+  // The full-screen engrave and audio warm-up are the expensive bits; do them now (with a
+  // 3-2-1 countdown), so the main thread is idle when notes actually start firing.
+  appState.livesing.preparing = true;
+  updateTransportButtons(true);            // Stop is reachable throughout prep
+  updateStatus('Get ready…');
+  startMicrophone().catch(() => {});        // so the pitch (crosshair) line has input
+  await ensureAudioContext();
+  enterPerformanceMode();                   // engrave the full-screen notation up front
+  await ensureInstrumentReady();            // wait for samples (no-op for the sine path)
+  await nextPaint();                        // let the engraved staff paint before we count in
+
+  if (!appState.livesing.preparing) return; // Stop pressed during buffering
+  await runCountdown();                     // 3 · 2 · 1 · Sing!
+  if (!appState.livesing.preparing) return; // Stop pressed during countdown
+
+  appState.livesing.preparing = false;
   appState.livesing.isPlaying = true;
-  updateTransportButtons(true);
   updateStatus('Singing');
-
-  startMicrophone().catch(() => {}); // so the pitch (crosshair) line has input
-
-  enterPerformanceMode(); // full-screen scrolling notation
+  startPlayheadAnimation();                 // begin the scroll now that we're actually playing
 
   const exercise = transposeExercise(base, appState.livesing.doSemis);
 
@@ -241,13 +253,22 @@ export async function playLiveSing() {
 }
 
 export function stopLiveSing() {
+  // Cancel a pending count-in/buffer before playback has started.
+  if (appState.livesing.preparing) {
+    appState.livesing.preparing = false;
+    cancelCountdown();
+    finishLiveSing('stopped');
+    return;
+  }
   if (!appState.livesing.isPlaying) return;
   stanzaSequencePlayer.stopSequence(); // triggers onStop -> finishLiveSing('stopped')
 }
 
 function finishLiveSing(status) {
   appState.livesing.isPlaying = false;
+  appState.livesing.preparing = false;
   appState.livesing.currentTargetMidi = null;
+  cancelCountdown();
   stopProgress();
   exitPerformanceMode();
   updateTransportButtons(false);
@@ -341,7 +362,20 @@ function enterPerformanceMode() {
   document.body.classList.add('livesing-performing');
   renderNotation(notatedExercise || appState.satb.currentExercise, true); // re-engrave at full width
   ensureExitButton(true);
-  startPlayheadAnimation();
+  positionStaffAtStart(); // park the staff at the first note so the count-in shows the opening bar
+}
+
+// Place the staff so the first note sits under the pinned (30%) playhead — the resting
+// position before playback begins (the animation takes over once we're actually singing).
+function positionStaffAtStart() {
+  const visual = getElementById('liveSingVisual');
+  if (!visual || !notationWrapEl || !timeToX) return;
+  const screenX = visual.clientWidth * 0.3;
+  notationWrapEl.style.transform = `translate3d(${Math.round(screenX - timeToX(0))}px,0,0)`;
+  if (playheadEl) {
+    playheadEl.style.left = `${Math.round(screenX)}px`;
+    playheadEl.style.height = `${notationLayout?.height || 210}px`;
+  }
 }
 
 function exitPerformanceMode() {
@@ -464,6 +498,62 @@ function ensureExitButton(show) {
     document.body.appendChild(btn);
   }
   if (btn) btn.style.display = show ? 'block' : 'none';
+}
+
+/* --------------------------------------------------------- count-in ------- */
+
+let countdownTimer = null;
+
+// Resolve after a "3 · 2 · 1 · Sing!" count-in, giving the group a shared start cue and the
+// browser time to finish buffering. Bails immediately if Stop is pressed mid-count.
+function runCountdown() {
+  return new Promise(resolve => {
+    const el = ensureCountdownEl();
+    const steps = ['3', '2', '1', 'Sing!'];
+    let i = 0;
+    const step = () => {
+      if (!appState.livesing.preparing) { hideCountdown(); resolve(); return; }
+      el.textContent = steps[i];
+      el.style.display = 'flex';
+      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); // restart the pop
+      i += 1;
+      if (i < steps.length) countdownTimer = setTimeout(step, 800);
+      else countdownTimer = setTimeout(() => { hideCountdown(); resolve(); }, 450);
+    };
+    step();
+  });
+}
+
+function cancelCountdown() {
+  if (countdownTimer) { clearTimeout(countdownTimer); countdownTimer = null; }
+  hideCountdown();
+}
+
+function ensureCountdownEl() {
+  let el = getElementById('liveSingCountdown');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'liveSingCountdown';
+    el.className = 'livesing-countdown';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function hideCountdown() {
+  const el = getElementById('liveSingCountdown');
+  if (el) el.style.display = 'none';
+}
+
+// Resolve on the next paint, so a just-engraved staff is actually on screen before we continue.
+// Falls back to a timer so a throttled/stalled rAF can never hang the start.
+function nextPaint() {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(); } };
+    requestAnimationFrame(() => requestAnimationFrame(finish));
+    setTimeout(finish, 250);
+  });
 }
 
 // Map exercise time (seconds at 60bpm) -> x, LINEARLY within each measure so the

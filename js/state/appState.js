@@ -133,6 +133,7 @@ function initializeLiveSing() {
     softness: 0.35,       // Reference-tone volume (0-1)
     tempo: 60,            // Playback tempo (BPM)
     isPlaying: false,
+    preparing: false,     // buffering audio + notation and counting down, before playback starts
     doSemis: 0,           // Semitone transpose from the hymn's key to the chosen Key
     currentTargetMidi: null // The chosen part's note currently sounding (drives the crosshair). null = none.
   };

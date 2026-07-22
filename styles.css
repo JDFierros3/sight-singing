@@ -1708,19 +1708,49 @@ body.livesing-performing .livesing-playhead {
 
 .livesing-exit-btn {
   position: fixed;
-  /* Clear the notch / rounded corners on modern phones. */
-  top: max(14px, env(safe-area-inset-top, 0px));
-  right: max(14px, env(safe-area-inset-right, 0px));
-  z-index: 3001;
+  /* Bottom-centre: the reliable thumb zone, and clear of the top status bar / notch / URL
+     bar that made this unreachable in portrait. Respects the home-indicator safe area. */
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 3010;                 /* above the notation AND the count-in overlay */
   background: #f87171;
   color: #0b0f19;
   border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  min-height: 44px;
-  font-weight: 600;
+  border-radius: 999px;
+  padding: 12px 34px;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   cursor: pointer;
   display: none;
+}
+
+/* Full-screen "3 · 2 · 1 · Sing!" count-in. pointer-events:none so the Stop button
+   underneath stays tappable if someone wants to bail during the count. */
+.livesing-countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 3006;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-weight: 800;
+  font-size: clamp(84px, 34vw, 260px);
+  color: var(--accent, #6ee7ff);
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+}
+
+.livesing-countdown.pop {
+  animation: livesing-count-pop 0.42s ease-out;
+}
+
+@keyframes livesing-count-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  35% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.92; }
 }
 
 /* Landscape phone: keep the notation prominent, compact the controls into a
