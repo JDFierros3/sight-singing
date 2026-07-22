@@ -179,7 +179,13 @@ export function renderHymnNotation(exercise, container, options = {}) {
         }
       }
       const voice = new VF.Voice({ num_beats: num, beat_value: den }).setStrict(false).addTickables(tickables);
-      built[part] = { voice, tickables, meta };
+      // Beam consecutive eighths/sixteenths by beat so florid passages read as groups, not a
+      // row of separate flags. maintain_stem_directions keeps each voice's fixed stem side.
+      let beams = [];
+      try {
+        beams = VF.Beam.generateBeams(tickables, { maintain_stem_directions: true, beam_rests: false });
+      } catch (e) { beams = []; }
+      built[part] = { voice, tickables, meta, beams };
     }
 
     const trebleVoices = ['S', 'A'].map(p => built[p].voice);
@@ -194,6 +200,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
       const b = built[part];
       const stave = (part === 'S' || part === 'A') ? treble : bass;
       b.voice.draw(ctx, stave);
+      (b.beams || []).forEach(beam => { try { beam.setContext(ctx).draw(); } catch (e) {} });
       b.tickables.forEach((t, i) => {
         const m = b.meta[i];
         if (!m || !t.getAbsoluteX) return;
