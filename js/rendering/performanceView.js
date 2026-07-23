@@ -56,7 +56,9 @@ export function showNotation(exercise, force = false) {
   // Full-screen: scale to FIT the viewport height so the staff is never taller than the
   // screen. Keyed on both dimensions so a rotation / URL-bar resize re-engraves.
   const fitHeight = performing ? Math.max(200, window.innerHeight - 16) : null;
-  const dims = performing ? `full${Math.round(window.innerWidth)}x${Math.round(window.innerHeight)}` : Math.round(width);
+  // Inline: honour the global Zoom control (the header staff-size slider).
+  const zoom = appState.display?.zoom || 1;
+  const dims = performing ? `full${Math.round(window.innerWidth)}x${Math.round(window.innerHeight)}` : `${Math.round(width)}@${zoom}`;
   const variant = cfg.variant ? cfg.variant() : '';
   const key = `${exercise.id || exercise.label}|${variant}|${dims}`;
   if (!force && key === lastKey && container.querySelector('svg')) return;
@@ -66,7 +68,7 @@ export function showNotation(exercise, force = false) {
     layout = renderHymnNotation(exercise, container, {
       width,
       fitHeight,
-      scale: performing ? undefined : 1,
+      scale: performing ? undefined : zoom,
       ...(cfg.renderOptions || {})
     });
     timeToX = layout ? buildTimeToX(layout) : null;

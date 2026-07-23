@@ -13,7 +13,7 @@ import { ensureAudioContext } from '../../audio/context.js';
 import { startMicrophone, stopMicrophone } from '../../audio/microphone.js';
 import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionButtons } from '../builders/chordButtons.js';
 import { buildIndividualVolumeControls } from '../builders/volumeControls.js';
-import { runWarmupSequence, stopWarmupSequence } from '../../exercises/warmup.js';
+import { runWarmupSequence, stopWarmupSequence, displayWarmupStaff } from '../../exercises/warmup.js';
 import { setTempo } from '../../rendering/scrollingStaff.js';
 import { playHiddenCluster, revealClusterNotes } from '../../exercises/cluster.js';
 import { playIntervalExercise, revealIntervalSolution } from '../../exercises/intervals.js';
@@ -24,8 +24,17 @@ import { openHymnBrowser } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
 import {
   browseLiveSingHymns, setLiveSingPart, setLiveSingEar, setLiveSingSoftness,
-  setLiveSingTempo, setLiveSingKey, playLiveSing, stopLiveSing
+  setLiveSingTempo, setLiveSingKey, playLiveSing, stopLiveSing, displayLiveSingHymn
 } from '../../exercises/liveSing.js';
+
+// Re-render whichever VexFlow tab is active (SATB / Warmup / Live Sing) after a global setting
+// that affects the engraving changes (Do, Zoom). Other tabs use the canvas via renderStaff().
+function refreshActiveNotation() {
+  const tab = appState.exercise.currentTab;
+  if (tab === 'warmup') displayWarmupStaff();
+  else if (tab === 'satb' && appState.satb.currentExercise) displaySATBExerciseOnStaff(appState.satb.currentExercise);
+  else if (tab === 'livesing') displayLiveSingHymn();
+}
 
 export function handleA4TuningChange(event) {
   const value = Number(event.target.value) || 440;
@@ -78,7 +87,8 @@ export function handleDoNoteChange(event) {
   const value = Number(event.target.value);
   updateTuningSetting('doMidi', value);
   renderStaff();
-  
+  refreshActiveNotation(); // Warmup regenerates around the new Do (comfortable range)
+
   if (appState.drone.on) {
     restartDrone();
   }
@@ -102,7 +112,7 @@ export function handleZoomChange(event) {
   const value = Number(event.target.value);
   updateDisplaySetting('zoom', value);
   renderStaff();
-  transport.stopAllPlayback?.();
+  refreshActiveNotation(); // resize the engraved staff on SATB / Warmup / Live Sing
 }
 
 export function handlePlayAimChange(event) {
