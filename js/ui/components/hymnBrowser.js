@@ -151,13 +151,18 @@ function filterExercises(query, letter) {
       const hymnName = (exercise.hymnName || '').toLowerCase();
       const tuneName = (exercise.tuneName || '').toLowerCase();
       
-      return label.includes(lowerQuery) || 
-             hymnName.includes(lowerQuery) || 
+      return label.includes(lowerQuery) ||
+             hymnName.includes(lowerQuery) ||
              tuneName.includes(lowerQuery);
     });
   }
-  
-  return filtered;
+
+  // Sort by name (hymn name, falling back to label) by default — alphabetical, case-insensitive.
+  return filtered.slice().sort((a, b) => {
+    const ka = (a.hymnName || a.label || '').toLowerCase();
+    const kb = (b.hymnName || b.label || '').toLowerCase();
+    return ka.localeCompare(kb);
+  });
 }
 
 /**
@@ -325,11 +330,12 @@ function renderExercises() {
     resultsContainer.appendChild(button);
   });
   
-  // Focus first button for keyboard navigation
+  // Highlight the first result (so Enter/Arrow work), but DON'T move focus — the user may be
+  // mid-type in the search box, and focusing a result would drop them out of the field.
   const firstButton = resultsContainer.querySelector('button[data-index]');
   if (firstButton) {
     selectedIndex = 0;
-    updateSelection();
+    updateSelection(false);
   }
   
   // Scroll to top of results
@@ -337,21 +343,23 @@ function renderExercises() {
 }
 
 /**
- * Update visual selection (with inline styles)
+ * Update visual selection (with inline styles).
+ * `moveFocus` is false when we're only highlighting after a re-render (e.g. while the user is
+ * typing) — moving focus to a result would yank the caret out of the search box.
  */
-function updateSelection() {
+function updateSelection(moveFocus = true) {
   const buttons = resultsContainer.querySelectorAll('button[data-index]');
   buttons.forEach((button, index) => {
     if (index === selectedIndex) {
       button.classList.add('selected');
       button.style.background = 'rgba(125, 211, 252, 0.15)';
-      button.focus();
+      if (moveFocus) button.focus();
     } else {
       button.classList.remove('selected');
       button.style.background = 'transparent';
     }
   });
-  
+
   // Scroll selected button into view
   if (selectedIndex >= 0 && buttons[selectedIndex]) {
     buttons[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -375,12 +383,16 @@ function handleKeyboardNavigation(e) {
   const buttons = resultsContainer.querySelectorAll('button[data-index]');
   if (buttons.length === 0) return;
   
-  // Don't intercept if user is typing in search input
+  // While typing in the search box, let keystrokes through — only handle Escape (close) and
+  // ArrowDown (hop from the field into the results to start navigating).
   if (document.activeElement === searchInput) {
-    // Only handle Escape when typing
     if (e.key === 'Escape') {
       e.preventDefault();
       closeHymnBrowser();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = 0;
+      updateSelection(true); // move focus into the list
     }
     return;
   }
@@ -613,9 +625,9 @@ export function openHymnBrowser() {
   }
   updateAzButtonStates();
   
-  // Get all exercises
-  filteredExercises = getAllSATBExercises();
-  
+  // Get all exercises, sorted by name (filterExercises with no query/letter = all, sorted)
+  filteredExercises = filterExercises('', null);
+
   // Show modal
   modal.style.display = 'flex';
   modal.style.alignItems = 'center';
