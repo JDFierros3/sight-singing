@@ -327,7 +327,10 @@ function isClearlyOpen(copyrights, hasCopyrightTxt) {
   if (hasCopyrightTxt) return { ok: false, reason: 'has copyright.txt (needs review)' };
   if (!Array.isArray(copyrights) || copyrights.length === 0) return { ok: false, reason: 'no copyrights field' };
   const text = copyrights.join(' • ').toLowerCase();
-  const restricted = /used by permission|used with permission|all rights reserved|©|\(c\)\s|copyright \d/.test(text);
+  // Reject anything that signals the work is NOT free — permission grants, active/renewed
+  // copyright, or reserved rights. Independent of the copyright.txt check so a restricted
+  // song is caught even if it ships no copyright.txt.
+  const restricted = /(by|with) permission|all rights reserved|under copyright|renewed \d{4}|©|\(c\)\s|copyright \d/.test(text);
   if (restricted) return { ok: false, reason: 'restrictive copyright language' };
   const pd = text.includes('public domain');
   const ccby = /cc-?by/.test(text);
