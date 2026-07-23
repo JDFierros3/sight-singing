@@ -297,18 +297,16 @@ export function switchToTab(tabName) {
     }, 10);
   }
 
-  // Live Sing displays the selected hymn on the shared staff (placeholder visual for v1),
-  // reusing the SATB renderer. Real engraved notation arrives in Phase 2.
+  // Live Sing engraves the selected hymn into its own notation panel (via displayLiveSingHymn),
+  // NOT the SATB surface — they configure the shared performance view for different containers.
   if (appState.exercise.currentTab === 'livesing') {
-    setTimeout(() => {
+    setTimeout(async () => {
       const exercises = getAllSATBExercises();
-      const currentExercise = appState.satb.currentExercise;
-      if (currentExercise) {
-        displaySATBExerciseOnStaff(currentExercise);
-      } else if (exercises.length > 0) {
+      if (!appState.satb.currentExercise && exercises.length > 0) {
         appState.satb.currentExercise = exercises[0];
-        displaySATBExerciseOnStaff(exercises[0]);
       }
+      const { displayLiveSingHymn } = await import('../../exercises/liveSing.js');
+      displayLiveSingHymn();
     }, 10);
   }
 

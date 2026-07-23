@@ -40,14 +40,9 @@ let progressDurationMs = 0;
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
-/* ------------------------------------------------------------------ setup -- */
-
-export function initializeLiveSing() {
-  buildLiveSingPartButtons();
-  // Highlight the Live Sing part on the shared staff (renderer reads satb.aimPart).
-  appState.satb.aimPart = appState.livesing.part;
-
-  // Wire the reusable performance surface to Live Sing's container + state.
+// Point the shared performance surface at Live Sing's container + state. Called before every
+// show/play because the surface is a singleton the SATB tab also configures for its own panel.
+function configureLiveSingPerformance() {
   configurePerformance({
     container: getElementById('liveSingVisual'),
     getTime: () => (appState.staff.currentTime || 0) * (appState.livesing.tempo / 60),
@@ -57,6 +52,14 @@ export function initializeLiveSing() {
     onExit: () => stopLiveSing(),
     variant: () => appState.livesing.doSemis
   });
+}
+
+/* ------------------------------------------------------------------ setup -- */
+
+export function initializeLiveSing() {
+  buildLiveSingPartButtons();
+  // Highlight the Live Sing part on the shared staff (renderer reads satb.aimPart).
+  appState.satb.aimPart = appState.livesing.part;
 
   syncLiveSingControls();
   applyHymnTempo();   // start from the auto-selected hymn's own tempo
@@ -202,6 +205,7 @@ export async function playLiveSing() {
   updateStatus('Get ready…');
   startMicrophone().catch(() => {});        // so the pitch (crosshair) line has input
   await ensureAudioContext();
+  configureLiveSingPerformance();           // re-claim the shared surface (SATB may have held it)
   enterPerformance();                       // engrave the full-screen notation up front
   await ensureInstrumentReady();            // wait for samples (no-op for the sine path)
   await nextPaint();                        // let the engraved staff paint before we count in
@@ -322,6 +326,7 @@ export function displayLiveSingHymn() {
 
   renderStaff();
   updateHymnLabel();
+  configureLiveSingPerformance();
   showNotation(ex);
 }
 

@@ -14,9 +14,29 @@ import { isValidSequence, getCurrentSequenceId } from '../player/sequenceManager
 import { playNote, stopAllNotes } from '../player/audioPlayer.js';
 import { getAllSATBExercises as getAllSATBExercisesFromData, createExerciseFromMidi } from './satbData.js';
 import { buildPartSelectionButtons, buildPartVolumeControls, updatePartSelection } from '../ui/builders/satbControls.js';
-import { renderStaff } from '../rendering/staff.js';
-import { updatePanningCursor } from '../rendering/staffPanning.js';
 import { getAccidentalForNote } from '../utils/keySignature.js';
+import {
+  configurePerformance, showNotation, enterPerformance, exitPerformance, startScroll
+} from '../rendering/performanceView.js';
+
+// Point the shared performance surface at the SATB tab (container + clock + state).
+function configureSATBPerformance() {
+  configurePerformance({
+    container: getElementById('satbVisual'),
+    getTime: () => (appState.staff.currentTime || 0) * ((appState.staff.tempo || 60) / 60),
+    getTargetMidi: () => null, // all parts sound; the mic line just shows the singer's pitch
+    fitPart: () => appState.satb.aimPart,
+    isPlaying: () => appState.satb.isPlaying,
+    onExit: () => stopSATBExercise(),
+    variant: () => appState.satb.transposeSemis
+  });
+}
+
+// Leave full-screen and restore the inline engraved notation after playback ends/stops.
+function restoreSATBNotation() {
+  exitPerformance();
+  if (appState.satb.currentExercise) displaySATBExerciseOnStaff(appState.satb.currentExercise);
+}
 
 // Track active SATB oscillators
 let activeSATBOscillators = [];
@@ -85,7 +105,12 @@ export async function playSATBExercise() {
     appState.staff.keyMode = exercise.midiKeyMode || 'major';
     appState.staff.satbPreviewMode = true;
   }
-  
+
+  // Full-screen engraved play-along: expand the staff and scroll it under the playhead.
+  configureSATBPerformance();
+  enterPerformance(exercise);
+  startScroll();
+
   // Convert to stanza format
   const stanza = convertSATBToStanza(exercise);
   
@@ -144,7 +169,8 @@ export async function playSATBExercise() {
     onComplete: () => {
       appState.satb.isPlaying = false;
       updateSatbButton(false);
-      
+      restoreSATBNotation();
+
       const sequenceId = getCurrentSequenceId();
       setTextContent(badge, 'done');
       setTimeout(() => {
@@ -158,7 +184,8 @@ export async function playSATBExercise() {
       updateSatbButton(false);
       stopAllSATBOscillators();
       stopAllDroneOscillators();
-      
+      restoreSATBNotation();
+
       const sequenceId = getCurrentSequenceId();
       setTextContent(badge, 'stopped');
       setTimeout(() => {
@@ -169,10 +196,11 @@ export async function playSATBExercise() {
     }
   });
   
-  // Cleanup if sequence ended normally
+  // Cleanup if the sequence resolved without onComplete/onStop firing.
   if (appState.satb.isPlaying) {
     appState.satb.isPlaying = false;
     updateSatbButton(false);
+    restoreSATBNotation();
   }
   stopAllSATBOscillators();
   stopAllDroneOscillators();
@@ -186,12 +214,7 @@ export function stopSATBExercise() {
     return;
   }
   
-  stanzaSequencePlayer.stopSequence();
-
-  // Restore the current exercise on the staff so it stays visible after stopping
-  if (appState.satb.currentExercise) {
-    displaySATBExerciseOnStaff(appState.satb.currentExercise);
-  }
+  stanzaSequencePlayer.stopSequence(); // onStop -> restoreSATBNotation (exit full-screen + re-show)
 }
 
 /**
@@ -287,52 +310,27 @@ function updateSatbButton(isPlaying, isPaused = false) {
  */
 export async function displaySATBExerciseOnStaff(exercise) {
   if (!exercise) return;
-  
+
   // Store the base exercise so getDoMidiForDisplay() can access it
   appState.satb.currentExercise = exercise;
-  
+
   // Update current hymn display
   const { updateCurrentHymnDisplay } = await import('../ui/components/hymnBrowser.js');
   updateCurrentHymnDisplay();
 
   const transposed = getTransposedExercise(exercise, appState.satb.transposeSemis);
-  
-  // Convert SATB exercise to notes format for display
-  const allNotes = [];
-  Object.values(transposed.parts).forEach(partNotes => {
-    allNotes.push(...partNotes);
-  });
-  allNotes.sort((a, b) => a.startTime - b.startTime);
-  
-  // Annotate notes with accidental information
-  const { getAccidentalForNote } = await import('../utils/keySignature.js');
-  const tonic = transposed.midiKeyMidi;
-  const mode = transposed.midiKeyMode || 'major';
-  
-  const annotatedNotes = allNotes.map(note => ({
-    ...note,
-    accidental: getAccidentalForNote(note.midi, tonic, mode)
-  }));
-  
-  // Set notes for display (scrolling mode off, so they show statically)
-  appState.staff.notes = annotatedNotes;
-  appState.staff.scrollingMode = false;
+
+  // Key bookkeeping (solfege mapping + getDoMidiForDisplay still read appState.staff.*).
+  appState.staff.keyTonic = transposed.midiKeyMidi;
+  appState.staff.keyMode = transposed.midiKeyMode || 'major';
+  appState.staff.satbPreviewMode = true;
   appState.staff.isPlaying = false;
   appState.staff.currentTime = 0;
-  appState.staff.playheadX = 0;
-  appState.staff.satbPreviewMode = true; // Mark as SATB preview mode
-  
-  // Store key info for staff rendering
-  appState.staff.keyTonic = tonic;
-  appState.staff.keyMode = mode;
-  
-  // Re-render staff to show the exercise
-  renderStaff();
-  
-  // Update panning cursor (panning not available in preview mode)
-  updatePanningCursor();
 
-  // Update key label
+  // Engrave the grand staff (VexFlow) into the SATB notation panel.
+  configureSATBPerformance();
+  showNotation(transposed);
+
   updateSatbKeyLabel(exercise, appState.satb.transposeSemis);
 }
 

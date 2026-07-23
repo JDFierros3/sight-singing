@@ -1678,8 +1678,9 @@ body[data-active-tab="flashcards"] .staffPanel {
    (solfege colour), so no CSS fill overrides here — CSS would clobber the
    per-notehead presentation attributes. */
 
-/* On the Live Sing tab the notation IS the staff — hide the shared shape-note canvas. */
-body[data-active-tab="livesing"] .staffPanel {
+/* On the Live Sing + SATB tabs the notation IS the staff — hide the shared shape-note canvas. */
+body[data-active-tab="livesing"] .staffPanel,
+body[data-active-tab="satb"] .staffPanel {
   display: none;
 }
 
