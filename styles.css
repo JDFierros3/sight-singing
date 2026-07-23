@@ -1445,6 +1445,22 @@ body[data-active-tab="flashcards"] .staffPanel {
   font-size: 0.85rem;
 }
 
+/* Callout for a key takeaway inside a lesson. */
+.key-insight {
+  background: rgba(125, 211, 252, 0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin: 16px 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.key-insight strong:first-child {
+  color: var(--accent);
+}
+
 /* Difficulty description text */
 .difficulty-desc {
   color: var(--muted);
