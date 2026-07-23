@@ -12,8 +12,10 @@ import { getShapeColor } from './shapes.js';
 
 const LETTER_STEP = { c: 0, d: 1, e: 2, f: 3, g: 4, a: 5, b: 6 };
 
-// Intrinsic height of one engraved system (treble + lyric band + bass), before scaling.
+// Intrinsic height of one engraved system before scaling: a grand staff (treble + lyric
+// band + bass) vs a single treble staff with labels beneath it.
 const SYSTEM_HEIGHT = 320;
+const SINGLE_HEIGHT = 150;
 
 // Seconds-at-60bpm -> { dur, dots } (quarter = 1s).
 const DUR_TABLE = [
@@ -82,6 +84,12 @@ function midiToVexKey(midi, tonicPc, mode) {
   };
 }
 
+// MIDI -> movable-Do solfege syllable in the given key (for solfege labels under the staff).
+function solfegeLabel(midi, tonicPc, mode) {
+  const spelled = spellMidiInKey(midi, tonicPc, mode);
+  return spelled ? spelled.solfege : '';
+}
+
 /**
  * Render the exercise as engraved notation into `container`.
  * Returns a layout map: { partPositions: {S:[{x,y,midi,startTime}], ...}, width, height }
@@ -92,11 +100,17 @@ export function renderHymnNotation(exercise, container, options = {}) {
   if (!Vex || !Vex.Flow || !exercise || !container) return null;
   const VF = Vex.Flow;
 
+  // Staff mode: 'grand' (SATB, two staves) or 'single' (one treble line, e.g. warmup melody).
+  const grand = options.staffMode !== 'single';
+  const labelSource = options.labelSource || 'hymn'; // 'hymn' | 'solfege' | 'none'
+  const PARTS_ACTIVE = grand ? ['S', 'A', 'T', 'B'] : ['S'];
+  const systemHeight = grand ? SYSTEM_HEIGHT : SINGLE_HEIGHT;
+
   // Native zoom. In full-screen we scale to FIT the system into the available height
   // (options.fitHeight) so the staff is never taller than the screen — critical in
   // landscape, where the viewport is short. Otherwise honour an explicit scale.
   const scale = options.fitHeight
-    ? Math.max(1.0, Math.min(2.8, options.fitHeight / SYSTEM_HEIGHT))
+    ? Math.max(1.0, Math.min(2.8, options.fitHeight / systemHeight))
     : Math.max(0.5, options.scale || 1);
 
   container.innerHTML = '';
@@ -112,7 +126,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
   // and the tie/slur/fermata info needed to draw those marks.
   const byPart = { S: [], A: [], T: [], B: [] };
   let measureCount = 0;
-  for (const part of ['S', 'A', 'T', 'B']) {
+  for (const part of PARTS_ACTIVE) {
     for (const n of (exercise.parts?.[part] || [])) {
       const pieces = notePieces(n, measureLenSec);
       pieces.forEach((pc, idx) => {
@@ -139,12 +153,11 @@ export function renderHymnNotation(exercise, container, options = {}) {
   // Wide inter-staff gap so the inner-voice stems (alto down, tenor up) leave a clear
   // band in the middle for the lyrics — no overlap.
   const bassY = trebleY + 170;
-  const systemHeight = SYSTEM_HEIGHT;
   let lyricsY = bassY;                   // set precisely from the rendered staves (below)
 
   let maxNotes = 1;
   for (let mi = 0; mi < measureCount; mi++) {
-    for (const p of ['S', 'A', 'T', 'B']) maxNotes = Math.max(maxNotes, (byPart[p][mi] || []).length);
+    for (const p of PARTS_ACTIVE) maxNotes = Math.max(maxNotes, (byPart[p][mi] || []).length);
   }
   const measureWidth = Math.min(520, Math.max(isMobile ? 150 : 210, maxNotes * perNote));
   const totalWidth = leftPad * 2 + clefExtra + measureCount * measureWidth;
@@ -176,17 +189,21 @@ export function renderHymnNotation(exercise, container, options = {}) {
     const w = measureWidth + (first ? clefExtra : 0);
 
     const treble = new VF.Stave(x, trebleY, w);
-    const bass = new VF.Stave(x, bassY, w);
+    const bass = grand ? new VF.Stave(x, bassY, w) : null;
     if (first) {
       treble.addClef('treble').addKeySignature(keySpec).addTimeSignature(`${num}/${den}`);
-      bass.addClef('bass').addKeySignature(keySpec).addTimeSignature(`${num}/${den}`);
-      // Centre the lyric baseline exactly between the treble bottom line and bass top line.
-      lyricsY = (treble.getYForLine(4) + bass.getYForLine(0)) / 2 + 5;
+      if (bass) bass.addClef('bass').addKeySignature(keySpec).addTimeSignature(`${num}/${den}`);
+      // Grand staff: centre the labels between the staves. Single staff: sit them just below it.
+      lyricsY = bass
+        ? (treble.getYForLine(4) + bass.getYForLine(0)) / 2 + 5
+        : treble.getYForLine(4) + 30;
     }
     treble.setContext(ctx).draw();
-    bass.setContext(ctx).draw();
-    if (first) new VF.StaveConnector(treble, bass).setType('brace').setContext(ctx).draw();
-    new VF.StaveConnector(treble, bass).setType('singleLeft').setContext(ctx).draw();
+    if (bass) {
+      bass.setContext(ctx).draw();
+      if (first) new VF.StaveConnector(treble, bass).setType('brace').setContext(ctx).draw();
+      new VF.StaveConnector(treble, bass).setType('singleLeft').setContext(ctx).draw();
+    }
     // Map playhead time across the NOTE area (after the clef/key/time on measure 1),
     // not the full measure, so the playhead tracks the notes from the very first beat.
     const noteStartX = treble.getNoteStartX();
@@ -194,7 +211,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
 
     // One voice per part for THIS measure only (proper per-measure formatting).
     const built = {};
-    for (const part of ['S', 'A', 'T', 'B']) {
+    for (const part of PARTS_ACTIVE) {
       const clef = (part === 'S' || part === 'A') ? 'treble' : 'bass';
       const stemDir = (part === 'S' || part === 'T') ? VF.Stem.UP : VF.Stem.DOWN;
       const measure = byPart[part][mi] || [];
@@ -231,15 +248,15 @@ export function renderHymnNotation(exercise, container, options = {}) {
       built[part] = { voice, tickables, meta, beams };
     }
 
-    const trebleVoices = ['S', 'A'].map(p => built[p].voice);
-    const bassVoices = ['T', 'B'].map(p => built[p].voice);
+    const trebleVoices = PARTS_ACTIVE.filter(p => p === 'S' || p === 'A').map(p => built[p].voice);
+    const bassVoices = PARTS_ACTIVE.filter(p => p === 'T' || p === 'B').map(p => built[p].voice);
     const formatter = new VF.Formatter();
-    formatter.joinVoices(trebleVoices);
-    formatter.joinVoices(bassVoices);
+    if (trebleVoices.length) formatter.joinVoices(trebleVoices);
+    if (bassVoices.length) formatter.joinVoices(bassVoices);
     const formatWidth = Math.max(60, w - (first ? clefExtra + 22 : 22));
     formatter.format([...trebleVoices, ...bassVoices], formatWidth);
 
-    for (const part of ['S', 'A', 'T', 'B']) {
+    for (const part of PARTS_ACTIVE) {
       const b = built[part];
       const stave = (part === 'S' || part === 'A') ? treble : bass;
       b.voice.draw(ctx, stave);
@@ -258,7 +275,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
   }
 
   // Ties: connect each held head to the next head of the same note (incl. across barlines).
-  for (const part of ['S', 'A', 'T', 'B']) {
+  for (const part of PARTS_ACTIVE) {
     const chain = tieChain[part];
     for (let i = 0; i < chain.length - 1; i++) {
       if (!chain[i].tieToNext) continue;
@@ -269,7 +286,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
     }
   }
   // Slurs: one curve per slur group, from its first head to its last.
-  for (const part of ['S', 'A', 'T', 'B']) {
+  for (const part of PARTS_ACTIVE) {
     for (const id of Object.keys(slurGroups[part])) {
       const g = slurGroups[part][id];
       if (g.length < 2) continue;
@@ -277,17 +294,19 @@ export function renderHymnNotation(exercise, container, options = {}) {
     }
   }
 
-  // Verse-1 lyrics under the melody: the library aligns one syllable to each soprano
-  // note (built from slur/beam melismas + chorus/stanza markers), with '' where a note
-  // is held under the previous syllable — so syllables sit under the notes they're sung on.
-  const syllables = lyricsForNotes(exercise);
-  if (syllables.length) {
+  // Labels under the melody. 'hymn': verse-1 syllables the library aligned to each soprano
+  // note (blank where a note is held under the previous syllable). 'solfege': each note's
+  // movable-Do syllable. 'none': nothing.
+  if (labelSource !== 'none') {
+    const syllables = labelSource === 'hymn' ? lyricsForNotes(exercise) : null;
     ctx.save();
     ctx.setFont('Georgia, serif', 11, '');
     ctx.setFillStyle('#dbe4ff');
     ctx.setStrokeStyle('#dbe4ff');
     partPositions.S.forEach((p, i) => {
-      const syl = (syllables[i] || '').replace(/--/g, '');
+      let syl = '';
+      if (labelSource === 'solfege') syl = solfegeLabel(p.midi, tonicPc, mode);
+      else if (syllables) syl = (syllables[i] || '').replace(/--/g, '');
       if (!syl) return;
       try { ctx.fillText(syl, p.x - 3, lyricsY); } catch (e) {}
     });
@@ -296,7 +315,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
 
   // Linear fit y = a*midi + b (logical) so any sung pitch maps to a staff y (for the mic line).
   const fitPts = [];
-  for (const part of ['S', 'A', 'T', 'B']) for (const p of partPositions[part]) fitPts.push([p.midi, p.y]);
+  for (const part of PARTS_ACTIVE) for (const p of partPositions[part]) fitPts.push([p.midi, p.y]);
   let a = 0, b = systemHeight / 2;
   if (fitPts.length >= 2) {
     const n = fitPts.length;
