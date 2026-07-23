@@ -22,18 +22,12 @@ import * as transport from '../components/transport.js';
 import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode } from '../../exercises/flashcards.js';
 import { openHymnBrowser } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
-import {
-  browseLiveSingHymns, setLiveSingPart, setLiveSingEar, setLiveSingSoftness,
-  setLiveSingTempo, setLiveSingKey, playLiveSing, stopLiveSing, displayLiveSingHymn
-} from '../../exercises/liveSing.js';
-
-// Re-render whichever VexFlow tab is active (SATB / Warmup / Live Sing) after a global setting
-// that affects the engraving changes (Do, Zoom). Other tabs use the canvas via renderStaff().
+// Re-render whichever VexFlow tab is active (SATB / Warmup) after a global setting that affects
+// the engraving changes (Do, Zoom). Other tabs use the canvas via renderStaff().
 function refreshActiveNotation() {
   const tab = appState.exercise.currentTab;
   if (tab === 'warmup') displayWarmupStaff();
   else if (tab === 'satb' && appState.satb.currentExercise) displaySATBExerciseOnStaff(appState.satb.currentExercise);
-  else if (tab === 'livesing') displayLiveSingHymn();
 }
 
 export function handleA4TuningChange(event) {
@@ -454,42 +448,6 @@ export function handleSATBTransposeChange(event) {
   const semis = parseInt(event.target.value) || 0;
   setSatbTranspose(semis);
   transport.stopAllPlayback?.();
-}
-
-/* ------------------------------------------------------------ Live Sing --- */
-
-export function handleLiveSingBrowseClick() {
-  browseLiveSingHymns();
-}
-
-export function handleLiveSingPartClick(event) {
-  const part = event.target.dataset.part;
-  if (part) setLiveSingPart(part);
-}
-
-export function handleLiveSingEarClick(event) {
-  const ear = event.target.dataset.ear;
-  if (ear) setLiveSingEar(ear);
-}
-
-export function handleLiveSingVolumeChange(event) {
-  setLiveSingSoftness(event.target.value);
-}
-
-export function handleLiveSingTempoChange(event) {
-  setLiveSingTempo(event.target.value);
-}
-
-export function handleLiveSingKeyChange(event) {
-  setLiveSingKey(event.target.value);
-}
-
-export function handleLiveSingPlayClick() {
-  playLiveSing();
-}
-
-export function handleLiveSingStopClick() {
-  stopLiveSing();
 }
 
 /**

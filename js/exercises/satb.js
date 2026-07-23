@@ -313,6 +313,7 @@ export async function displaySATBExerciseOnStaff(exercise) {
 
   // Store the base exercise so getDoMidiForDisplay() can access it
   appState.satb.currentExercise = exercise;
+  applyHymnTempo(exercise); // adopt the hymn's own tempo (OpenPsalm tempo_bpm), like Live Sing did
 
   // Update current hymn display
   const { updateCurrentHymnDisplay } = await import('../ui/components/hymnBrowser.js');
@@ -332,6 +333,20 @@ export async function displaySATBExerciseOnStaff(exercise) {
   showNotation(transposed);
 
   updateSatbKeyLabel(exercise, appState.satb.transposeSemis);
+}
+
+// Default the SATB tempo to the hymn's own tempo (OpenPsalm tempo_bpm), syncing the slider.
+function applyHymnTempo(exercise) {
+  const bpm = exercise?.tempoBpm;
+  if (!Number.isFinite(bpm)) return;
+  appState.staff.tempo = bpm;
+  const slider = getElementById('satbTempo');
+  const label = getElementById('satbTempoValue');
+  if (slider) {
+    if (Number(slider.max) < bpm) slider.max = String(bpm);
+    slider.value = String(bpm);
+  }
+  if (label) setTextContent(label, String(bpm));
 }
 
 /**

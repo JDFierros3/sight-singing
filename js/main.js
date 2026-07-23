@@ -24,7 +24,6 @@ import * as scrollingStaff from './rendering/scrollingStaff.js';
 import { handleGlobalPlay, handleGlobalStop, refreshGlobalTransportUI } from './ui/components/transport.js';
 import { beepDo } from './audio/doPitch.js';
 import { changeSatbTranspose } from './exercises/satb.js';
-import { initializeLiveSing } from './exercises/liveSing.js';
 // Tests are imported when needed
 // import './tests/tests.js';
 
@@ -70,14 +69,6 @@ const {
   handleFlashcardFlipClick = () => {},
   handleFlashcardModeChange = () => {},
   handleFlashcardAccidentalsChange = () => {},
-  handleLiveSingBrowseClick = () => {},
-  handleLiveSingPartClick = () => {},
-  handleLiveSingEarClick = () => {},
-  handleLiveSingVolumeChange = () => {},
-  handleLiveSingTempoChange = () => {},
-  handleLiveSingKeyChange = () => {},
-  handleLiveSingPlayClick = () => {},
-  handleLiveSingStopClick = () => {}
 } = inputs;
 
 async function initializeApplication() {
@@ -130,9 +121,6 @@ async function buildUserInterface() {
   // This must complete before tab system so exercises are available
   await initializeSATBControls();
 
-  // Live Sing reuses the SATB-loaded hymns; init after them.
-  initializeLiveSing();
-
   initializeTabSystem();
   buildHomepage();
 
@@ -150,46 +138,7 @@ function wireUpEventHandlers() {
   setupDroneControls();
   setupTargetControls();
   setupExerciseControls();
-  setupLiveSingControls();
   setupGlobalDelegation();
-}
-
-function setupLiveSingControls() {
-  const browse = getElementById('btnLiveSingBrowse');
-  if (browse) browse.onclick = handleLiveSingBrowseClick;
-
-  const partSelection = getElementById('liveSingPartSelection');
-  if (partSelection) {
-    partSelection.addEventListener('click', (event) => {
-      if (event.target.hasAttribute('data-part')) {
-        handleLiveSingPartClick(event);
-      }
-    });
-  }
-
-  const earSelection = getElementById('liveSingEarSelection');
-  if (earSelection) {
-    earSelection.addEventListener('click', (event) => {
-      if (event.target.hasAttribute('data-ear')) {
-        handleLiveSingEarClick(event);
-      }
-    });
-  }
-
-  const volume = getElementById('liveSingVolume');
-  if (volume) volume.addEventListener('input', handleLiveSingVolumeChange);
-
-  const tempo = getElementById('liveSingTempo');
-  if (tempo) tempo.addEventListener('input', handleLiveSingTempoChange);
-
-  const key = getElementById('liveSingKey');
-  if (key) key.addEventListener('change', handleLiveSingKeyChange);
-
-  const play = getElementById('btnLiveSingPlay');
-  if (play) play.onclick = handleLiveSingPlayClick;
-
-  const stop = getElementById('btnLiveSingStop');
-  if (stop) stop.onclick = handleLiveSingStopClick;
 }
 
 function setupGlobalDelegation() {
@@ -564,10 +513,9 @@ function handleToggleMicEvent() {
 function startRenderLoop() {
   function tick() {
     getCurrentPitch();
-    // On the Live Sing + SATB tabs the shared canvas is hidden (the VexFlow SVG is the staff),
-    // so a full canvas redraw every frame is pure waste — those tabs drive their own notation.
-    const tab = appState.exercise.currentTab;
-    if (tab !== 'livesing' && tab !== 'satb') {
+    // On the SATB tab the shared canvas is hidden (the VexFlow SVG is the staff), so a full
+    // canvas redraw every frame is pure waste — that tab drives its own notation.
+    if (appState.exercise.currentTab !== 'satb') {
       renderStaff();
     }
     refreshGlobalTransportUI();
