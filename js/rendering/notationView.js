@@ -222,7 +222,19 @@ export function renderHymnNotation(exercise, container, options = {}) {
         tickables.push(new VF.StaveNote({ keys: [clef === 'treble' ? 'b/4' : 'd/3'], duration: 'wr' }));
         meta.push(null);
       } else {
+        const restKey = clef === 'treble' ? 'b/4' : 'd/3';
+        let cursor = mi * measureLenSec; // beat position reached so far within this measure
         for (const n of measure) {
+          // Fill the empty beats before this note (e.g. a pickup measure's leading rests, or an
+          // internal rest) so the note sits on the beat it's actually sounded — not left-justified.
+          if (n.start - cursor > 1e-4) {
+            const { dur: rdur, dots: rdots } = durToVex(n.start - cursor);
+            const rest = new VF.StaveNote({ keys: [restKey], duration: `${rdur}r` });
+            if (rdots) VF.Dot.buildAndAttach([rest], { all: true });
+            tickables.push(rest);
+            meta.push(null);
+          }
+          cursor = n.start + n.dur;
           const { key, accidental, color } = midiToVexKey(n.midi, tonicPc, mode);
           const { dur, dots } = durToVex(n.dur);
           const sn = new VF.StaveNote({ keys: [key], duration: dur, clef, stem_direction: stemDir });
