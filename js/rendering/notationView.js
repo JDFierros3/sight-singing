@@ -152,7 +152,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
   // Wrapper holds the VexFlow SVG + our notehead-overlay canvas together, so they
   // stay pixel-aligned and centre/scroll as one unit.
   const wrap = document.createElement('div');
-  wrap.className = 'livesing-notation-wrap';
+  wrap.className = 'notation-wrap';
   wrap.style.cssText = `position:relative;width:${totalWidth * scale}px;height:${systemHeight * scale}px;flex:0 0 auto;`;
   container.appendChild(wrap);
 

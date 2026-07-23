@@ -1,18 +1,16 @@
 /**
  * Live Sing — congregational sing-along.
  *
- * Reuses the SATB playback pipeline, but plays a single chosen voice softly in
- * ONE ear, anchored to a hummed "Set Do" pitch, and auto-starts when the phone
- * hears the singer begin. No networking: each phone follows the same hymn, so
- * everyone's playhead converges on its own.
+ * Plays a single chosen SATB voice softly in ONE ear while the group follows the same hymn on
+ * their own phones. The engraved notation, full-screen scroll, playhead, mic pitch line and
+ * count-in all live in the reusable `performanceView` module; this file owns the Live Sing
+ * controls, one-ear playback, and key/tempo state.
  */
 
 import { getElementById, setTextContent, createElement } from '../utils/dom.js';
 import { appState } from '../state/appState.js';
 import { ensureAudioContext } from '../audio/context.js';
 import { startMicrophone } from '../audio/microphone.js';
-import { pitchState } from '../pitch/detection.js';
-import { frequencyToMidi } from '../utils/audioMath.js';
 import { getAccidentalForNote } from '../utils/keySignature.js';
 import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
@@ -20,7 +18,10 @@ import { isValidSequence } from '../player/sequenceManager.js';
 import { playNote } from '../player/audioPlayer.js';
 import { setPartPan, ensureInstrumentReady } from '../audio/instruments.js';
 import { renderStaff } from '../rendering/staff.js';
-import { renderHymnNotation } from '../rendering/notationView.js';
+import {
+  configurePerformance, showNotation, enterPerformance, exitPerformance,
+  startScroll, refitPerformance, runCountIn, cancelCountIn, nextPaint
+} from '../rendering/performanceView.js';
 import { openHymnBrowser } from '../ui/components/hymnBrowser.js';
 
 const PARTS = [
@@ -45,6 +46,18 @@ export function initializeLiveSing() {
   buildLiveSingPartButtons();
   // Highlight the Live Sing part on the shared staff (renderer reads satb.aimPart).
   appState.satb.aimPart = appState.livesing.part;
+
+  // Wire the reusable performance surface to Live Sing's container + state.
+  configurePerformance({
+    container: getElementById('liveSingVisual'),
+    getTime: () => (appState.staff.currentTime || 0) * (appState.livesing.tempo / 60),
+    getTargetMidi: () => appState.livesing.currentTargetMidi,
+    fitPart: () => appState.livesing.part,
+    isPlaying: () => appState.livesing.isPlaying,
+    onExit: () => stopLiveSing(),
+    variant: () => appState.livesing.doSemis
+  });
+
   syncLiveSingControls();
   applyHymnTempo();   // start from the auto-selected hymn's own tempo
   syncKeyDropdown();  // and its own key
@@ -63,7 +76,7 @@ export function initializeLiveSing() {
   let resizeDebounce = null;
   const onViewport = () => {
     clearTimeout(resizeDebounce);
-    resizeDebounce = setTimeout(handleViewportChange, 150);
+    resizeDebounce = setTimeout(refitPerformance, 150);
   };
   window.addEventListener('resize', onViewport);
   window.addEventListener('orientationchange', onViewport);
@@ -189,18 +202,18 @@ export async function playLiveSing() {
   updateStatus('Get ready…');
   startMicrophone().catch(() => {});        // so the pitch (crosshair) line has input
   await ensureAudioContext();
-  enterPerformanceMode();                   // engrave the full-screen notation up front
+  enterPerformance();                       // engrave the full-screen notation up front
   await ensureInstrumentReady();            // wait for samples (no-op for the sine path)
   await nextPaint();                        // let the engraved staff paint before we count in
 
   if (!appState.livesing.preparing) return; // Stop pressed during buffering
-  await runCountdown();                     // 3 · 2 · 1 · Sing!
-  if (!appState.livesing.preparing) return; // Stop pressed during countdown
+  const counted = await runCountIn();       // 3 · 2 · 1 · Sing!
+  if (!counted || !appState.livesing.preparing) return; // Stop pressed during countdown
 
   appState.livesing.preparing = false;
   appState.livesing.isPlaying = true;
   updateStatus('Singing');
-  startPlayheadAnimation();                 // begin the scroll now that we're actually playing
+  startScroll();                            // begin the scroll now that we're actually playing
 
   const exercise = transposeExercise(base, appState.livesing.doSemis);
 
@@ -256,7 +269,7 @@ export function stopLiveSing() {
   // Cancel a pending count-in/buffer before playback has started.
   if (appState.livesing.preparing) {
     appState.livesing.preparing = false;
-    cancelCountdown();
+    cancelCountIn();
     finishLiveSing('stopped');
     return;
   }
@@ -268,9 +281,9 @@ function finishLiveSing(status) {
   appState.livesing.isPlaying = false;
   appState.livesing.preparing = false;
   appState.livesing.currentTargetMidi = null;
-  cancelCountdown();
+  cancelCountIn();
   stopProgress();
-  exitPerformanceMode();
+  exitPerformance();
   updateTransportButtons(false);
   updateStatus(status === 'stopped' ? 'Stopped' : 'Done');
   // Restore the static hymn display so the notation stays visible after stopping.
@@ -279,8 +292,8 @@ function finishLiveSing(status) {
 
 /* -------------------------------------------------------- staff display --- */
 
-// Show the current hymn (Do-shifted) statically on the shared staff — the v1
-// placeholder visual. Phase 2 swaps this for engraved MusicXML notation.
+// Show the current hymn (transposed to the chosen key) as engraved notation, and mirror it
+// onto the shared (hidden) canvas staff state for solfege/key bookkeeping.
 export function displayLiveSingHymn() {
   const base = appState.satb.currentExercise;
   if (!base) return;
@@ -309,297 +322,7 @@ export function displayLiveSingHymn() {
 
   renderStaff();
   updateHymnLabel();
-  renderNotation(ex);
-}
-
-// Render real engraved notation (VexFlow) into the Live Sing visual panel.
-// Guarded so we don't re-engrave the whole score on ear/part/volume changes.
-let lastNotatedKey = null;
-let notationLayout = null;
-let notatedExercise = null;
-let playheadEl = null;
-let micLineEl = null;
-let notationWrapEl = null;
-let performRafId = null;
-let timeToX = null; // exercise-time -> x mapping, rebuilt whenever the notation re-renders
-
-function renderNotation(exercise, force = false) {
-  const visual = getElementById('liveSingVisual');
-  if (!visual || !exercise) return;
-  notatedExercise = exercise;
-  const performing = document.body.classList.contains('livesing-performing');
-  const width = performing ? window.innerWidth : (visual.clientWidth || 800);
-  // Full-screen: scale the staff to FIT the viewport height so it's never taller than
-  // the screen (landscape phones are short). Keyed on both dimensions so a rotation or
-  // URL-bar resize re-engraves at the new size.
-  const fitHeight = performing ? Math.max(200, window.innerHeight - 16) : null;
-  const dims = performing ? `full${Math.round(window.innerWidth)}x${Math.round(window.innerHeight)}` : Math.round(width);
-  const key = `${exercise.id || exercise.label}|${appState.livesing.doSemis}|${dims}`;
-  if (!force && key === lastNotatedKey && visual.querySelector('svg')) return;
-  lastNotatedKey = key;
-  visual.hidden = false;
-  try {
-    notationLayout = renderHymnNotation(exercise, visual, { width, fitHeight, scale: performing ? undefined : 1 });
-    timeToX = notationLayout ? buildTimeToX(notationLayout) : null;
-    ensurePlayhead(visual);
-  } catch (err) {
-    console.warn('Notation render failed:', err);
-  }
-}
-
-// Re-engrave when the viewport changes (rotation, URL-bar show/hide) while performing,
-// so the full-screen staff always fits. The key check makes trivial resizes a no-op.
-function handleViewportChange() {
-  if (!document.body.classList.contains('livesing-performing')) return;
-  renderNotation(notatedExercise || appState.satb.currentExercise, false);
-}
-
-/* ---------------------------------------------- full-screen performance --- */
-
-// While the exercise is active, expand the notation over everything and scroll
-// it so the playhead stays in view — the controls simply scroll off behind it.
-function enterPerformanceMode() {
-  document.body.classList.add('livesing-performing');
-  renderNotation(notatedExercise || appState.satb.currentExercise, true); // re-engrave at full width
-  ensureExitButton(true);
-  positionStaffAtStart(); // park the staff at the first note so the count-in shows the opening bar
-}
-
-// Place the staff so the first note sits under the pinned (30%) playhead — the resting
-// position before playback begins (the animation takes over once we're actually singing).
-function positionStaffAtStart() {
-  const visual = getElementById('liveSingVisual');
-  if (!visual || !notationWrapEl || !timeToX) return;
-  const screenX = visual.clientWidth * 0.3;
-  notationWrapEl.style.transform = `translate3d(${Math.round(screenX - timeToX(0))}px,0,0)`;
-  if (playheadEl) {
-    playheadEl.style.left = `${Math.round(screenX)}px`;
-    playheadEl.style.height = `${notationLayout?.height || 210}px`;
-  }
-}
-
-function exitPerformanceMode() {
-  stopPlayheadAnimation();
-  ensureExitButton(false);
-  if (document.body.classList.contains('livesing-performing')) {
-    document.body.classList.remove('livesing-performing');
-    renderNotation(notatedExercise || appState.satb.currentExercise, true); // back to inline width
-  }
-}
-
-function ensurePlayhead(visual) {
-  playheadEl = document.createElement('div');
-  playheadEl.className = 'livesing-playhead';
-  visual.appendChild(playheadEl);
-  // Mic pitch line lives in the notation wrapper so it aligns with the staff and moves with it.
-  notationWrapEl = visual.querySelector('.livesing-notation-wrap');
-  if (notationWrapEl) {
-    micLineEl = document.createElement('div');
-    micLineEl.className = 'livesing-micline';
-    notationWrapEl.appendChild(micLineEl);
-  }
-}
-
-// The singer's detected pitch as a horizontal line on the staff, coloured by how close
-// it is to the chosen part's current note (green/yellow/red) — the "crosshair" feedback.
-// The line is denoised HERE (median-of-3 + a fast EMA) rather than relying on the global
-// hold-gated `stableHz`, whose Tolerance-driven hold time (~240ms) made it lag onto only
-// long notes. This keeps the line responsive and independent of the Tolerance slider.
-const MIC_EMA_ALPHA = 0.4;   // ~3–4 frames to settle: responsive but not twitchy
-let micMidiEma = null;
-let micMidiHistory = [];
-let partFitCache = { key: null, fit: null };
-
-function updateMicLine() {
-  if (!micLineEl || !notationLayout) return;
-  const hz = pitchState.hz || 0; // per-frame detection (RMS-gated) — no hold delay
-  if (hz <= 0) { micLineEl.style.display = 'none'; resetMicLine(); return; }
-
-  let sungMidi = frequencyToMidi(hz, appState.tuning.a4);
-  if (!Number.isFinite(sungMidi)) { micLineEl.style.display = 'none'; return; }
-
-  // Fold octave detection glitches (autocorrelation half/double frequency) toward the
-  // note being sung, so the line tracks pitch-class instead of leaping a full octave.
-  const target = appState.livesing.currentTargetMidi;
-  if (Number.isFinite(target)) sungMidi = foldToOctave(sungMidi, target);
-
-  // Median of the last 3 frames rejects lone spikes; the EMA then smooths what's left.
-  const denoised = pushMedian(sungMidi);
-  micMidiEma = micMidiEma == null ? denoised : micMidiEma * (1 - MIC_EMA_ALPHA) + denoised * MIC_EMA_ALPHA;
-
-  // Map to a staff-y using the CHOSEN part's own notes, so a bass singer's line sits on
-  // the bass staff (a single global fit is thrown off by the lyric gap between staves).
-  const y = pitchToYForPart(appState.livesing.part, micMidiEma);
-  if (y == null) { micLineEl.style.display = 'none'; return; }
-  micLineEl.style.top = `${y}px`;
-  micLineEl.style.display = 'block';
-
-  if (Number.isFinite(target)) {
-    const cents = Math.abs(micMidiEma - target) * 100; // folded, so octave glitches don't read red
-    micLineEl.style.background = cents <= 20 ? '#22c55e' : (cents <= 50 ? '#eab308' : '#ef4444');
-  } else {
-    micLineEl.style.background = '#60a5fa';
-  }
-}
-
-function resetMicLine() {
-  micMidiEma = null;
-  micMidiHistory = [];
-}
-
-// Rolling median of the last 3 pitch samples — kills single-frame detection spikes.
-function pushMedian(midi) {
-  micMidiHistory.push(midi);
-  if (micMidiHistory.length > 3) micMidiHistory.shift();
-  return [...micMidiHistory].sort((a, b) => a - b)[Math.floor(micMidiHistory.length / 2)];
-}
-
-// Shift `midi` by whole octaves until it's within a tritone of `ref` (pitch-class match).
-function foldToOctave(midi, ref) {
-  while (midi - ref > 6) midi -= 12;
-  while (ref - midi > 6) midi += 12;
-  return midi;
-}
-
-// Linear midi->y fit built from just the chosen part's noteheads (one staff, no lyric-gap
-// discontinuity). Falls back to the layout's global fit if the part has too few notes.
-function pitchToYForPart(part, midi) {
-  const pts = notationLayout?.partPositions?.[part] || [];
-  const cacheKey = `${part}|${pts.length}|${lastNotatedKey}`;
-  if (partFitCache.key !== cacheKey) {
-    partFitCache = { key: cacheKey, fit: linearFitMidiToY(pts) };
-  }
-  const fit = partFitCache.fit;
-  if (fit) return fit.a * midi + fit.b;
-  return notationLayout?.pitchToY ? notationLayout.pitchToY(midi) : null;
-}
-
-function linearFitMidiToY(points) {
-  const distinct = new Set(points.map(p => p.midi));
-  if (points.length < 2 || distinct.size < 2) return null;
-  const n = points.length;
-  let sx = 0, sy = 0, sxx = 0, sxy = 0;
-  for (const p of points) { sx += p.midi; sy += p.y; sxx += p.midi * p.midi; sxy += p.midi * p.y; }
-  const denom = n * sxx - sx * sx;
-  if (denom === 0) return null;
-  const a = (n * sxy - sx * sy) / denom;
-  const b = (sy - a * sx) / n;
-  return { a, b };
-}
-
-function ensureExitButton(show) {
-  let btn = getElementById('liveSingExitPerform');
-  if (!btn && show) {
-    btn = document.createElement('button');
-    btn.id = 'liveSingExitPerform';
-    btn.className = 'livesing-exit-btn';
-    btn.textContent = 'Stop';
-    btn.onclick = () => stopLiveSing();
-    document.body.appendChild(btn);
-  }
-  if (btn) btn.style.display = show ? 'block' : 'none';
-}
-
-/* --------------------------------------------------------- count-in ------- */
-
-let countdownTimer = null;
-
-// Resolve after a "3 · 2 · 1 · Sing!" count-in, giving the group a shared start cue and the
-// browser time to finish buffering. Bails immediately if Stop is pressed mid-count.
-function runCountdown() {
-  return new Promise(resolve => {
-    const el = ensureCountdownEl();
-    const steps = ['3', '2', '1', 'Sing!'];
-    let i = 0;
-    const step = () => {
-      if (!appState.livesing.preparing) { hideCountdown(); resolve(); return; }
-      el.textContent = steps[i];
-      el.style.display = 'flex';
-      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); // restart the pop
-      i += 1;
-      if (i < steps.length) countdownTimer = setTimeout(step, 800);
-      else countdownTimer = setTimeout(() => { hideCountdown(); resolve(); }, 450);
-    };
-    step();
-  });
-}
-
-function cancelCountdown() {
-  if (countdownTimer) { clearTimeout(countdownTimer); countdownTimer = null; }
-  hideCountdown();
-}
-
-function ensureCountdownEl() {
-  let el = getElementById('liveSingCountdown');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'liveSingCountdown';
-    el.className = 'livesing-countdown';
-    document.body.appendChild(el);
-  }
-  return el;
-}
-
-function hideCountdown() {
-  const el = getElementById('liveSingCountdown');
-  if (el) el.style.display = 'none';
-}
-
-// Resolve on the next paint, so a just-engraved staff is actually on screen before we continue.
-// Falls back to a timer so a throttled/stalled rAF can never hang the start.
-function nextPaint() {
-  return new Promise(resolve => {
-    let done = false;
-    const finish = () => { if (!done) { done = true; resolve(); } };
-    requestAnimationFrame(() => requestAnimationFrame(finish));
-    setTimeout(finish, 250);
-  });
-}
-
-// Map exercise time (seconds at 60bpm) -> x, LINEARLY within each measure so the
-// playhead glides at a steady speed instead of snapping between note positions.
-function buildTimeToX(layout) {
-  const mp = layout.measurePositions || [];
-  const mlen = layout.measureLenSec || 1;
-  return (t) => {
-    if (!mp.length) return 0;
-    if (t <= 0) return mp[0].x;
-    const mi = Math.min(mp.length - 1, Math.floor(t / mlen));
-    const m = mp[mi];
-    const frac = Math.max(0, Math.min(1, (t - m.startTime) / mlen));
-    return m.x + frac * m.width;
-  };
-}
-
-function startPlayheadAnimation() {
-  const visual = getElementById('liveSingVisual');
-  if (!visual || !notationLayout) return;
-  if (!timeToX) timeToX = buildTimeToX(notationLayout);
-  // Playhead is pinned ~30% from the left; the STAFF slides under it via a GPU transform
-  // (translate3d) instead of scrollLeft. Scrolling a several-thousand-px SVG every frame
-  // forces layout/re-raster and is the main source of mobile choppiness; a transform is
-  // composited off the main thread.
-  const frame = () => {
-    if (!appState.livesing.isPlaying) { performRafId = null; return; }
-    // exercise time = wall elapsed * tempo/60 (matches the player's playhead math).
-    // Read timeToX/notationLayout live (module vars) so a mid-song re-render (rotation) is picked up.
-    const exerciseTime = (appState.staff.currentTime || 0) * (appState.livesing.tempo / 60);
-    const x = timeToX ? timeToX(exerciseTime) : 0;
-    const screenX = visual.clientWidth * 0.3;
-    if (notationWrapEl) notationWrapEl.style.transform = `translate3d(${Math.round(screenX - x)}px,0,0)`;
-    if (playheadEl) {
-      playheadEl.style.left = `${Math.round(screenX)}px`;
-      playheadEl.style.height = `${notationLayout?.height || 210}px`;
-    }
-    updateMicLine();
-    performRafId = requestAnimationFrame(frame);
-  };
-  performRafId = requestAnimationFrame(frame);
-}
-
-function stopPlayheadAnimation() {
-  if (performRafId) cancelAnimationFrame(performRafId);
-  performRafId = null;
+  showNotation(ex);
 }
 
 /* ------------------------------------------------------------- helpers ---- */

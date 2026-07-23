@@ -1637,31 +1637,32 @@ body[data-active-tab="flashcards"] .staffPanel {
   transition: width 0.08s linear;
 }
 
-.livesing-visual .livesing-notation-wrap svg {
+.perf-surface .notation-wrap svg {
   display: block;           /* avoid inline-baseline gap under the SVG */
 }
 
 /* Muted staff / stems / clefs / signatures / accidentals. Noteheads are intentionally
    NOT matched here so they keep the per-note solfege colour VexFlow sets inline. */
-.livesing-notation-wrap svg .vf-stave path,
-.livesing-notation-wrap svg .vf-stavebarline path,
-.livesing-notation-wrap svg .vf-clef path,
-.livesing-notation-wrap svg .vf-keysignature path,
-.livesing-notation-wrap svg .vf-timesignature path,
-.livesing-notation-wrap svg .vf-stem,
-.livesing-notation-wrap svg .vf-stem rect,
-.livesing-notation-wrap svg .vf-modifiers path {
+.notation-wrap svg .vf-stave path,
+.notation-wrap svg .vf-stavebarline path,
+.notation-wrap svg .vf-clef path,
+.notation-wrap svg .vf-keysignature path,
+.notation-wrap svg .vf-timesignature path,
+.notation-wrap svg .vf-stem,
+.notation-wrap svg .vf-stem rect,
+.notation-wrap svg .vf-modifiers path {
   fill: #9aa4b2;
   stroke: #9aa4b2;
 }
 
-/* Lyric syllables drawn under the melody. */
-.livesing-notation-wrap svg text {
+/* Lyric / solfege syllables drawn under the melody. */
+.notation-wrap svg text {
   fill: #dbe4ff;
   stroke: none;
 }
 
-.livesing-visual {
+/* A "performance surface": the scrollable engraved-notation container any tab can host. */
+.perf-surface {
   margin-top: 8px;
   width: 100%;
   max-width: 100%;
@@ -1683,7 +1684,7 @@ body[data-active-tab="livesing"] .staffPanel {
 }
 
 /* Singer's pitch line over the engraving (shown only while performing). */
-.livesing-micline {
+.perf-micline {
   position: absolute;
   left: 0;
   width: 100%;
@@ -1696,7 +1697,7 @@ body[data-active-tab="livesing"] .staffPanel {
 }
 
 /* Moving playhead over the engraving (shown only while performing). */
-.livesing-playhead {
+.perf-playhead {
   position: absolute;
   top: 0;
   width: 2px;
@@ -1709,7 +1710,7 @@ body[data-active-tab="livesing"] .staffPanel {
 
 /* Full-screen performance mode: the notation expands over everything and scrolls;
    the setup controls simply scroll off behind it. */
-body.livesing-performing #liveSingVisual {
+body.perf-performing .perf-surface {
   position: fixed;
   inset: 0;
   z-index: 3000;
@@ -1732,19 +1733,19 @@ body.livesing-performing #liveSingVisual {
 
 /* Keep the wide staff at natural size (don't let flex shrink it); promote it to its own
    compositor layer so the per-frame translate is GPU-accelerated and smooth on mobile. */
-body.livesing-performing #liveSingVisual .livesing-notation-wrap {
+body.perf-performing .perf-surface .notation-wrap {
   flex: 0 0 auto;
   will-change: transform;
 }
 
 /* Full-height playhead line through the centred staff. */
-body.livesing-performing .livesing-playhead {
+body.perf-performing .perf-playhead {
   display: block;
   height: 100% !important;
   top: 0;
 }
 
-.livesing-exit-btn {
+.perf-exit-btn {
   position: fixed;
   /* Bottom-centre: the reliable thumb zone, and clear of the top status bar / notch / URL
      bar that made this unreachable in portrait. Respects the home-indicator safe area. */
@@ -1767,7 +1768,7 @@ body.livesing-performing .livesing-playhead {
 
 /* Full-screen "3 · 2 · 1 · Sing!" count-in. pointer-events:none so the Stop button
    underneath stays tappable if someone wants to bail during the count. */
-.livesing-countdown {
+.perf-countdown {
   position: fixed;
   inset: 0;
   z-index: 3006;
@@ -1781,11 +1782,11 @@ body.livesing-performing .livesing-playhead {
   text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
 }
 
-.livesing-countdown.pop {
-  animation: livesing-count-pop 0.42s ease-out;
+.perf-countdown.pop {
+  animation: perf-count-pop 0.42s ease-out;
 }
 
-@keyframes livesing-count-pop {
+@keyframes perf-count-pop {
   0% { transform: scale(0.5); opacity: 0; }
   35% { transform: scale(1.08); opacity: 1; }
   100% { transform: scale(1); opacity: 0.92; }
