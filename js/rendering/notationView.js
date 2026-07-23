@@ -84,12 +84,6 @@ function midiToVexKey(midi, tonicPc, mode) {
   };
 }
 
-// MIDI -> movable-Do solfege syllable in the given key (for solfege labels under the staff).
-function solfegeLabel(midi, tonicPc, mode) {
-  const spelled = spellMidiInKey(midi, tonicPc, mode);
-  return spelled ? spelled.solfege : '';
-}
-
 /**
  * Render the exercise as engraved notation into `container`.
  * Returns a layout map: { partPositions: {S:[{x,y,midi,startTime}], ...}, width, height }
@@ -306,23 +300,23 @@ export function renderHymnNotation(exercise, container, options = {}) {
     }
   }
 
-  // Labels under the melody. 'hymn': verse-1 syllables the library aligned to each soprano
-  // note (blank where a note is held under the previous syllable). 'solfege': each note's
-  // movable-Do syllable. 'none': nothing.
+  // Per-note labels under the melody (labelSource 'hymn', or 'none' to suppress). The library
+  // aligns one syllable to each soprano note — blank where a note is held under the previous
+  // one. Warmup patterns reuse this by setting each note's "lyric" to its solfege syllable.
   if (labelSource !== 'none') {
-    const syllables = labelSource === 'hymn' ? lyricsForNotes(exercise) : null;
-    ctx.save();
-    ctx.setFont('Georgia, serif', 11, '');
-    ctx.setFillStyle('#dbe4ff');
-    ctx.setStrokeStyle('#dbe4ff');
-    partPositions.S.forEach((p, i) => {
-      let syl = '';
-      if (labelSource === 'solfege') syl = solfegeLabel(p.midi, tonicPc, mode);
-      else if (syllables) syl = (syllables[i] || '').replace(/--/g, '');
-      if (!syl) return;
-      try { ctx.fillText(syl, p.x - 3, lyricsY); } catch (e) {}
-    });
-    ctx.restore();
+    const syllables = lyricsForNotes(exercise);
+    if (syllables.length) {
+      ctx.save();
+      ctx.setFont('Georgia, serif', 11, '');
+      ctx.setFillStyle('#dbe4ff');
+      ctx.setStrokeStyle('#dbe4ff');
+      partPositions.S.forEach((p, i) => {
+        const syl = (syllables[i] || '').replace(/--/g, '');
+        if (!syl) return;
+        try { ctx.fillText(syl, p.x - 3, lyricsY); } catch (e) {}
+      });
+      ctx.restore();
+    }
   }
 
   // Linear fit y = a*midi + b (logical) so any sung pitch maps to a staff y (for the mic line).

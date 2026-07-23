@@ -1661,6 +1661,14 @@ body[data-active-tab="flashcards"] .staffPanel {
   stroke: none;
 }
 
+/* Any fieldset hosting a performance surface must not stretch to the (very wide) engraved
+   staff's intrinsic width — cap it so the controls stay put and only the staff scrolls. */
+#panel-satb > fieldset,
+#panel-warmup > fieldset {
+  min-width: 0;
+  max-width: 100%;
+}
+
 /* A "performance surface": the scrollable engraved-notation container any tab can host. */
 .perf-surface {
   margin-top: 8px;

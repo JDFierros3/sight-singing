@@ -13,9 +13,86 @@ import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence, getCurrentSequenceId, trackBadgeTimeout, removeBadgeTimeout } from '../player/sequenceManager.js';
 import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from '../audio/instruments.js';
+import { configurePerformance, showNotation } from '../rendering/performanceView.js';
+import { spellMidiInKey } from '../utils/keySignature.js';
 
 // Track active warmup oscillators so we can stop them
 let activeWarmupOscillators = [];
+
+/* ------------------------------------------- engraved solfege reference --- */
+
+// Render the selected warmup patterns on a single VexFlow staff with each note's movable-Do
+// solfege syllable beneath it — a static "Do Re Mi Fa Sol…" reference for the tab.
+let warmupCheckboxesBound = false;
+function bindWarmupCheckboxes() {
+  if (warmupCheckboxesBound) return;
+  for (let i = 0; i < 6; i++) {
+    const cb = getElementById(`warmupStanza-${i}`);
+    if (cb) cb.addEventListener('change', () => {
+      if (appState.exercise.currentTab === 'warmup') displayWarmupStaff();
+    });
+  }
+  warmupCheckboxesBound = true;
+}
+
+export function displayWarmupStaff() {
+  bindWarmupCheckboxes();
+  const container = getElementById('warmupVisual');
+  if (!container) return;
+  const exercise = buildWarmupExercise();
+  if (!exercise) { container.innerHTML = ''; container.hidden = true; return; }
+  configurePerformance({
+    container,
+    getTime: () => 0,
+    getTargetMidi: () => null,
+    fitPart: () => 'S',
+    isPlaying: () => false,
+    onExit: () => {},
+    variant: () => `${appState.tuning.doMidi}|${getSelectedStanzaIndices().join('')}`,
+    renderOptions: { staffMode: 'single' }
+  });
+  showNotation(exercise, true);
+}
+
+// Concatenate the selected warmup stanzas into a single hymn-format exercise whose per-note
+// "lyrics" are the movable-Do solfege syllables — so it renders through the standard path.
+function buildWarmupExercise() {
+  const plan = buildWarmupPlan();
+  const selected = getSelectedStanzaIndices();
+  const stanzas = selected.length ? selected.map(i => plan[i]).filter(Boolean) : plan;
+  const tonicPc = ((appState.tuning.doMidi % 12) + 12) % 12;
+  const notes = [];
+  const lyricsByNote = [];
+  let t = 0;
+  for (const st of stanzas) {
+    for (const n of st.notes) {
+      notes.push({ midi: n.midi, startTime: t + n.startTime, duration: n.duration, part: 'S' });
+      const spelled = spellMidiInKey(n.midi, tonicPc, 'major');
+      lyricsByNote.push(spelled ? spelled.solfege : '');
+    }
+    t += st.duration;
+  }
+  if (!notes.length) return null;
+  return {
+    id: 'warmup',
+    label: 'Warmup',
+    midiKeyMidi: tonicPc,
+    midiKeyMode: 'major',
+    timeSigNum: 4,
+    timeSigDen: 4,
+    parts: { S: notes, A: [], T: [], B: [] },
+    lyricsByNote
+  };
+}
+
+function getSelectedStanzaIndices() {
+  const idx = [];
+  for (let i = 0; i < 6; i++) {
+    const cb = getElementById(`warmupStanza-${i}`);
+    if (cb && cb.checked) idx.push(i);
+  }
+  return idx;
+}
 
 export async function runWarmupSequence(selectedStanzaIndices = null) {
   await ensureAudioContext();

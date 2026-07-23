@@ -5,6 +5,8 @@
 import { getElementById } from '../../utils/dom.js';
 import { appState, updateDisplaySetting } from '../../state/appState.js';
 import { displaySATBExerciseOnStaff, getAllSATBExercises } from '../../exercises/satb.js';
+import { displayWarmupStaff } from '../../exercises/warmup.js';
+import { displayLiveSingHymn } from '../../exercises/liveSing.js';
 import { initializeFlashcards } from '../../exercises/flashcards.js';
 import { stopAllPlayback } from '../components/transport.js';
 import { renderStaff } from '../../rendering/staff.js';
@@ -297,15 +299,19 @@ export function switchToTab(tabName) {
     }, 10);
   }
 
+  // Warmup shows an engraved single-staff solfege reference of the selected patterns.
+  if (appState.exercise.currentTab === 'warmup') {
+    setTimeout(() => displayWarmupStaff(), 10);
+  }
+
   // Live Sing engraves the selected hymn into its own notation panel (via displayLiveSingHymn),
   // NOT the SATB surface — they configure the shared performance view for different containers.
   if (appState.exercise.currentTab === 'livesing') {
-    setTimeout(async () => {
+    setTimeout(() => {
       const exercises = getAllSATBExercises();
       if (!appState.satb.currentExercise && exercises.length > 0) {
         appState.satb.currentExercise = exercises[0];
       }
-      const { displayLiveSingHymn } = await import('../../exercises/liveSing.js');
       displayLiveSingHymn();
     }, 10);
   }
