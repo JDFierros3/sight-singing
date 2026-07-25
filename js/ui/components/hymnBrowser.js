@@ -7,7 +7,7 @@
 import { getElementById, createElement, setTextContent } from '../../utils/dom.js';
 import { appState } from '../../state/appState.js';
 import { getAllSATBExercises } from '../../exercises/satb.js';
-import { displaySATBExerciseOnStaff } from '../../exercises/satb.js';
+import { displaySATBExerciseOnStaff, applyExerciseTempo } from '../../exercises/satb.js';
 
 let modal = null;
 let searchInput = null;
@@ -437,7 +437,10 @@ function selectExercise(exercise, index) {
   // Store selected exercise
   appState.satb.selectedExerciseIndex = index;
   appState.satb.currentExercise = exercise;
-  
+
+  // Adopt the hymn's own tempo (OpenPsalm tempoBpm) for playback + slider.
+  applyExerciseTempo(exercise);
+
   // Display on staff
   displaySATBExerciseOnStaff(exercise);
   

@@ -55,6 +55,11 @@ function notePieces(n, measureLenSec) {
   return pieces;
 }
 
+// Beat time as a set key, so two voices attacking "the same beat" match despite float drift.
+function timeKey(t) {
+  return Math.round(t * 1000);
+}
+
 function cumulativeSegments(start, durs) {
   const out = [];
   let t = start;
@@ -205,6 +210,9 @@ export function renderHymnNotation(exercise, container, options = {}) {
 
     // One voice per part for THIS measure only (proper per-measure formatting).
     const built = {};
+    // A hold belongs to the STAFF, not to each voice on it: S and A holding the same beat
+    // is one fermata, not two stacked ones. Times already marked on each staff this bar.
+    const fermataTimes = { treble: new Set(), bass: new Set() };
     for (const part of PARTS_ACTIVE) {
       const clef = (part === 'S' || part === 'A') ? 'treble' : 'bass';
       const stemDir = (part === 'S' || part === 'T') ? VF.Stem.UP : VF.Stem.DOWN;
@@ -235,12 +243,21 @@ export function renderHymnNotation(exercise, container, options = {}) {
           if (accidental) sn.addModifier(new VF.Accidental(accidental));
           if (dots) VF.Dot.buildAndAttach([sn], { all: true });
           try { sn.setKeyStyle(0, { fillStyle: color, strokeStyle: color }); } catch (e) {} // solfege-coloured shape head
-          if (n.fermata) {
-            try { sn.addModifier(new VF.Articulation('a@a').setPosition(VF.Modifier.Position.ABOVE)); } catch (e) {}
+          if (n.fermata && !fermataTimes[clef].has(timeKey(n.start))) {
+            fermataTimes[clef].add(timeKey(n.start));
+            // Point the hold away from the middle of the grand staff: upright above the
+            // treble staff, inverted below the bass staff. A bass fermata drawn above
+            // would sit in the tenor's space, on top of the lyric band.
+            const above = clef === 'treble';
+            const glyph = above ? 'a@a' : 'a@u';
+            const pos = above ? VF.Modifier.Position.ABOVE : VF.Modifier.Position.BELOW;
+            try { sn.addModifier(new VF.Articulation(glyph).setPosition(pos)); } catch (e) {}
           }
           tickables.push(sn);
           meta.push(n);
           tieChain[part].push({ sn, tieToNext: !!n.tieToNext });
+          // Slur ids are namespaced PER PART here, so producers only need ids that are
+          // unique within a voice — two voices may reuse id 3 without their curves merging.
           if (n.slurId != null) (slurGroups[part][n.slurId] = slurGroups[part][n.slurId] || []).push(sn);
         }
       }
@@ -291,12 +308,18 @@ export function renderHymnNotation(exercise, container, options = {}) {
       } catch (e) {}
     }
   }
-  // Slurs: one curve per slur group, from its first head to its last.
+  // Slurs: one curve per slur group, from its first head to its last. The curve arcs on the
+  // STEM side of its voice (over S/T, under A/B) — that keeps it clear of the other voice
+  // sharing the staff, and off the noteheads it spans. A group crossing a barline is still
+  // one curve: every measure sits on the same row here, so the two ends line up.
   for (const part of PARTS_ACTIVE) {
+    const stemUp = part === 'S' || part === 'T';
     for (const id of Object.keys(slurGroups[part])) {
       const g = slurGroups[part][id];
       if (g.length < 2) continue;
-      try { new VF.Curve(g[0], g[g.length - 1], {}).setContext(ctx).draw(); } catch (e) {}
+      try {
+        new VF.Curve(g[0], g[g.length - 1], { invert: stemUp }).setContext(ctx).draw();
+      } catch (e) {}
     }
   }
 

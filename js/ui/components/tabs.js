@@ -13,6 +13,11 @@ import { renderTheoryContent, saveExpandedLessons } from './theoryContent.js';
 
 const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'satb', 'theory'];
 
+/** Does this build have that tab? Lets callers route to a tab without assuming it exists. */
+export function hasTab(tabName) {
+  return TAB_NAMES.includes(tabName);
+}
+
 export function initializeTabSystem() {
   // Only attach tab switching to buttons that have data-tab attribute
   // (Not SATB part buttons which use .tab class but have data-part instead)
