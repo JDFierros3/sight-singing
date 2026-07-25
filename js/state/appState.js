@@ -111,6 +111,7 @@ function initializeStaff() {
 function initializeSATB() {
   return {
     aimPart: 'S', // Which part to aim for
+    currentTargetMidi: null, // the aim part's currently-sounding note (drives mic-line colour + octave fold)
     partVolumes: {
       S: 0.8, // Soprano volume (0-1)
       A: 0.7, // Alto volume

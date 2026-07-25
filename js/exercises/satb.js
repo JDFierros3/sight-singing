@@ -25,7 +25,7 @@ function configureSATBPerformance() {
   configurePerformance({
     container: getElementById('satbVisual'),
     getTime: () => (appState.staff.currentTime || 0) * ((appState.staff.tempo || 60) / 60),
-    getTargetMidi: () => null, // all parts sound; the mic line just shows the singer's pitch
+    getTargetMidi: () => appState.satb.currentTargetMidi, // the aim part's note under the playhead
     fitPart: () => appState.satb.aimPart,
     isPlaying: () => appState.satb.isPlaying,
     onExit: () => stopSATBExercise(),
@@ -35,6 +35,7 @@ function configureSATBPerformance() {
 
 // Leave full-screen and restore the inline engraved notation after playback ends/stops.
 function restoreSATBNotation() {
+  appState.satb.currentTargetMidi = null; // no note is sounding once we leave the performance
   exitPerformance();
   if (appState.satb.currentExercise) displaySATBExerciseOnStaff(appState.satb.currentExercise);
 }
@@ -123,21 +124,26 @@ export async function playSATBExercise() {
         return;
       }
       
+      // The aim part's current note drives the mic-line colour + octave fold (crosshair target).
+      if (note.part === appState.satb.aimPart) {
+        appState.satb.currentTargetMidi = note.midi;
+      }
+
       // Play note with part-specific volume
       const partVolume = appState.satb.partVolumes[note.part] || 0.7;
       const oscillator = await playNote(note, seqId, partVolume, appState.satb.partVolumes);
-      
+
       if (oscillator) {
         // Track this oscillator
         activeSATBOscillators.push(oscillator);
-        
+
         // Play for the note duration
         const stillValid = await waitWithValidation(
           note.duration * 1000,
           seqId,
           () => appState.satb.isPlaying
         );
-        
+
         // Only stop if this is still the current sequence
         if (stillValid && isValidSequence(seqId)) {
           // Note will stop automatically after duration
@@ -146,6 +152,11 @@ export async function playSATBExercise() {
             activeSATBOscillators.splice(index, 1);
           }
         }
+      }
+
+      // Clear the target once this aim-part note ends (unless a newer one already replaced it).
+      if (note.part === appState.satb.aimPart && appState.satb.currentTargetMidi === note.midi) {
+        appState.satb.currentTargetMidi = null;
       }
     });
     
