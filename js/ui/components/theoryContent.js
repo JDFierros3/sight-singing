@@ -3125,9 +3125,41 @@ function renderLesson7() {
 
         ${renderSubLesson('7.1', 'Understanding the FA SO LA Tradition', getSubLesson7_1())}
         ${renderSubLesson('7.2', 'Importing and Practicing with Hymn MIDI Files', getSubLesson7_2())}
+        ${renderSubLesson('7.3', 'Singing Together with the SATB Tab', getSubLesson7_3())}
       </div>
     </section>
   `;
+}
+
+function getSubLesson7_3() {
+  return `
+    <div class="learning-objectives">
+      <h4>Learning Objectives:</h4>
+      <ul>
+        <li>Recreate a traditional FA SO LA singing in miniature using the SATB tab</li>
+        <li>Sit in parts and sing a tune together on solfege before adding the words</li>
+        <li>Use each phone as a quiet section leader so the whole group stays anchored</li>
+      </ul>
+    </div>
+
+    <p>The old singing schools always ran a tune through on the syllables first — everyone "sang the notes" (FA SO LA) before ever touching the lyrics. The SATB tab lets a small group do exactly that, together, in one room.</p>
+
+    <div class="app-instructions">
+      <h4>Running a FA SO LA reading:</h4>
+      <ol>
+        <li><strong>Sit in your parts.</strong> Gather by voice — soprano, alto, tenor, bass — so you hear the singers on your own line beside you, just like a shape-note square.</li>
+        <li><strong>Load the same tune on every phone.</strong> On the <strong>"SATB Practice"</strong> tab, tap <strong>"Browse Hymns"</strong> and pick the same hymn on each device.</li>
+        <li><strong>Pick your part and lean on it.</strong> Set <strong>"Aim For Part"</strong> to your voice and raise that part in <strong>"Part Volumes"</strong> so your phone acts as a quiet section leader.</li>
+        <li><strong>Sing the syllables first.</strong> Read the movable-Do syllable under each note and sing the tune on solfege — no words yet. Do this once or twice until the notes are solid.</li>
+        <li><strong>Then add the words.</strong> Once the group can carry the tune on syllables, run it again singing the lyrics. The notes are already in your ear.</li>
+      </ol>
+    </div>
+
+    <div class="key-insight">
+      <strong>Notes before words.</strong> Singing the syllables first is the heart of the FA SO LA method: it teaches the tune to your ear cleanly, so when the words arrive you're free to think about phrasing instead of pitch.
+    </div>
+
+    <p>For the in-person logistics — agreeing on a key and tempo, the one-earbud trick, and starting together on a count — see <strong>Lesson 6.5: Singing Together in Person</strong>.</p>`;
 }
 
 function getSubLesson7_1() {

@@ -520,9 +520,10 @@ function handleToggleMicEvent() {
 function startRenderLoop() {
   function tick() {
     getCurrentPitch();
-    // On the SATB tab the shared canvas is hidden (the VexFlow SVG is the staff), so a full
-    // canvas redraw every frame is pure waste — that tab drives its own notation.
-    if (appState.exercise.currentTab !== 'satb') {
+    // On the SATB + Warmup tabs the shared canvas is hidden (the VexFlow SVG is the staff),
+    // so a full canvas redraw every frame is pure waste — those tabs drive their own notation.
+    const tab = appState.exercise.currentTab;
+    if (tab !== 'satb' && tab !== 'warmup') {
       renderStaff();
     }
     refreshGlobalTransportUI();

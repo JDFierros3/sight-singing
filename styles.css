@@ -1552,7 +1552,8 @@ body[data-active-tab="flashcards"] .staffPanel {
    per-notehead presentation attributes. */
 
 /* On the Live Sing + SATB tabs the notation IS the staff — hide the shared shape-note canvas. */
-body[data-active-tab="satb"] .staffPanel {
+body[data-active-tab="satb"] .staffPanel,
+body[data-active-tab="warmup"] .staffPanel {
   display: none;
 }
 

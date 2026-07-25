@@ -13,8 +13,22 @@ import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence, getCurrentSequenceId, trackBadgeTimeout, removeBadgeTimeout } from '../player/sequenceManager.js';
 import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from '../audio/instruments.js';
-import { configurePerformance, showNotation } from '../rendering/performanceView.js';
+import { configurePerformance, showNotation, enterPerformance, exitPerformance, startScroll } from '../rendering/performanceView.js';
 import { spellMidiInKey } from '../utils/keySignature.js';
+
+// Point the shared performance surface at the Warmup tab (container + clock + state).
+function configureWarmupPerformance() {
+  configurePerformance({
+    container: getElementById('warmupVisual'),
+    getTime: () => (appState.staff.currentTime || 0) * ((appState.staff.tempo || 60) / 60),
+    getTargetMidi: () => null,
+    fitPart: () => 'S',
+    isPlaying: () => appState.exercise.warmupRunning,
+    onExit: () => stopWarmupSequence(),
+    variant: () => `${appState.tuning.doMidi}|${getSelectedStanzaIndices().join('')}`,
+    renderOptions: { staffMode: 'single' }
+  });
+}
 
 // Track active warmup oscillators so we can stop them
 let activeWarmupOscillators = [];
@@ -41,16 +55,7 @@ export function displayWarmupStaff() {
   if (!container) return;
   const exercise = buildWarmupExercise();
   if (!exercise) { container.innerHTML = ''; container.hidden = true; return; }
-  configurePerformance({
-    container,
-    getTime: () => 0,
-    getTargetMidi: () => null,
-    fitPart: () => 'S',
-    isPlaying: () => false,
-    onExit: () => {},
-    variant: () => `${appState.tuning.doMidi}|${getSelectedStanzaIndices().join('')}`,
-    renderOptions: { staffMode: 'single' }
-  });
+  configureWarmupPerformance();
   showNotation(exercise, true);
 }
 
@@ -76,6 +81,7 @@ function buildWarmupExercise() {
   return {
     id: 'warmup',
     label: 'Warmup',
+    duration: t,
     midiKeyMidi: tonicPc,
     midiKeyMode: 'major',
     timeSigNum: 4,
@@ -83,6 +89,13 @@ function buildWarmupExercise() {
     parts: { S: notes, A: [], T: [], B: [] },
     lyricsByNote
   };
+}
+
+// The Warmup tab's own tempo (its slider), independent of the shared staff.tempo.
+function getWarmupTempo() {
+  const slider = getElementById('warmupTempo');
+  const v = slider ? Number(slider.value) : NaN;
+  return Number.isFinite(v) && v > 0 ? v : 60;
 }
 
 function getSelectedStanzaIndices() {
@@ -96,17 +109,29 @@ function getSelectedStanzaIndices() {
 
 export async function runWarmupSequence(selectedStanzaIndices = null) {
   await ensureAudioContext();
-  
-  // Set warmupRunning flag
+
+  // One concatenated exercise (the selected patterns, solfege-labelled) drives both the
+  // engraved scroll and the audio, so the staff you see is exactly the staff you hear.
+  const exercise = buildWarmupExercise();
+  if (!exercise) return;
+
+  // Warmup always sings at its OWN tempo slider — never the shared staff.tempo that the
+  // SATB tab overwrites with a hymn's (faster) tempo. Otherwise a warm-up inherits it.
+  appState.staff.tempo = getWarmupTempo();
+
   appState.exercise.warmupRunning = true;
   updateWarmupButton(true);
-  
+
   const badge = getElementById('warmupBadge');
-  // Reset badge immediately when starting
-  setTextContent(badge, '—');
-  
-  const allStanzas = buildWarmupPlan();
-  
+  setTextContent(badge, exercise.label || '—');
+
+  // Full-screen play-along: scroll the solfege staff under the pinned playhead.
+  configureWarmupPerformance();
+  enterPerformance(exercise);
+  startScroll();
+
+  const stanza = { label: exercise.label, duration: exercise.duration, notes: exercise.parts.S };
+
   // Create audio setup callback for warmup-specific note playing
   const audioSetup = async (scaledStanza, sequenceId) => {
     // Schedule all notes to play at their times
@@ -172,61 +197,36 @@ export async function runWarmupSequence(selectedStanzaIndices = null) {
   };
   
   // Start the sequence using the player
-  await stanzaSequencePlayer.startSequence(allStanzas, {
-    selectedStanzaIndices: selectedStanzaIndices,
+  await stanzaSequencePlayer.startSequence([stanza], {
     tempo: appState.staff.tempo,
     baseGain: appState.drone.gain,
-    onStanzaStart: (stanza, index, sequenceId) => {
-      // Update badge for current stanza
-      if (stanza.label) {
-        setTextContent(badge, stanza.label);
-      }
-    },
-    onStanzaEnd: (stanza, index, sequenceId) => {
-      // Stanza ended
-    },
     audioSetup: audioSetup,
-    onComplete: () => {
-      appState.exercise.warmupRunning = false;
-      updateWarmupButton(false);
-      
-      // Update badge to done
-      const sequenceId = getCurrentSequenceId();
-      setTextContent(badge, 'done');
-      const timeoutId = setTimeout(() => {
-        if (isValidSequence(sequenceId)) {
-          setTextContent(badge, '—');
-        }
-        removeBadgeTimeout(timeoutId, sequenceId);
-      }, 1500);
-      trackBadgeTimeout(timeoutId, sequenceId);
-    },
-    onStop: () => {
-      appState.exercise.warmupRunning = false;
-      updateWarmupButton(false);
-      stopAllWarmupOscillators();
-      stopAllDroneOscillators();
-      
-      // Update badge to stopped
-      const sequenceId = getCurrentSequenceId();
-      setTextContent(badge, 'stopped');
-      const timeoutId = setTimeout(() => {
-        if (isValidSequence(sequenceId)) {
-          setTextContent(badge, '—');
-        }
-        removeBadgeTimeout(timeoutId, sequenceId);
-      }, 1000);
-      trackBadgeTimeout(timeoutId, sequenceId);
-    }
+    onComplete: () => finishWarmup('done'),
+    onStop: () => finishWarmup('stopped')
   });
-  
-  // Cleanup if sequence ended normally
-  if (appState.exercise.warmupRunning) {
-    appState.exercise.warmupRunning = false;
-    updateWarmupButton(false);
-  }
+
+  // Cleanup if sequence ended without firing a callback (e.g. empty).
+  if (appState.exercise.warmupRunning) finishWarmup('done');
+}
+
+// Tear down a warmup run: stop audio, leave the full-screen surface, restore the static staff.
+function finishWarmup(status) {
+  if (!appState.exercise.warmupRunning && status === 'done') return;
+  appState.exercise.warmupRunning = false;
+  updateWarmupButton(false);
   stopAllWarmupOscillators();
   stopAllDroneOscillators();
+  exitPerformance();
+  displayWarmupStaff();
+
+  const badge = getElementById('warmupBadge');
+  setTextContent(badge, status === 'stopped' ? 'stopped' : 'done');
+  const sequenceId = getCurrentSequenceId();
+  const timeoutId = setTimeout(() => {
+    if (isValidSequence(sequenceId)) setTextContent(badge, '—');
+    removeBadgeTimeout(timeoutId, sequenceId);
+  }, status === 'stopped' ? 1000 : 1500);
+  trackBadgeTimeout(timeoutId, sequenceId);
 }
 
 export function stopWarmupSequence() {
