@@ -6,11 +6,17 @@ import { getElementById } from '../../utils/dom.js';
 import { appState, updateDisplaySetting } from '../../state/appState.js';
 import { displaySATBExerciseOnStaff, getAllSATBExercises } from '../../exercises/satb.js';
 import { initializeFlashcards } from '../../exercises/flashcards.js';
+import { refreshLiveSingTab } from '../../exercises/liveSing.js';
 import { stopAllPlayback } from '../components/transport.js';
 import { renderStaff } from '../../rendering/staff.js';
 import { renderTheoryContent, saveExpandedLessons } from './theoryContent.js';
 
 const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'satb', 'livesing', 'theory'];
+
+/** Does this build have that tab? Lets callers route to a tab without assuming it exists. */
+export function hasTab(tabName) {
+  return TAB_NAMES.includes(tabName);
+}
 
 export function initializeTabSystem() {
   // Only attach tab switching to buttons that have data-tab attribute
@@ -297,18 +303,17 @@ export function switchToTab(tabName) {
     }, 10);
   }
 
-  // Live Sing displays the selected hymn on the shared staff (placeholder visual for v1),
-  // reusing the SATB renderer. Real engraved notation arrives in Phase 2.
+  // Live Sing engraves the selected hymn (VexFlow, with barlines/ties/slurs) into its own
+  // panel — the shared canvas staff is hidden on this tab, so the engraving must be drawn
+  // on every entry or the tab shows nothing at all.
   if (appState.exercise.currentTab === 'livesing') {
     setTimeout(() => {
-      const exercises = getAllSATBExercises();
-      const currentExercise = appState.satb.currentExercise;
-      if (currentExercise) {
-        displaySATBExerciseOnStaff(currentExercise);
-      } else if (exercises.length > 0) {
+      if (!appState.satb.currentExercise) {
+        const exercises = getAllSATBExercises();
+        if (!exercises.length) return;
         appState.satb.currentExercise = exercises[0];
-        displaySATBExerciseOnStaff(exercises[0]);
       }
+      refreshLiveSingTab();
     }, 10);
   }
 

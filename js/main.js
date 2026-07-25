@@ -4,7 +4,7 @@
 
 import { buildNoteSelectionMenus } from './ui/builders/menus.js';
 import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionButtons } from './ui/builders/chordButtons.js';
-import { initializeTabSystem, switchToTab } from './ui/components/tabs.js';
+import { initializeTabSystem, switchToTab, hasTab } from './ui/components/tabs.js';
 import { renderStaff } from './rendering/staff.js';
 import { getCurrentPitch } from './pitch/detection.js';
 import { appState, updateTuningSetting } from './state/appState.js';
@@ -138,11 +138,10 @@ async function buildUserInterface() {
   buildHomepage();
 
   // Land the singer on their song when they arrived via an OpenPsalm.com handoff link.
+  // Aim for the ENGRAVED view — barlines, ties, slurs, fermatas, lyrics — so the song looks
+  // like the page it was linked from. That's Live Sing while it exists; SATB otherwise.
   if (hadOpenPsalmHandoff()) {
-    switchToTab('satb');
-    window.dispatchEvent(new CustomEvent('hymn:selected', {
-      detail: { exercise: appState.satb.currentExercise }
-    }));
+    switchToTab(hasTab('livesing') ? 'livesing' : 'satb');
   }
 
   // Initialize staff panning (for manual panning when not playing)

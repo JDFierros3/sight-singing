@@ -23,6 +23,7 @@ const PARTS = ['S', 'A', 'T', 'B'];
 const MAX_SONGS = 200;
 const MAX_NOTES_PER_SONG = 8000;
 const MAX_STRING = 500;
+const MAX_TIE_SEGMENTS = 16;
 
 let handoffReceived = false;
 
@@ -141,9 +142,34 @@ function sanitizeNotes(raw, part, budget) {
     const startTime = clampNum(note.startTime, 0, 1e6, null);
     const duration = clampNum(note.duration, 0, 1e6, null);
     if (midi === null || startTime === null || duration === null || duration <= 0) continue;
-    notes.push({ midi, startTime, duration, part });
+    const clean = { midi, startTime, duration, part };
+    // Notation extras (optional): they only affect how the note is engraved, never
+    // playback, so anything malformed is dropped and the note still sounds.
+    const tieDurs = sanitizeTieDurs(note.tieDurs, duration);
+    if (tieDurs) clean.tieDurs = tieDurs;
+    const slurId = clampInt(note.slurId, 0, 1e6, null);
+    if (slurId !== null) clean.slurId = slurId;
+    if (note.fermata === true) clean.fermata = true;
+    notes.push(clean);
   }
   return notes;
+}
+
+/**
+ * Written tie segments for one note. Kept only when there are 2+ positive segments
+ * that add up to the note's total duration (within rounding) — otherwise the
+ * renderer would engrave a length that disagrees with what the note plays.
+ */
+function sanitizeTieDurs(value, duration) {
+  if (!Array.isArray(value) || value.length < 2 || value.length > MAX_TIE_SEGMENTS) return null;
+  const segs = [];
+  for (const seg of value) {
+    const d = clampNum(seg, 0, 1e6, null);
+    if (d === null || d <= 0) return null;
+    segs.push(d);
+  }
+  const total = segs.reduce((s, d) => s + d, 0);
+  return Math.abs(total - duration) <= 0.01 ? segs : null;
 }
 
 // --- coercion helpers -----------------------------------------------------
