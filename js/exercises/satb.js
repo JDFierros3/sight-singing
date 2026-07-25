@@ -13,6 +13,7 @@ import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence, getCurrentSequenceId } from '../player/sequenceManager.js';
 import { playNote, stopAllNotes } from '../player/audioPlayer.js';
 import { getAllSATBExercises as getAllSATBExercisesFromData, createExerciseFromMidi } from './satbData.js';
+import { loadOpenPsalmHandoff } from './openPsalmHandoff.js';
 import { buildPartSelectionButtons, buildPartVolumeControls, updatePartSelection } from '../ui/builders/satbControls.js';
 import { renderStaff } from '../rendering/staff.js';
 import { updatePanningCursor } from '../rendering/staffPanning.js';
@@ -349,29 +350,58 @@ export async function initializeSATBControls() {
   // Hymn library: OpenPsalm only (CC-BY, accurate SATB parsed from source).
   // The legacy MIDI library (heuristic voice-splitting, undocumented licensing) is retired.
   await loadOpenPsalmLibrary();
-  
+
+  // A song handed off from OpenPsalm.com (via the #op= URL fragment) is appended
+  // on top of the bundled library and, if present, becomes the selected exercise.
+  const handoffExercises = loadOpenPsalmHandoff();
+
   // Initialize hymn browser UI
   const { initializeHymnBrowser, updateCurrentHymnDisplay } = await import('../ui/components/hymnBrowser.js');
   initializeHymnBrowser();
-  
+
   // Update current hymn display on initial load
   updateCurrentHymnDisplay();
-  
-  // Auto-select first exercise if available (so staff displays something)
+
+  // Auto-select the handoff song when one arrived, otherwise the first exercise.
   const exercises = getAllSATBExercises();
-  if (exercises.length > 0) {
-    if (!appState.satb.currentExercise) {
-      appState.satb.currentExercise = exercises[0];
-      appState.satb.selectedExerciseIndex = 0;
-    }
-    
-    // If already on SATB tab, display the current exercise immediately
-    if (appState.exercise.currentTab === 'satb' && appState.satb.currentExercise) {
-      displaySATBExerciseOnStaff(appState.satb.currentExercise);
-    }
+  const handoffExercise = handoffExercises[0];
+  if (handoffExercise) {
+    appState.satb.currentExercise = handoffExercise;
+    appState.satb.selectedExerciseIndex = exercises.indexOf(handoffExercise);
+    applyExerciseTempo(handoffExercise);
+  } else if (exercises.length > 0 && !appState.satb.currentExercise) {
+    appState.satb.currentExercise = exercises[0];
+    appState.satb.selectedExerciseIndex = 0;
+    applyExerciseTempo(exercises[0]);
+  }
+
+  // Display immediately if the handoff selected a song, or we're already on the tab.
+  if (appState.satb.currentExercise &&
+      (handoffExercise || appState.exercise.currentTab === 'satb')) {
+    displaySATBExerciseOnStaff(appState.satb.currentExercise);
   }
   
   // Note: Exercise selection is now handled by hymn browser UI, not dropdown
+}
+
+/**
+ * Adopt a hymn's own tempo (its OpenPsalm `tempoBpm`) as the SATB playback
+ * tempo and sync the tempo slider, clamped to the slider's range. Called when a
+ * hymn becomes the active exercise — via the browser or an OpenPsalm.com handoff
+ * link — so "Play SATB" runs at the song's tempo instead of the default 60.
+ */
+export function applyExerciseTempo(exercise) {
+  const bpm = Number(exercise?.tempoBpm);
+  if (!Number.isFinite(bpm)) return;
+  const tempo = Math.max(40, Math.min(120, Math.round(bpm)));
+  appState.staff.tempo = tempo;
+  syncSatbTempoUI(tempo);
+}
+
+function syncSatbTempoUI(tempo) {
+  const slider = getElementById('satbTempo');
+  if (slider) slider.value = String(tempo);
+  setTextContent(getElementById('satbTempoValue'), String(tempo));
 }
 
 /**

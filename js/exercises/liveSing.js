@@ -48,15 +48,12 @@ export function initializeLiveSing() {
   syncLiveSingControls();
   applyHymnTempo();   // start from the auto-selected hymn's own tempo
   syncKeyDropdown();  // and its own key
+  lastShownExercise = appState.satb.currentExercise;
 
   // When a hymn is picked from the shared browser while on this tab, adopt its
   // key + tempo and redraw.
   window.addEventListener('hymn:selected', () => {
-    if (appState.exercise.currentTab === 'livesing') {
-      applyHymnTempo();
-      syncKeyDropdown();
-      displayLiveSingHymn();
-    }
+    if (appState.exercise.currentTab === 'livesing') refreshLiveSingTab();
   });
 
   // Re-fit the full-screen notation when the phone rotates or the browser chrome resizes.
@@ -143,6 +140,29 @@ function applyHymnTempo() {
 
 export function browseLiveSingHymns() {
   openHymnBrowser();
+}
+
+let lastShownExercise = null;
+
+/**
+ * Bring the tab up to date with the selected hymn — called when Live Sing becomes
+ * visible and when a hymn is picked while it already is. Without this the tab comes
+ * up blank: the shared canvas staff is hidden here, and the engraved staff is only
+ * ever drawn by displayLiveSingHymn().
+ *
+ * Tempo and key are re-adopted from the hymn only when the hymn actually changed, so
+ * a singer's own tempo/key choice survives tabbing away and back.
+ */
+export function refreshLiveSingTab() {
+  const exercise = appState.satb.currentExercise;
+  if (!exercise) return;
+  if (exercise !== lastShownExercise) {
+    lastShownExercise = exercise;
+    applyHymnTempo();
+    syncKeyDropdown();
+  }
+  updateHymnLabel();
+  displayLiveSingHymn();
 }
 
 /* --------------------------------------------------------------- key ------ */
