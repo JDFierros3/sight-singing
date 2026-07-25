@@ -3029,6 +3029,62 @@ function renderLesson5() {
   `;
 }
 
+function getSubLesson6_5() {
+  return `
+    <div class="learning-objectives">
+      <h4>Learning Objectives:</h4>
+      <ul>
+        <li>Use the SATB tab to sing a hymn together, in person, as a group</li>
+        <li>Set a comfortable shared key and tempo for the whole group</li>
+        <li>Follow your own part on the engraved staff while hearing the people around you</li>
+      </ul>
+    </div>
+
+    <p>You don't need any special "group" mode or a server — the SATB tab is all you need for a room full of people to sing a hymn together. Everyone opens the same hymn on their own phone, follows their own part, and sings.</p>
+
+    <div class="app-instructions">
+      <h4>Setting up a group sing:</h4>
+      <ol>
+        <li><strong>Everyone loads the same hymn:</strong>
+          <ul>
+            <li>On each phone, go to the <strong>"SATB Practice"</strong> tab and tap <strong>"Browse Hymns"</strong></li>
+            <li>Pick the same hymn on every device</li>
+          </ul>
+        </li>
+        <li><strong>Each singer picks their part:</strong>
+          <ul>
+            <li>Under <strong>"Aim For Part"</strong>, choose the part you're singing (S, A, T, or B)</li>
+            <li>In <strong>"Part Volumes"</strong>, turn <em>your</em> part up and the others down if you want to lean on the recording, or keep them balanced to hear the full harmony</li>
+          </ul>
+        </li>
+        <li><strong>Agree on a key and tempo:</strong>
+          <ul>
+            <li>Use the <strong>Key</strong> transpose buttons (− / +) so the pitch sits comfortably for the group's voices</li>
+            <li>The hymn loads at its own tempo; nudge the <strong>Tempo</strong> slider slower for a first read-through</li>
+            <li>Make sure everyone matches the same key and tempo</li>
+          </ul>
+        </li>
+        <li><strong>Put in one earbud:</strong>
+          <ul>
+            <li>Wear a single earbud (or one side of your headphones), leaving the <strong>other ear open</strong></li>
+            <li>Your phone plays the parts in the earbud; your open ear hears the people singing around you — that's how you stay together as a group</li>
+          </ul>
+        </li>
+        <li><strong>Start together on a count:</strong>
+          <ul>
+            <li>Have one person count off — "three, two, one, sing" — and everyone taps <strong>"Play"</strong> on that beat</li>
+            <li>Because every phone plays the same hymn at the same tempo, once you start together you stay together for the whole song</li>
+            <li>Sing your part from the scrolling staff; the play line shows where you are</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="key-insight">
+      <strong>Why one earbud?</strong> It's the trick that makes group singing work: the earbud keeps you locked to the notes, while your open ear keeps you locked to the people. Two ears of recording and you'd only hear yourself; two ears of the room and you'd drift off pitch. One of each keeps you both in tune and together.
+    </div>`;
+}
+
 function renderLesson6() {
   return `
     <section class="lesson" id="lesson-6" data-lesson="6">
@@ -3051,6 +3107,7 @@ function renderLesson6() {
         ${renderSubLesson('6.2', 'Finding Your Part in Harmony', getSubLesson6_2())}
         ${renderSubLesson('6.3', 'Voice Leading and Part Independence', getSubLesson6_3())}
         ${renderSubLesson('6.4', 'Singing Against Other Parts', getSubLesson6_4())}
+        ${renderSubLesson('6.5', 'Singing Together in Person', getSubLesson6_5())}
       </div>
     </section>
   `;
@@ -3068,9 +3125,41 @@ function renderLesson7() {
 
         ${renderSubLesson('7.1', 'Understanding the FA SO LA Tradition', getSubLesson7_1())}
         ${renderSubLesson('7.2', 'Importing and Practicing with Hymn MIDI Files', getSubLesson7_2())}
+        ${renderSubLesson('7.3', 'Singing Together with the SATB Tab', getSubLesson7_3())}
       </div>
     </section>
   `;
+}
+
+function getSubLesson7_3() {
+  return `
+    <div class="learning-objectives">
+      <h4>Learning Objectives:</h4>
+      <ul>
+        <li>Recreate a traditional FA SO LA singing in miniature using the SATB tab</li>
+        <li>Sit in parts and sing a tune together on solfege before adding the words</li>
+        <li>Use each phone as a quiet section leader so the whole group stays anchored</li>
+      </ul>
+    </div>
+
+    <p>The old singing schools always ran a tune through on the syllables first — everyone "sang the notes" (FA SO LA) before ever touching the lyrics. The SATB tab lets a small group do exactly that, together, in one room.</p>
+
+    <div class="app-instructions">
+      <h4>Running a FA SO LA reading:</h4>
+      <ol>
+        <li><strong>Sit in your parts.</strong> Gather by voice — soprano, alto, tenor, bass — so you hear the singers on your own line beside you, just like a shape-note square.</li>
+        <li><strong>Load the same tune on every phone.</strong> On the <strong>"SATB Practice"</strong> tab, tap <strong>"Browse Hymns"</strong> and pick the same hymn on each device.</li>
+        <li><strong>Pick your part and lean on it.</strong> Set <strong>"Aim For Part"</strong> to your voice and raise that part in <strong>"Part Volumes"</strong> so your phone acts as a quiet section leader.</li>
+        <li><strong>Sing the syllables first.</strong> Read the movable-Do syllable under each note and sing the tune on solfege — no words yet. Do this once or twice until the notes are solid.</li>
+        <li><strong>Then add the words.</strong> Once the group can carry the tune on syllables, run it again singing the lyrics. The notes are already in your ear.</li>
+      </ol>
+    </div>
+
+    <div class="key-insight">
+      <strong>Notes before words.</strong> Singing the syllables first is the heart of the FA SO LA method: it teaches the tune to your ear cleanly, so when the words arrive you're free to think about phrasing instead of pitch.
+    </div>
+
+    <p>For the in-person logistics — agreeing on a key and tempo, the one-earbud trick, and starting together on a count — see <strong>Lesson 6.5: Singing Together in Person</strong>.</p>`;
 }
 
 function getSubLesson7_1() {

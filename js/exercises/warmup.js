@@ -13,23 +13,125 @@ import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence, getCurrentSequenceId, trackBadgeTimeout, removeBadgeTimeout } from '../player/sequenceManager.js';
 import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from '../audio/instruments.js';
+import { configurePerformance, showNotation, enterPerformance, exitPerformance, startScroll } from '../rendering/performanceView.js';
+import { spellMidiInKey } from '../utils/keySignature.js';
+
+// Point the shared performance surface at the Warmup tab (container + clock + state).
+function configureWarmupPerformance() {
+  configurePerformance({
+    container: getElementById('warmupVisual'),
+    getTime: () => (appState.staff.currentTime || 0) * ((appState.staff.tempo || 60) / 60),
+    getTargetMidi: () => null,
+    fitPart: () => 'S',
+    isPlaying: () => appState.exercise.warmupRunning,
+    onExit: () => stopWarmupSequence(),
+    variant: () => `${appState.tuning.doMidi}|${getSelectedStanzaIndices().join('')}`,
+    renderOptions: { staffMode: 'single' }
+  });
+}
 
 // Track active warmup oscillators so we can stop them
 let activeWarmupOscillators = [];
 
+/* ------------------------------------------- engraved solfege reference --- */
+
+// Render the selected warmup patterns on a single VexFlow staff with each note's movable-Do
+// solfege syllable beneath it — a static "Do Re Mi Fa Sol…" reference for the tab.
+let warmupCheckboxesBound = false;
+function bindWarmupCheckboxes() {
+  if (warmupCheckboxesBound) return;
+  for (let i = 0; i < 6; i++) {
+    const cb = getElementById(`warmupStanza-${i}`);
+    if (cb) cb.addEventListener('change', () => {
+      if (appState.exercise.currentTab === 'warmup') displayWarmupStaff();
+    });
+  }
+  warmupCheckboxesBound = true;
+}
+
+export function displayWarmupStaff() {
+  bindWarmupCheckboxes();
+  const container = getElementById('warmupVisual');
+  if (!container) return;
+  const exercise = buildWarmupExercise();
+  if (!exercise) { container.innerHTML = ''; container.hidden = true; return; }
+  configureWarmupPerformance();
+  showNotation(exercise, true);
+}
+
+// Concatenate the selected warmup stanzas into a single hymn-format exercise whose per-note
+// "lyrics" are the movable-Do solfege syllables — so it renders through the standard path.
+function buildWarmupExercise() {
+  const plan = buildWarmupPlan();
+  const selected = getSelectedStanzaIndices();
+  const stanzas = selected.length ? selected.map(i => plan[i]).filter(Boolean) : plan;
+  const tonicPc = ((appState.tuning.doMidi % 12) + 12) % 12;
+  const notes = [];
+  const lyricsByNote = [];
+  let t = 0;
+  for (const st of stanzas) {
+    for (const n of st.notes) {
+      notes.push({ midi: n.midi, startTime: t + n.startTime, duration: n.duration, part: 'S' });
+      const spelled = spellMidiInKey(n.midi, tonicPc, 'major');
+      lyricsByNote.push(spelled ? spelled.solfege : '');
+    }
+    t += st.duration;
+  }
+  if (!notes.length) return null;
+  return {
+    id: 'warmup',
+    label: 'Warmup',
+    duration: t,
+    midiKeyMidi: tonicPc,
+    midiKeyMode: 'major',
+    timeSigNum: 4,
+    timeSigDen: 4,
+    parts: { S: notes, A: [], T: [], B: [] },
+    lyricsByNote
+  };
+}
+
+// The Warmup tab's own tempo (its slider), independent of the shared staff.tempo.
+function getWarmupTempo() {
+  const slider = getElementById('warmupTempo');
+  const v = slider ? Number(slider.value) : NaN;
+  return Number.isFinite(v) && v > 0 ? v : 60;
+}
+
+function getSelectedStanzaIndices() {
+  const idx = [];
+  for (let i = 0; i < 6; i++) {
+    const cb = getElementById(`warmupStanza-${i}`);
+    if (cb && cb.checked) idx.push(i);
+  }
+  return idx;
+}
+
 export async function runWarmupSequence(selectedStanzaIndices = null) {
   await ensureAudioContext();
-  
-  // Set warmupRunning flag
+
+  // One concatenated exercise (the selected patterns, solfege-labelled) drives both the
+  // engraved scroll and the audio, so the staff you see is exactly the staff you hear.
+  const exercise = buildWarmupExercise();
+  if (!exercise) return;
+
+  // Warmup always sings at its OWN tempo slider — never the shared staff.tempo that the
+  // SATB tab overwrites with a hymn's (faster) tempo. Otherwise a warm-up inherits it.
+  appState.staff.tempo = getWarmupTempo();
+
   appState.exercise.warmupRunning = true;
   updateWarmupButton(true);
-  
+
   const badge = getElementById('warmupBadge');
-  // Reset badge immediately when starting
-  setTextContent(badge, '—');
-  
-  const allStanzas = buildWarmupPlan();
-  
+  setTextContent(badge, exercise.label || '—');
+
+  // Full-screen play-along: scroll the solfege staff under the pinned playhead.
+  configureWarmupPerformance();
+  enterPerformance(exercise);
+  startScroll();
+
+  const stanza = { label: exercise.label, duration: exercise.duration, notes: exercise.parts.S };
+
   // Create audio setup callback for warmup-specific note playing
   const audioSetup = async (scaledStanza, sequenceId) => {
     // Schedule all notes to play at their times
@@ -95,61 +197,36 @@ export async function runWarmupSequence(selectedStanzaIndices = null) {
   };
   
   // Start the sequence using the player
-  await stanzaSequencePlayer.startSequence(allStanzas, {
-    selectedStanzaIndices: selectedStanzaIndices,
+  await stanzaSequencePlayer.startSequence([stanza], {
     tempo: appState.staff.tempo,
     baseGain: appState.drone.gain,
-    onStanzaStart: (stanza, index, sequenceId) => {
-      // Update badge for current stanza
-      if (stanza.label) {
-        setTextContent(badge, stanza.label);
-      }
-    },
-    onStanzaEnd: (stanza, index, sequenceId) => {
-      // Stanza ended
-    },
     audioSetup: audioSetup,
-    onComplete: () => {
-      appState.exercise.warmupRunning = false;
-      updateWarmupButton(false);
-      
-      // Update badge to done
-      const sequenceId = getCurrentSequenceId();
-      setTextContent(badge, 'done');
-      const timeoutId = setTimeout(() => {
-        if (isValidSequence(sequenceId)) {
-          setTextContent(badge, '—');
-        }
-        removeBadgeTimeout(timeoutId, sequenceId);
-      }, 1500);
-      trackBadgeTimeout(timeoutId, sequenceId);
-    },
-    onStop: () => {
-      appState.exercise.warmupRunning = false;
-      updateWarmupButton(false);
-      stopAllWarmupOscillators();
-      stopAllDroneOscillators();
-      
-      // Update badge to stopped
-      const sequenceId = getCurrentSequenceId();
-      setTextContent(badge, 'stopped');
-      const timeoutId = setTimeout(() => {
-        if (isValidSequence(sequenceId)) {
-          setTextContent(badge, '—');
-        }
-        removeBadgeTimeout(timeoutId, sequenceId);
-      }, 1000);
-      trackBadgeTimeout(timeoutId, sequenceId);
-    }
+    onComplete: () => finishWarmup('done'),
+    onStop: () => finishWarmup('stopped')
   });
-  
-  // Cleanup if sequence ended normally
-  if (appState.exercise.warmupRunning) {
-    appState.exercise.warmupRunning = false;
-    updateWarmupButton(false);
-  }
+
+  // Cleanup if sequence ended without firing a callback (e.g. empty).
+  if (appState.exercise.warmupRunning) finishWarmup('done');
+}
+
+// Tear down a warmup run: stop audio, leave the full-screen surface, restore the static staff.
+function finishWarmup(status) {
+  if (!appState.exercise.warmupRunning && status === 'done') return;
+  appState.exercise.warmupRunning = false;
+  updateWarmupButton(false);
   stopAllWarmupOscillators();
   stopAllDroneOscillators();
+  exitPerformance();
+  displayWarmupStaff();
+
+  const badge = getElementById('warmupBadge');
+  setTextContent(badge, status === 'stopped' ? 'stopped' : 'done');
+  const sequenceId = getCurrentSequenceId();
+  const timeoutId = setTimeout(() => {
+    if (isValidSequence(sequenceId)) setTextContent(badge, '—');
+    removeBadgeTimeout(timeoutId, sequenceId);
+  }, status === 'stopped' ? 1000 : 1500);
+  trackBadgeTimeout(timeoutId, sequenceId);
 }
 
 export function stopWarmupSequence() {

@@ -5,13 +5,13 @@
 import { getElementById } from '../../utils/dom.js';
 import { appState, updateDisplaySetting } from '../../state/appState.js';
 import { displaySATBExerciseOnStaff, getAllSATBExercises } from '../../exercises/satb.js';
+import { displayWarmupStaff } from '../../exercises/warmup.js';
 import { initializeFlashcards } from '../../exercises/flashcards.js';
-import { refreshLiveSingTab } from '../../exercises/liveSing.js';
 import { stopAllPlayback } from '../components/transport.js';
 import { renderStaff } from '../../rendering/staff.js';
 import { renderTheoryContent, saveExpandedLessons } from './theoryContent.js';
 
-const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'satb', 'livesing', 'theory'];
+const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'satb', 'theory'];
 
 /** Does this build have that tab? Lets callers route to a tab without assuming it exists. */
 export function hasTab(tabName) {
@@ -251,11 +251,11 @@ export function switchToTab(tabName) {
   // Clear SATB-specific notes when switching away from SATB / Live Sing (both display a hymn on the staff)
   // Note: We keep keyTonic/keyMode since rendering logic checks currentTab before using them
   // When switching back, they'll be restored from the exercise
-  if (tabName !== 'satb' && tabName !== 'livesing') {
+  if (tabName !== 'satb') {
     appState.staff.notes = [];
     appState.staff.satbPreviewMode = false;
     // Only clear key info if we're not on a hymn tab (rendering logic will use movable Do for other tabs)
-    if (appState.exercise.currentTab !== 'satb' && appState.exercise.currentTab !== 'livesing') {
+    if (appState.exercise.currentTab !== 'satb') {
       appState.staff.keyTonic = undefined;
       appState.staff.keyMode = undefined;
     }
@@ -271,8 +271,8 @@ export function switchToTab(tabName) {
   // Update "Show Accidentals & Key" setting based on tab
   const showAccidentalsCheckbox = getElementById('showAccidentalsAndKey');
   if (showAccidentalsCheckbox) {
-    if (appState.exercise.currentTab === 'satb' || appState.exercise.currentTab === 'chord-quality' || appState.exercise.currentTab === 'livesing') {
-      // Enable by default for SATB, Chord Quality, and Live Sing tabs (real notation)
+    if (appState.exercise.currentTab === 'satb' || appState.exercise.currentTab === 'chord-quality') {
+      // Enable by default for SATB and Chord Quality tabs (real notation)
       updateDisplaySetting('showAccidentalsAndKey', true);
       showAccidentalsCheckbox.checked = true;
     } else {
@@ -303,19 +303,11 @@ export function switchToTab(tabName) {
     }, 10);
   }
 
-  // Live Sing engraves the selected hymn (VexFlow, with barlines/ties/slurs) into its own
-  // panel — the shared canvas staff is hidden on this tab, so the engraving must be drawn
-  // on every entry or the tab shows nothing at all.
-  if (appState.exercise.currentTab === 'livesing') {
-    setTimeout(() => {
-      if (!appState.satb.currentExercise) {
-        const exercises = getAllSATBExercises();
-        if (!exercises.length) return;
-        appState.satb.currentExercise = exercises[0];
-      }
-      refreshLiveSingTab();
-    }, 10);
+  // Warmup shows an engraved single-staff solfege reference of the selected patterns.
+  if (appState.exercise.currentTab === 'warmup') {
+    setTimeout(() => displayWarmupStaff(), 10);
   }
+
 
   if (tabName === 'flashcards') {
     setTimeout(() => {

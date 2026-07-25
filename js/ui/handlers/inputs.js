@@ -13,7 +13,7 @@ import { ensureAudioContext } from '../../audio/context.js';
 import { startMicrophone, stopMicrophone } from '../../audio/microphone.js';
 import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionButtons } from '../builders/chordButtons.js';
 import { buildIndividualVolumeControls } from '../builders/volumeControls.js';
-import { runWarmupSequence, stopWarmupSequence } from '../../exercises/warmup.js';
+import { runWarmupSequence, stopWarmupSequence, displayWarmupStaff } from '../../exercises/warmup.js';
 import { setTempo } from '../../rendering/scrollingStaff.js';
 import { playHiddenCluster, revealClusterNotes } from '../../exercises/cluster.js';
 import { playIntervalExercise, revealIntervalSolution } from '../../exercises/intervals.js';
@@ -22,10 +22,13 @@ import * as transport from '../components/transport.js';
 import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode } from '../../exercises/flashcards.js';
 import { openHymnBrowser } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
-import {
-  browseLiveSingHymns, setLiveSingPart, setLiveSingEar, setLiveSingSoftness,
-  setLiveSingTempo, setLiveSingKey, playLiveSing, stopLiveSing
-} from '../../exercises/liveSing.js';
+// Re-render whichever VexFlow tab is active (SATB / Warmup) after a global setting that affects
+// the engraving changes (Do, Zoom). Other tabs use the canvas via renderStaff().
+function refreshActiveNotation() {
+  const tab = appState.exercise.currentTab;
+  if (tab === 'warmup') displayWarmupStaff();
+  else if (tab === 'satb' && appState.satb.currentExercise) displaySATBExerciseOnStaff(appState.satb.currentExercise);
+}
 
 export function handleA4TuningChange(event) {
   const value = Number(event.target.value) || 440;
@@ -78,7 +81,8 @@ export function handleDoNoteChange(event) {
   const value = Number(event.target.value);
   updateTuningSetting('doMidi', value);
   renderStaff();
-  
+  refreshActiveNotation(); // Warmup regenerates around the new Do (comfortable range)
+
   if (appState.drone.on) {
     restartDrone();
   }
@@ -102,7 +106,7 @@ export function handleZoomChange(event) {
   const value = Number(event.target.value);
   updateDisplaySetting('zoom', value);
   renderStaff();
-  transport.stopAllPlayback?.();
+  refreshActiveNotation(); // resize the engraved staff on SATB / Warmup / Live Sing
 }
 
 export function handlePlayAimChange(event) {
@@ -444,42 +448,6 @@ export function handleSATBTransposeChange(event) {
   const semis = parseInt(event.target.value) || 0;
   setSatbTranspose(semis);
   transport.stopAllPlayback?.();
-}
-
-/* ------------------------------------------------------------ Live Sing --- */
-
-export function handleLiveSingBrowseClick() {
-  browseLiveSingHymns();
-}
-
-export function handleLiveSingPartClick(event) {
-  const part = event.target.dataset.part;
-  if (part) setLiveSingPart(part);
-}
-
-export function handleLiveSingEarClick(event) {
-  const ear = event.target.dataset.ear;
-  if (ear) setLiveSingEar(ear);
-}
-
-export function handleLiveSingVolumeChange(event) {
-  setLiveSingSoftness(event.target.value);
-}
-
-export function handleLiveSingTempoChange(event) {
-  setLiveSingTempo(event.target.value);
-}
-
-export function handleLiveSingKeyChange(event) {
-  setLiveSingKey(event.target.value);
-}
-
-export function handleLiveSingPlayClick() {
-  playLiveSing();
-}
-
-export function handleLiveSingStopClick() {
-  stopLiveSing();
 }
 
 /**

@@ -745,12 +745,7 @@ function drawMicrophoneDot(noteMapper, dimensions) {
   if (!Number.isFinite(micMidi)) {
     return;
   }
-  // On the Live Sing tab, aim at the chosen part's note currently sounding, so the
-  // crosshair lands on the notehead when the singer is in tune AND on time.
-  const liveSingTarget = (appState.exercise?.currentTab === 'livesing' && Number.isFinite(appState.livesing?.currentTargetMidi))
-    ? appState.livesing.currentTargetMidi
-    : null;
-  const targetMidi = liveSingTarget != null ? liveSingTarget : calculateTargetMidi();
+  const targetMidi = calculateTargetMidi();
   const targetFreq = midiToFrequency(targetMidi, appState.tuning.a4);
 
   // For mic feedback, anchor to the correct staff line/space (diatonic),
@@ -759,8 +754,7 @@ function drawMicrophoneDot(noteMapper, dimensions) {
   const delta = centsBetween(rawHz, targetFreq);
 
   updateCentsDisplay(delta);
-  // Colour by accuracy only on Live Sing (where there's a real per-note target); other tabs stay neutral.
-  drawMicPitchLine(y, delta, dimensions, false, liveSingTarget != null);
+  drawMicPitchLine(y, delta, dimensions, false, false);
 }
 
 function frequencyToMidiCorrect(freq, a4 = 440) {

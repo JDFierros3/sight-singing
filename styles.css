@@ -1226,44 +1226,6 @@ body[data-active-tab="flashcards"] .staffPanel {
   margin: 0;
 }
 
-/* Live Sing (beta) section */
-.home-livesing-section {
-  padding: 0 16px 20px;
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.home-livesing-section h3 {
-  color: var(--text);
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.home-beta-badge {
-  background: var(--accent);
-  color: #06202b;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-
-.home-livesing-card p + p {
-  margin-top: 8px;
-}
-
-.home-livesing-note {
-  font-style: italic;
-}
-
-.home-livesing-card .btn-start-learning {
-  margin-top: 12px;
-}
-
 /* Solfege guide section */
 .home-solfege-section {
   padding: 0 16px 20px;
@@ -1483,6 +1445,22 @@ body[data-active-tab="flashcards"] .staffPanel {
   font-size: 0.85rem;
 }
 
+/* Callout for a key takeaway inside a lesson. */
+.key-insight {
+  background: rgba(125, 211, 252, 0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin: 16px 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.key-insight strong:first-child {
+  color: var(--accent);
+}
+
 /* Difficulty description text */
 .difficulty-desc {
   color: var(--muted);
@@ -1524,144 +1502,40 @@ body[data-active-tab="flashcards"] .staffPanel {
   }
 }
 
-/* ============================ Live Sing ============================ */
-.livesing-fieldset {
-  border: 1px solid #273056;
-  border-radius: 12px;
-  /* Fluid padding: tighter on small phones, roomier on tablets/desktop. */
-  padding: clamp(10px, 3vw, 16px);
-  /* Fieldsets default to min-width:min-content, which would expand to fit the very
-     wide notation and drag the controls off-screen. Keep it at panel width so only
-     #liveSingVisual scrolls horizontally. */
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-/* Fully fluid control grid: one column on phones (each slider/picker gets full width),
-   filling to 2–3+ columns as the screen widens — no fixed breakpoints. The min(100%, …)
-   guard keeps a single column from ever overflowing a narrow viewport. */
-.livesing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
-  gap: clamp(10px, 2.5vw, 16px);
-  align-items: start;
-}
-
-.livesing-control {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.livesing-control > label {
-  font-size: clamp(12px, 3.4vw, 13px);
-  color: var(--muted);
-}
-
-/* Segmented pickers (part S/A/T/B, ear L/R) share the row width evenly and stay tappable. */
-.livesing-control .row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* Sliders and selects fill their cell so they're easy to hit on touch. */
-.livesing-control input[type="range"],
-.livesing-control select {
-  width: 100%;
-}
-
-.livesing-hymn #liveSingCurrentHymn {
-  font-weight: 600;
-  padding: 6px 8px;
-  border-radius: 8px;
-  background: #12182a;
-  border: 1px solid #273056;
-}
-
-.livesing-hymn .no-hymn {
-  color: var(--muted);
-  font-weight: 400;
-}
-
-.livesing-transport {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.livesing-transport button {
-  flex: 1 1 auto;
-}
-
-/* Big, thumb-friendly primary actions */
-.livesing-transport #btnLiveSingPlay,
-.livesing-transport #btnLiveSingStop {
-  min-height: 44px;
-  font-weight: 600;
-}
-
-/* Touch-friendly part / ear pickers — each fills an equal share of the row. */
-#liveSingPartSelection .part-btn,
-#liveSingEarSelection .part-btn {
-  flex: 1 1 0;
-  min-width: 44px;
-  min-height: 42px;
-  text-align: center;
-  border-radius: 10px;
-  border-bottom: 1px solid #273056;
-}
-
-#liveSingPartSelection .part-btn.active,
-#liveSingEarSelection .part-btn.active {
-  background: var(--accent);
-  color: #06202b;
-}
-
-/* Tempo-driven progress bar */
-.livesing-progress {
-  height: 8px;
-  border-radius: 999px;
-  background: #12182a;
-  border: 1px solid #273056;
-  margin: 12px 0 8px;
-  overflow: hidden;
-}
-
-.livesing-progress-bar {
-  height: 100%;
-  width: 0%;
-  background: var(--accent);
-  transition: width 0.08s linear;
-}
-
-.livesing-visual .livesing-notation-wrap svg {
+.perf-surface .notation-wrap svg {
   display: block;           /* avoid inline-baseline gap under the SVG */
 }
 
 /* Muted staff / stems / clefs / signatures / accidentals. Noteheads are intentionally
    NOT matched here so they keep the per-note solfege colour VexFlow sets inline. */
-.livesing-notation-wrap svg .vf-stave path,
-.livesing-notation-wrap svg .vf-stavebarline path,
-.livesing-notation-wrap svg .vf-clef path,
-.livesing-notation-wrap svg .vf-keysignature path,
-.livesing-notation-wrap svg .vf-timesignature path,
-.livesing-notation-wrap svg .vf-stem,
-.livesing-notation-wrap svg .vf-stem rect,
-.livesing-notation-wrap svg .vf-modifiers path {
+.notation-wrap svg .vf-stave path,
+.notation-wrap svg .vf-stavebarline path,
+.notation-wrap svg .vf-clef path,
+.notation-wrap svg .vf-keysignature path,
+.notation-wrap svg .vf-timesignature path,
+.notation-wrap svg .vf-stem,
+.notation-wrap svg .vf-stem rect,
+.notation-wrap svg .vf-modifiers path {
   fill: #9aa4b2;
   stroke: #9aa4b2;
 }
 
-/* Lyric syllables drawn under the melody. */
-.livesing-notation-wrap svg text {
+/* Lyric / solfege syllables drawn under the melody. */
+.notation-wrap svg text {
   fill: #dbe4ff;
   stroke: none;
 }
 
-.livesing-visual {
+/* Any fieldset hosting a performance surface must not stretch to the (very wide) engraved
+   staff's intrinsic width — cap it so the controls stay put and only the staff scrolls. */
+#panel-satb > fieldset,
+#panel-warmup > fieldset {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* A "performance surface": the scrollable engraved-notation container any tab can host. */
+.perf-surface {
   margin-top: 8px;
   width: 100%;
   max-width: 100%;
@@ -1677,13 +1551,14 @@ body[data-active-tab="flashcards"] .staffPanel {
    (solfege colour), so no CSS fill overrides here — CSS would clobber the
    per-notehead presentation attributes. */
 
-/* On the Live Sing tab the notation IS the staff — hide the shared shape-note canvas. */
-body[data-active-tab="livesing"] .staffPanel {
+/* On the Live Sing + SATB tabs the notation IS the staff — hide the shared shape-note canvas. */
+body[data-active-tab="satb"] .staffPanel,
+body[data-active-tab="warmup"] .staffPanel {
   display: none;
 }
 
 /* Singer's pitch line over the engraving (shown only while performing). */
-.livesing-micline {
+.perf-micline {
   position: absolute;
   left: 0;
   width: 100%;
@@ -1696,7 +1571,7 @@ body[data-active-tab="livesing"] .staffPanel {
 }
 
 /* Moving playhead over the engraving (shown only while performing). */
-.livesing-playhead {
+.perf-playhead {
   position: absolute;
   top: 0;
   width: 2px;
@@ -1709,7 +1584,7 @@ body[data-active-tab="livesing"] .staffPanel {
 
 /* Full-screen performance mode: the notation expands over everything and scrolls;
    the setup controls simply scroll off behind it. */
-body.livesing-performing #liveSingVisual {
+body.perf-performing .perf-surface {
   position: fixed;
   inset: 0;
   z-index: 3000;
@@ -1732,19 +1607,19 @@ body.livesing-performing #liveSingVisual {
 
 /* Keep the wide staff at natural size (don't let flex shrink it); promote it to its own
    compositor layer so the per-frame translate is GPU-accelerated and smooth on mobile. */
-body.livesing-performing #liveSingVisual .livesing-notation-wrap {
+body.perf-performing .perf-surface .notation-wrap {
   flex: 0 0 auto;
   will-change: transform;
 }
 
 /* Full-height playhead line through the centred staff. */
-body.livesing-performing .livesing-playhead {
+body.perf-performing .perf-playhead {
   display: block;
   height: 100% !important;
   top: 0;
 }
 
-.livesing-exit-btn {
+.perf-exit-btn {
   position: fixed;
   /* Bottom-centre: the reliable thumb zone, and clear of the top status bar / notch / URL
      bar that made this unreachable in portrait. Respects the home-indicator safe area. */
@@ -1767,7 +1642,7 @@ body.livesing-performing .livesing-playhead {
 
 /* Full-screen "3 · 2 · 1 · Sing!" count-in. pointer-events:none so the Stop button
    underneath stays tappable if someone wants to bail during the count. */
-.livesing-countdown {
+.perf-countdown {
   position: fixed;
   inset: 0;
   z-index: 3006;
@@ -1781,36 +1656,13 @@ body.livesing-performing .livesing-playhead {
   text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
 }
 
-.livesing-countdown.pop {
-  animation: livesing-count-pop 0.42s ease-out;
+.perf-countdown.pop {
+  animation: perf-count-pop 0.42s ease-out;
 }
 
-@keyframes livesing-count-pop {
+@keyframes perf-count-pop {
   0% { transform: scale(0.5); opacity: 0; }
   35% { transform: scale(1.08); opacity: 1; }
   100% { transform: scale(1); opacity: 0.92; }
 }
 
-/* Landscape phone: keep the notation prominent, compact the controls into a
-   tight strip so the shared staff above gets the width it needs. */
-@media (orientation: landscape) and (max-height: 600px) {
-  body[data-active-tab="livesing"] .livesing-grid {
-    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
-    gap: 8px;
-  }
-
-  body[data-active-tab="livesing"] .livesing-control > label {
-    font-size: 11px;
-  }
-
-  /* Reclaim vertical space: the bulky shared ribbon isn't needed during a Live Sing
-     performance (Set Do / Arm replace the global mic controls). Scoped to this tab.
-     The <main> element is already the single scroll container, so no nested scroll. */
-  body[data-active-tab="livesing"] .controlRibbon {
-    display: none;
-  }
-
-  body[data-active-tab="livesing"] .help {
-    display: none; /* save vertical space in landscape */
-  }
-}
