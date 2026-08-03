@@ -129,6 +129,14 @@ export function createExerciseFromMidi(midiExercise) {
   if (midiExercise.midiKeyMidi !== undefined) {
     exercise.midiKeyMidi = midiExercise.midiKeyMidi;
   }
+  if (midiExercise.midiKeyMode !== undefined) {
+    exercise.midiKeyMode = midiExercise.midiKeyMode;
+  }
+  // Carry the time signature + tempo so measures land correctly and playback adopts the
+  // hymn's own speed (parity with the OpenPsalm library exercises).
+  if (midiExercise.timeSigNum !== undefined) exercise.timeSigNum = midiExercise.timeSigNum;
+  if (midiExercise.timeSigDen !== undefined) exercise.timeSigDen = midiExercise.timeSigDen;
+  if (midiExercise.tempoBpm !== undefined) exercise.tempoBpm = midiExercise.tempoBpm;
   if (midiExercise.isMidiExercise !== undefined) {
     exercise.isMidiExercise = midiExercise.isMidiExercise;
   } else {

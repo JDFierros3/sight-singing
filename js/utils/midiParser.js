@@ -873,6 +873,73 @@ export function analyzeKeyFromMidiData(midiData) {
   };
 }
 
+// The engraver's clock is "beats" (quarter = 1), same as the OpenPsalm library. Raw MIDI
+// notes arrive in real seconds at the file's tempo, so a quarter at 120bpm is 0.5s and would
+// render as an eighth. Snapping onsets/durations to this grid also clears the export jitter
+// that otherwise puts a rest between every note. A sixteenth grid keeps real eighths + dotted
+// rhythms while cleaning anything finer.
+const MIDI_QUANTIZE_GRID = 0.5; // beats (eighth-note grid)
+
+/**
+ * Convert a freshly-parsed MIDI exercise from real seconds (at the file's tempo) into the
+ * engraver's quantized beat clock, and attach the time signature + tempo so measures land in
+ * the right place and playback adopts the hymn's own speed. Mutates and returns `exercise`.
+ */
+function normalizeMidiExerciseTiming(exercise, midiData) {
+  const tempo = Number(midiData?.tempo) > 0 ? midiData.tempo : 120;
+  const beatsPerSec = tempo / 60;
+  const clampInt = (v, lo, hi, dflt) =>
+    Number.isFinite(v) ? Math.max(lo, Math.min(hi, Math.round(v))) : dflt;
+
+  // @tonejs/midi gives a real signature as { timeSignature: [num, den] }; our no-signature
+  // fallback uses { numerator, denominator }. Accept both.
+  const tsRaw = midiData?.timeSignature || {};
+  const tsArr = Array.isArray(tsRaw.timeSignature) ? tsRaw.timeSignature : null;
+  const num = clampInt(tsRaw.numerator ?? (tsArr ? tsArr[0] : 4), 1, 32, 4);
+  const den = clampInt(tsRaw.denominator ?? (tsArr ? tsArr[1] : 4), 1, 32, 4);
+
+  const snap = (beats) => Math.round(beats / MIDI_QUANTIZE_GRID) * MIDI_QUANTIZE_GRID;
+  const measureLenBeats = num * (4 / den);
+  let maxEnd = 0;
+
+  for (const part of ['S', 'A', 'T', 'B']) {
+    // Quantize onsets to the grid; keep one note per onset (each staff voice is monophonic).
+    const snapped = (exercise.parts?.[part] || [])
+      .map(n => ({
+        midi: n.midi,
+        start: snap((n.startTime || 0) * beatsPerSec),
+        origDur: Math.max(MIDI_QUANTIZE_GRID, snap((n.duration || 0) * beatsPerSec))
+      }))
+      .sort((a, b) => a.start - b.start || a.midi - b.midi);
+
+    const notes = [];
+    for (const n of snapped) {
+      const prev = notes[notes.length - 1];
+      if (prev && Math.abs(n.start - prev.start) < 1e-6) continue; // collapsed same-onset collision
+      notes.push(n);
+    }
+
+    // Derive each note's WRITTEN value from the spacing to the next attack (legato), not the
+    // MIDI gate time — exported/played MIDIs use short gate times that would otherwise render
+    // as a flood of sixteenths + rests. Cap a held note at one measure so a voice that stops
+    // becomes note-then-rests rather than one implausibly long tied note.
+    const out = [];
+    for (let i = 0; i < notes.length; i++) {
+      const gap = i < notes.length - 1 ? notes[i + 1].start - notes[i].start : notes[i].origDur;
+      const duration = Math.min(Math.max(gap, MIDI_QUANTIZE_GRID), measureLenBeats);
+      out.push({ midi: notes[i].midi, startTime: notes[i].start, duration, part });
+      maxEnd = Math.max(maxEnd, notes[i].start + duration);
+    }
+    exercise.parts[part] = out;
+  }
+
+  exercise.timeSigNum = num;
+  exercise.timeSigDen = den;
+  exercise.tempoBpm = Math.round(tempo);
+  exercise.duration = maxEnd;
+  return exercise;
+}
+
 /**
  * Parse MIDI file and convert to exercise format
  * @param {ArrayBuffer} arrayBuffer - MIDI file data
@@ -942,7 +1009,10 @@ export async function parseMidiToExercise(arrayBuffer, label, options = {}) {
   exercise.midiKeyMidi = safeKey.tonic;
   exercise.midiKeyMode = safeKey.mode;
   exercise.isMidiExercise = true; // Flag to indicate this is a MIDI exercise
-  
+
+  // Snap timing onto the engraver's beat grid + attach time signature/tempo from the file.
+  normalizeMidiExerciseTiming(exercise, midiData);
+
   return {
     exercise,
     keyGuess,
