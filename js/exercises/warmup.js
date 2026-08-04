@@ -15,18 +15,38 @@ import { isValidSequence, getCurrentSequenceId, trackBadgeTimeout, removeBadgeTi
 import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from '../audio/instruments.js';
 import { configurePerformance, showNotation, enterPerformance, exitPerformance, startScroll } from '../rendering/performanceView.js';
 import { spellMidiInKey } from '../utils/keySignature.js';
+import { getVoiceTuning } from '../session/profile.js';
+import { midiToNoteName } from '../utils/musicTheory.js';
+
+// Which of the 6 stanza indices each pattern pill selects, split by direction.
+const PATTERN_STANZAS = {
+  scale:     { up: 0, down: 1 },
+  intervals: { up: 2, down: 3 },
+  arpeggios: { up: 4, down: 5 }
+};
+
+// The staff clef: an explicit Advanced override wins, otherwise it follows the singer's voice.
+function getWarmupClef() {
+  const sel = getElementById('warmupClef');
+  const v = sel ? sel.value : 'auto';
+  if (v === 'treble' || v === 'bass') return v;
+  return getVoiceTuning().clef; // 'treble' for S/A, 'bass' for T/B
+}
 
 // Point the shared performance surface at the Warmup tab (container + clock + state).
 function configureWarmupPerformance() {
+  const part = getVoiceTuning().part;
+  configureWarmupPerformance._clef = getWarmupClef();
   configurePerformance({
     container: getElementById('warmupVisual'),
     getTime: () => (appState.staff.currentTime || 0) * ((appState.staff.tempo || 60) / 60),
     getTargetMidi: () => null,
-    fitPart: () => 'S',
+    fitPart: () => part,
     isPlaying: () => appState.exercise.warmupRunning,
     onExit: () => stopWarmupSequence(),
-    variant: () => `${appState.tuning.doMidi}|${getSelectedStanzaIndices().join('')}`,
-    renderOptions: { staffMode: 'single' }
+    // Clef is in the variant so toggling it in Advanced busts the render cache.
+    variant: () => `${appState.tuning.doMidi}|${getSelectedStanzaIndices().join('')}|${configureWarmupPerformance._clef}`,
+    renderOptions: { staffMode: 'single', clef: configureWarmupPerformance._clef }
   });
 }
 
@@ -37,26 +57,80 @@ let activeWarmupOscillators = [];
 
 // Render the selected warmup patterns on a single VexFlow staff with each note's movable-Do
 // solfege syllable beneath it — a static "Do Re Mi Fa Sol…" reference for the tab.
-let warmupCheckboxesBound = false;
-function bindWarmupCheckboxes() {
-  if (warmupCheckboxesBound) return;
-  for (let i = 0; i < 6; i++) {
-    const cb = getElementById(`warmupStanza-${i}`);
-    if (cb) cb.addEventListener('change', () => {
-      if (appState.exercise.currentTab === 'warmup') displayWarmupStaff();
+let warmupControlsBound = false;
+let warmupTempoTouched = false;
+function bindWarmupControls() {
+  if (warmupControlsBound) return;
+  const rerender = () => { if (appState.exercise.currentTab === 'warmup') displayWarmupStaff(); };
+
+  // Pattern pills toggle on/off; keep at least one selected so the staff is never empty.
+  getElementById('warmupPatterns')?.querySelectorAll('.pill-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const on = btn.getAttribute('aria-pressed') === 'true';
+      const others = [...btn.parentElement.querySelectorAll('.pill-toggle')].filter(b => b !== btn);
+      if (on && others.every(b => b.getAttribute('aria-pressed') !== 'true')) return; // don't turn off the last one
+      btn.setAttribute('aria-pressed', String(!on));
+      btn.classList.toggle('on', !on);
+      rerender();
     });
+  });
+
+  ['warmupDirUp', 'warmupDirDown', 'warmupClef'].forEach(id =>
+    getElementById(id)?.addEventListener('change', rerender));
+
+  // Live tempo readout; once the singer nudges it we stop auto-applying the voice default.
+  getElementById('warmupTempo')?.addEventListener('input', () => {
+    warmupTempoTouched = true;
+    updateWarmupStatus();
+  });
+
+  getElementById('btnWarmupRestart')?.addEventListener('click', restartWarmup);
+  getElementById('btnWarmupFull')?.addEventListener('click', toggleWarmupFullscreen);
+
+  warmupControlsBound = true;
+}
+
+// Apply the voice's default tempo the first time in, before the singer has touched the slider.
+function applyVoiceDefaults() {
+  const slider = getElementById('warmupTempo');
+  if (slider && !warmupTempoTouched && !appState.exercise.warmupRunning) {
+    slider.value = String(getVoiceTuning().warmTempo);
+    appState.staff.tempo = getVoiceTuning().warmTempo;
   }
-  warmupCheckboxesBound = true;
+}
+
+// Read-only "Do A3 · treble · 76 bpm" — a singer sees their setup without any control to fiddle.
+function updateWarmupStatus() {
+  const el = getElementById('warmupStatus');
+  if (!el) return;
+  const doName = midiToNoteName(appState.tuning.doMidi);
+  const clef = getWarmupClef();
+  const tempo = getWarmupTempo();
+  el.textContent = `Do ${doName} · ${clef} · ${tempo} bpm`;
+  const val = getElementById('warmupTempoVal');
+  if (val) val.textContent = String(tempo);
 }
 
 export function displayWarmupStaff() {
-  bindWarmupCheckboxes();
+  bindWarmupControls();
+  applyVoiceDefaults();
+  updateWarmupStatus();
   const container = getElementById('warmupVisual');
   if (!container) return;
   const exercise = buildWarmupExercise();
   if (!exercise) { container.innerHTML = ''; container.hidden = true; return; }
   configureWarmupPerformance();
   showNotation(exercise, true);
+}
+
+// ↺ restart from the top; ⤢ toggle full-screen play-along.
+function restartWarmup() {
+  if (appState.exercise.warmupRunning) stopWarmupSequence();
+  setTimeout(() => runWarmupSequence(), 60);
+}
+function toggleWarmupFullscreen() {
+  if (appState.exercise.warmupRunning) { stopWarmupSequence(); return; }
+  runWarmupSequence();
 }
 
 // Concatenate the selected warmup stanzas into a single hymn-format exercise whose per-note
@@ -69,6 +143,9 @@ function buildWarmupExercise() {
   const notes = [];
   const lyricsByNote = [];
   let t = 0;
+  // NOTE: a rest measure between exercises needs the notation to place notes proportional to
+  // time (so the constant-speed playhead still lines up). Until that lands, stanzas run
+  // back-to-back — adding a silent time gap here desyncs the playhead. See follow-up.
   for (const st of stanzas) {
     for (const n of st.notes) {
       notes.push({ midi: n.midi, startTime: t + n.startTime, duration: n.duration, part: 'S' });
@@ -92,17 +169,40 @@ function buildWarmupExercise() {
 }
 
 // The Warmup tab's own tempo (its slider), independent of the shared staff.tempo.
+// Falls back to the voice's default when the slider hasn't been rendered/touched.
 function getWarmupTempo() {
   const slider = getElementById('warmupTempo');
   const v = slider ? Number(slider.value) : NaN;
-  return Number.isFinite(v) && v > 0 ? v : 60;
+  if (Number.isFinite(v) && v > 0) return v;
+  return getVoiceTuning().warmTempo || 76;
 }
 
+// The active stanza indices, read from the three pattern pills × the Advanced direction toggles.
 function getSelectedStanzaIndices() {
+  const upEl = getElementById('warmupDirUp');
+  const downEl = getElementById('warmupDirDown');
+  const useUp = upEl ? upEl.checked : true;
+  const useDown = downEl ? downEl.checked : true;
+
+  const pills = getElementById('warmupPatterns');
+  const active = pills
+    ? [...pills.querySelectorAll('.pill-toggle')]
+        .filter(b => b.getAttribute('aria-pressed') === 'true')
+        .map(b => b.dataset.pattern)
+    : ['scale', 'intervals'];
+
   const idx = [];
-  for (let i = 0; i < 6; i++) {
-    const cb = getElementById(`warmupStanza-${i}`);
-    if (cb && cb.checked) idx.push(i);
+  for (const pat of ['scale', 'intervals', 'arpeggios']) {   // musical order: pattern, then up before down
+    if (!active.includes(pat)) continue;
+    const map = PATTERN_STANZAS[pat];
+    if (useUp) idx.push(map.up);
+    if (useDown) idx.push(map.down);
+  }
+  // Never silent: if both directions were unchecked, ascend the active patterns.
+  if (!idx.length && active.length) {
+    for (const pat of ['scale', 'intervals', 'arpeggios']) {
+      if (active.includes(pat)) idx.push(PATTERN_STANZAS[pat].up);
+    }
   }
   return idx;
 }
@@ -250,20 +350,14 @@ function stopAllWarmupOscillators() {
 function updateWarmupButton(isRunning) {
   const button = getElementById('btnWarmup');
   const tempoSlider = getElementById('warmupTempo');
-  
+
   if (button) {
-    if (isRunning) {
-      button.textContent = 'Stop Warm Up';
-      button.classList.add('bad');
-      button.classList.remove('primary');
-    } else {
-      button.textContent = 'Play Warm Up';
-      button.classList.remove('bad');
-      button.classList.add('primary');
-    }
+    button.textContent = isRunning ? '⏸' : '▶';
+    button.classList.toggle('is-playing', isRunning);
+    button.setAttribute('aria-label', isRunning ? 'Stop warm up' : 'Play warm up');
   }
-  
-  // Disable/enable tempo slider during playback to prevent timing issues
+
+  // Disable the tempo slider during playback to prevent timing issues.
   if (tempoSlider) {
     tempoSlider.disabled = isRunning;
   }

@@ -353,9 +353,18 @@ export async function displaySATBExerciseOnStaff(exercise) {
 export async function initializeSATBControls() {
   // Build part selection buttons
   buildPartSelectionButtons();
-  
+
   // Build volume controls
   buildPartVolumeControls();
+
+  // Part mix (Normal / Amplify / Quiet) — the pedagogy control. Wire once, apply the default.
+  const mix = getElementById('satbPartMix');
+  if (mix && !mix.dataset.bound) {
+    mix.dataset.bound = '1';
+    mix.querySelectorAll('.seg-btn').forEach(btn =>
+      btn.addEventListener('click', () => setPartMix(btn.dataset.mix)));
+  }
+  applyPartMix();
 
   // Hymn library: OpenPsalm only (CC-BY, accurate SATB parsed from source).
   // The legacy MIDI library (heuristic voice-splitting, undocumented licensing) is retired.
@@ -423,8 +432,35 @@ function syncSatbTempoUI(tempo) {
 export function handlePartSelection(part) {
   appState.satb.aimPart = part;
   updatePartSelection(part);
-  // Re-render staff to highlight selected part
-  // This will be handled by staff rendering
+  applyPartMix(); // re-balance around the newly-chosen part
+  // Re-render staff to highlight selected part (handled by staff rendering)
+}
+
+// Volume balance between the singer's part and the other three, per the Normal/Amplify/Quiet
+// segmented control. Quiet (default) hushes your part so you must find the pitch yourself.
+const PART_MIX = {
+  normal:  { self: 0.75, others: 0.75, hint: 'Everyone at the same volume' },
+  amplify: { self: 0.95, others: 0.40, hint: 'Your part louder — lean on it while learning' },
+  quiet:   { self: 0.25, others: 0.75, hint: 'Quieter than the rest — so you find the pitch yourself' }
+};
+
+function setPartMix(mode) {
+  const seg = getElementById('satbPartMix');
+  seg?.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b.dataset.mix === mode));
+  applyPartMix();
+}
+
+export function applyPartMix() {
+  const seg = getElementById('satbPartMix');
+  const active = seg?.querySelector('.seg-btn.on')?.dataset.mix || 'quiet';
+  const mix = PART_MIX[active] || PART_MIX.quiet;
+  const aim = appState.satb.aimPart;
+  ['S', 'A', 'T', 'B'].forEach(p => {
+    appState.satb.partVolumes[p] = (p === aim) ? mix.self : mix.others;
+  });
+  const hint = getElementById('satbPartMixHint');
+  if (hint) hint.textContent = mix.hint;
+  buildPartVolumeControls(); // keep the Advanced mixer sliders in sync
 }
 
 /**

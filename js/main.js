@@ -57,6 +57,8 @@ const {
   handlePlayHidden2Click = () => {},
   handlePlayHidden3Click = () => {},
   handleRevealHiddenClick = () => {},
+  handlePlayClusterClick = () => {},
+  handlePlayChordClick = () => {},
   handlePlayIntervalClick = () => {},
   handleShowIntervalClick = () => {},
   handleSATBPlayClick = () => {},
@@ -71,6 +73,7 @@ const {
   handleIntervalDifficultyPreset = () => {},
   handleClusterDifficultyPreset = () => {},
   handleFlashcardNextClick = () => {},
+  handleFlashcardPrevClick = () => {},
   handleFlashcardFlipClick = () => {},
   handleFlashcardModeChange = () => {},
   handleFlashcardAccidentalsChange = () => {},
@@ -161,6 +164,11 @@ function wireUpEventHandlers() {
 
 function setupGlobalDelegation() {
   document.addEventListener('click', (e) => {
+    // Close the desktop theory sidebar (× button lives in the sidebar itself).
+    if (e.target.closest('#theorySidebarClose')) {
+      if (document.body.classList.contains('theory-sidebar-active')) switchToTab('theory');
+      return;
+    }
     // "Learn more" links open the Theory tab/sidebar and expand the target lesson
     const theoryLink = e.target.closest('[data-open-theory]');
     if (theoryLink) {
@@ -390,12 +398,17 @@ function setupTargetControls() {
 }
 
 function setupExerciseControls() {
-  getElementById('playHidden2').onclick = handlePlayHidden2Click;
-  getElementById('playHidden3').onclick = handlePlayHidden3Click;
-  getElementById('revealHidden').onclick = handleRevealHiddenClick;
-  getElementById('playInterval').onclick = handlePlayIntervalClick;
-  getElementById('showInterval').onclick = handleShowIntervalClick;
-  
+  // Interactive Ear-room drills: a single brass Play + answer buttons (no Reveal).
+  // Legacy Play-2 / Play-3 / Reveal ids may be absent after the overhaul, so bind defensively.
+  const bindClick = (id, fn) => { const el = getElementById(id); if (el) el.onclick = fn; };
+  bindClick('playHidden2', handlePlayHidden2Click);
+  bindClick('playHidden3', handlePlayHidden3Click);
+  bindClick('revealHidden', handleRevealHiddenClick);
+  bindClick('playCluster', handlePlayClusterClick);
+  bindClick('playChord', handlePlayChordClick);
+  bindClick('playInterval', handlePlayIntervalClick);
+  bindClick('showInterval', handleShowIntervalClick);
+
   // Wire up header reveal buttons (for mobile collapsed header)
   const revealHiddenHeader = getElementById('revealHiddenHeader');
   const showIntervalHeader = getElementById('showIntervalHeader');
@@ -486,10 +499,12 @@ function setupExerciseControls() {
 
   // Flashcards
   const flashNext = getElementById('flashcardNext');
+  const flashPrev = getElementById('flashcardPrev');
   const flashFlip = getElementById('flashcardFlip');
   const flashMode = getElementById('flashcardMode');
 
   if (flashNext) flashNext.onclick = handleFlashcardNextClick;
+  if (flashPrev) flashPrev.onclick = handleFlashcardPrevClick;
   if (flashFlip) flashFlip.onclick = handleFlashcardFlipClick;
   if (flashMode) flashMode.addEventListener('change', handleFlashcardModeChange);
 }

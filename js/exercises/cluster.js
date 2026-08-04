@@ -9,6 +9,7 @@ import { randomInRange, normalizeModulo } from '../utils/math.js';
 import { getSolfegeForMidi, getIntervalName } from '../utils/musicTheory.js';
 import { playTonesForDuration } from './core.js';
 import { renderStaff } from '../rendering/staff.js';
+import { intervalKey, renderAnswerButtons, paintAnswerResult } from './intervals.js';
 
 export function playHiddenCluster(count) {
   // Reset reveal state when starting a new exercise
@@ -171,3 +172,53 @@ function formatClusterDisplay(notes) {
   return `${solfegeNames.join(', ')}  [${intervals}]`;
 }
 
+
+/* -------------------------------------------------- interactive answers --- */
+/* Pitch Distinction = interval identification, but the two notes sound TOGETHER
+   (harmonic) instead of in sequence. Same answer buttons as Interval Training. */
+
+// Which interval keys the level offers (all measured up from Do).
+const CLUSTER_KEYS = {
+  easy:      [2, 4, 5, 7],                              // 2nd 3rd 4th 5th
+  medium:    [2, 4, 5, 7, 9, 11, 12],                  // up to the octave
+  hard:      [2, 3, 4, 5, 7, 8, 9, 11, 12],            // + minor 3rd/6th
+  extraHard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]   // chromatic
+};
+function clusterKeys() { return CLUSTER_KEYS[appState.exercise.clusterDifficulty] || CLUSTER_KEYS.easy; }
+
+// Play a two-note dyad (Do + a random interval) simultaneously; identify the interval.
+export function playClusterExercise() {
+  appState.exercise.showAnswers.cluster = false;
+  const keys = clusterKeys();
+  const span = keys[randomInRange(0, keys.length - 1)];
+  const doMidi = appState.tuning.doMidi;
+  const notes = [doMidi, doMidi + span];
+  storeClusterNotes(notes);
+  updateClusterBadge(2);
+  const duration = Number(appState.exercise.clusterThinkTime) || 3;
+  playTonesForDuration(notes, duration, 'Pitch distinction dyad');   // both at once
+  renderStaff();
+  renderClusterAnswers();
+  const result = getElementById('clusterResult');
+  if (result) result.textContent = 'Both notes sound together — name the interval.';
+}
+
+// Same interval buttons as Interval Training, always from Do.
+export function renderClusterAnswers() {
+  renderAnswerButtons(getElementById('clusterAnswers'), clusterKeys(), true, handleClusterAnswerClick);
+}
+
+// Grade the interval guess, then stack both shape-notes on the staff.
+function handleClusterAnswerClick(clickedKey) {
+  const notes = appState.exercise.hidden?.midi;
+  if (!notes || notes.length < 2) return;
+  const actualKey = intervalKey(notes[1] - notes[0]);
+  const correct = clickedKey === actualKey;
+
+  paintAnswerResult(getElementById('clusterAnswers'), actualKey, clickedKey);
+
+  appState.exercise.showAnswers.cluster = true;
+  renderStaff();
+  const result = getElementById('clusterResult');
+  if (result) result.textContent = `${correct ? '✓' : '✗'}  ${formatClusterDisplay(notes)}`;
+}

@@ -15,11 +15,12 @@ import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionBut
 import { buildIndividualVolumeControls } from '../builders/volumeControls.js';
 import { runWarmupSequence, stopWarmupSequence, displayWarmupStaff } from '../../exercises/warmup.js';
 import { setTempo } from '../../rendering/scrollingStaff.js';
-import { playHiddenCluster, revealClusterNotes } from '../../exercises/cluster.js';
-import { playIntervalExercise, revealIntervalSolution } from '../../exercises/intervals.js';
+import { playHiddenCluster, revealClusterNotes, renderClusterAnswers, playClusterExercise } from '../../exercises/cluster.js';
+import { playChordExercise } from '../../exercises/chords.js';
+import { playIntervalExercise, revealIntervalSolution, renderIntervalAnswers } from '../../exercises/intervals.js';
 import { playSATBExercise, stopSATBExercise, pauseSATBExercise, resumeSATBExercise, handlePartSelection, getAllSATBExercises, displaySATBExerciseOnStaff, loadMidiExercise, setSatbTranspose } from '../../exercises/satb.js';
 import * as transport from '../components/transport.js';
-import { initializeFlashcards, nextFlashcard, flipFlashcard, setFlashcardMode } from '../../exercises/flashcards.js';
+import { initializeFlashcards, nextFlashcard, prevFlashcard, flipFlashcard, setFlashcardMode } from '../../exercises/flashcards.js';
 import { openHymnBrowser } from '../builders/satbControls.js';
 import { getCurrentPitch } from '../../pitch/detection.js';
 // Re-render whichever VexFlow tab is active (SATB / Warmup) after a global setting that affects
@@ -322,16 +323,13 @@ export function handleWarmupClick() {
   if (appState.exercise.warmupRunning) {
     stopWarmupSequence();
   } else {
-    // Get selected stanzas from checkboxes
-    const selectedIndices = [];
-    for (let i = 0; i < 6; i++) {
-      const checkbox = getElementById(`warmupStanza-${i}`);
-      if (checkbox && checkbox.checked) {
-        selectedIndices.push(i);
-      }
-    }
-    runWarmupSequence(selectedIndices.length > 0 ? selectedIndices : null);
+    // Selection now comes from the pattern pills (read inside runWarmupSequence).
+    runWarmupSequence();
   }
+}
+
+export function handleFlashcardPrevClick() {
+  prevFlashcard();
 }
 
 export function handleFlashcardNextClick() {
@@ -384,6 +382,14 @@ export function handleRevealHiddenClick() {
     appState.exercise.showAnswers.cluster = true;
     renderStaff();
   }
+}
+
+export function handlePlayClusterClick() {
+  playClusterExercise();
+}
+
+export function handlePlayChordClick() {
+  playChordExercise();
 }
 
 export function handlePlayIntervalClick() {
@@ -649,6 +655,8 @@ export function handleIntervalDifficultyPreset(difficulty) {
   // Update live description
   const descEl = getElementById('intervalDifficultyDesc');
   if (descEl) descEl.textContent = preset.description;
+  // Rebuild the answer options for the new level.
+  renderIntervalAnswers();
   transport.stopAllPlayback?.();
 }
 
@@ -672,6 +680,8 @@ export function handleClusterDifficultyPreset(difficulty) {
   // Update live description
   const descEl = getElementById('clusterDifficultyDesc');
   if (descEl) descEl.textContent = preset.description;
+  // Rebuild the count options (level max may change).
+  renderClusterAnswers();
   transport.stopAllPlayback?.();
 }
 

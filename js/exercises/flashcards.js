@@ -31,16 +31,32 @@ export function setFlashcardMode(mode) {
 
 export function nextFlashcard() {
   ensureState();
-  const pool = buildFlashcardPool();
-  const prev = appState.exercise.flashcards.current?.solfege || null;
-  const solfege = pickDifferent(pool, prev);
-
-  appState.exercise.flashcards.current = {
-    solfege,
-    base: getBaseShape(solfege)
-  };
-  appState.exercise.flashcards.revealed = false;
+  const state = appState.exercise.flashcards;
+  // If we stepped back with Prev, go forward through history; otherwise draw a new card.
+  if (state.pos < state.history.length - 1) {
+    state.pos += 1;
+    state.current = state.history[state.pos];
+  } else {
+    const pool = buildFlashcardPool();
+    const solfege = pickDifferent(pool, state.current?.solfege || null);
+    const card = { solfege, base: getBaseShape(solfege) };
+    state.history.push(card);
+    state.pos = state.history.length - 1;
+    state.current = card;
+  }
+  state.revealed = false;
   renderFlashcard();
+}
+
+export function prevFlashcard() {
+  ensureState();
+  const state = appState.exercise.flashcards;
+  if (state.pos > 0) {
+    state.pos -= 1;
+    state.current = state.history[state.pos];
+    state.revealed = false;
+    renderFlashcard();
+  }
 }
 
 export function flipFlashcard() {
@@ -89,13 +105,21 @@ export function renderFlashcard() {
   }
 
   setTextContent(badgeEl, showingAnswer ? 'Revealed' : 'Hidden');
+
+  // Prev is disabled at the start of history; a small counter shows how far you've gone.
+  const prevBtn = getElementById('flashcardPrev');
+  if (prevBtn) prevBtn.disabled = state.pos <= 0;
+  const countEl = getElementById('flashcardCount');
+  if (countEl) setTextContent(countEl, `card ${state.pos + 1}`);
 }
 
 function createDefaultFlashcardState() {
   return {
     mode: 'shapeToSolfege',
     revealed: false,
-    current: null
+    current: null,
+    history: [],
+    pos: -1
   };
 }
 
@@ -103,6 +127,9 @@ function ensureState() {
   if (!appState.exercise.flashcards) {
     appState.exercise.flashcards = createDefaultFlashcardState();
   }
+  const s = appState.exercise.flashcards;
+  if (!Array.isArray(s.history)) s.history = [];
+  if (typeof s.pos !== 'number') s.pos = -1;
 }
 
 function buildFlashcardPool() {

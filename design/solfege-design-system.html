@@ -124,7 +124,7 @@
     <h1>Design system &amp; screen mockups</h1>
     <p>Tokens and components up top; every screen — for both mobile and desktop — below. Mobile and desktop are <b>deliberately different layouts</b>. Shape-note heads are the real app shapes (Do triangle · Re half-circle · Mi diamond · Fa right-triangle · Sol oval · La rectangle · Ti ice-cream-cone) and appear in every activity.</p>
     <div class="toc">
-      <a href="#foundations">Foundations</a><a href="#components">Components</a><a href="#onboard">Onboarding</a><a href="#session">Session</a>
+      <a href="#foundations">Foundations</a><a href="#components">Components</a><a href="#onboard">Onboarding</a><a href="#tuning-contract">Voice-tuning</a><a href="#manifest">Manifest</a><a href="#session">Session</a>
       <a href="#home">Home</a><a href="#warmup">Warm Up</a><a href="#interval">Intervals</a><a href="#cluster">Pitch Distinction</a><a href="#quality">Chord Quality</a><a href="#sing">Sing in Parts</a><a href="#flash">Flashcards</a><a href="#theory">Theory</a><a href="#settings">Settings</a>
     </div>
   </header>
@@ -282,6 +282,63 @@
     <div class="callout" style="margin-top:16px"><p><b>“Shape-notes memorized?” drives the setlist.</b> The shapes are the foundation everything else reads off, so the session generator branches on this answer: <b>Not yet →</b> the session opens with a short <b>shape-note flashcard primer</b> (see Flashcards) before the first warm-up, and lesson 1 is pulled in. <b>Yes →</b> that primer is skipped entirely and the session goes straight to warm-ups. Stored locally like the rest of the profile, so returning singers aren't asked again (until they clear it or flip it in settings).</p></div>
   </section>
 
+  <!-- VOICE-TUNING CONTRACT -->
+  <section id="tuning-contract">
+    <span class="eyebrow">The voice-tuning contract</span>
+    <h2>One choice tunes everything</h2>
+    <p class="sub">The voice type picked at onboarding is the <b>only</b> setting a new singer must make. It fans out into every exercise so the screens stay bare — Do, playback range, clef, warm-up tempo and SATB part are all derived, never asked again. Power users override any single value in ⚙ Advanced; the derived value is just the default.</p>
+    <div class="demo" style="background:var(--card);border-color:var(--line);color:var(--ink);overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums">
+        <thead><tr style="text-align:left;color:var(--ink-3);font-size:11px;letter-spacing:.06em;text-transform:uppercase">
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line)">Voice</th>
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line)">Movable&nbsp;Do</th>
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line)">Playback range</th>
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line)">Clef</th>
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line)">Warm-up&nbsp;tempo</th>
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line)">Part</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Soprano</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">F4 <span class="muted">(65)</span></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">C4–A5 <span class="muted">(60–81)</span></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Treble</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">80 bpm</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">S</td></tr>
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Alto</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">A3 <span class="muted">(57)</span></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">G3–D5 <span class="muted">(55–74)</span></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Treble</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">76 bpm</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">A</td></tr>
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Tenor</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">F3 <span class="muted">(53)</span></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">C3–A4 <span class="muted">(48–69)</span></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Bass</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">72 bpm</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">T</td></tr>
+          <tr><td style="padding:8px 10px"><b>Bass</b></td><td style="padding:8px 10px">C3 <span class="muted">(48)</span></td><td style="padding:8px 10px">E2–E4 <span class="muted">(40–64)</span></td><td style="padding:8px 10px">Bass</td><td style="padding:8px 10px">69 bpm</td><td style="padding:8px 10px">B</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Do + part come straight from <span class="mono">VOICE_PROFILES</span>; ranges are <span class="mono">PART_RANGES</span> (both in <span class="mono">js/config/constants.js</span>). Tempo values are a gentle gradient — starting points to tune by ear, not gospel.</div>
+    <div class="note"><b>Sensitivity is NOT voice-derived</b> — it tracks mic quality and skill, not vocal range. Ship one forgiving default (±50 ¢ — easy to read green) that Advanced can tighten to ±15–25 ¢. Concert-pitch A4 stays 440 unless changed in Advanced.</div>
+    <div class="callout"><p><b>The gap to close.</b> Today <span class="mono">applyProfile()</span> pushes only Do + part into <span class="mono">appState</span> — it does <b>not</b> set range clamping, sensitivity, tempo, or clef, and the ear-drill note generators still draw from the full MIDI 0–127 (<span class="mono">core.js</span> / <span class="mono">cluster.js</span>). Wiring these four derivations — and clamping every generator into the voice's range — <b>is</b> the "auto-tune to the voice they picked" work.</p></div>
+  </section>
+
+  <!-- CONTROL MANIFEST -->
+  <section id="manifest">
+    <span class="eyebrow">Simplification manifest</span>
+    <h2>What every screen shows — and hides</h2>
+    <p class="sub">The rule for each exercise: a new singer sees at most <b>three obvious controls plus ▶</b>. Everything else folds into ⚙ Advanced (mobile sheet / desktop inspector) or is removed outright. This table is the contract for the per-page overhaul.</p>
+    <div class="demo" style="background:var(--card);border-color:var(--line);color:var(--ink);overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;vertical-align:top">
+        <thead><tr style="text-align:left;color:var(--ink-3);font-size:11px;letter-spacing:.06em;text-transform:uppercase">
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line);width:15%">Screen</th>
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line);width:32%">Core — always visible (≤3 + ▶)</th>
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line);width:32%">⚙ Advanced — folded</th>
+          <th style="padding:8px 10px;border-bottom:1px solid var(--line);width:21%">Removed</th>
+        </tr></thead>
+        <tbody style="vertical-align:top">
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Warm Up</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">3 pattern pills (Scale · Intervals · Arpeggios) · brass ▶ · transport ↺ ▶ ⤢</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Tempo · Do nudge · ↑/↓ direction split · clef override</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">6 stanza checkboxes · long help paragraph</td></tr>
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Ear · Intervals</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">▶ Play · answer pills (Do–Re, Do–Mi…) · auto-reveal on staff</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Level · direction · min/max · scale-only · hide-answers</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Duplicate difficulty ladder · separate Reveal button</td></tr>
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Ear · Pitch Distinction</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">▶ Play · interval buttons (same as Intervals) · auto-reveal stack — two notes sound together</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Level · play length · scale-only</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Play-2/Play-3 · Reveal · hide-answers</td></tr>
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Ear · Chord Quality</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Test me:</b> ▶ Play · quality chips (maj·min·dim·aug) · auto-reveal. <b>Explore</b> toggle for free play.</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Root select · extra qualities (sus/7ths) · inversion · drone + volumes (the Explore controls)</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Drone builder as the <em>default</em> surface</td></tr>
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Sing (SATB)</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Browse Hymns · ▶ Play / Stop · "Quiet my part" toggle</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Part · key/transpose · tempo · voice · full part mixer · MIDI loader</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">4 raw volume sliders · two help paragraphs</td></tr>
+          <tr><td style="padding:8px 10px;border-bottom:1px solid var(--line)"><b>Learn · Flashcards</b></td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">‹ Prev · Flip · Next › (+ ←/→ keys · swipe)</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">Mode (shape↔solfege) · shuffle</td><td style="padding:8px 10px;border-bottom:1px solid var(--line)">"20 cards in 2 min" goal · status badge</td></tr>
+          <tr><td style="padding:8px 10px"><b>Learn · Theory</b></td><td style="padding:8px 10px">Lesson list → reader · "▶ Try it" · Next lesson ›</td><td style="padding:8px 10px">—</td><td style="padding:8px 10px">Resizable-sidebar machinery · per-lesson benchmarks</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><b>Answer chips vs "no scoring".</b> Chips give immediate ✓/✗ feedback on the current attempt (green/red), but nothing is scored, timed, streaked, or recorded per-answer — consistent with the no-scoring rule. The only streak is per-session completion.</div>
+    <div class="callout"><p><b>Chrome cleanup (every screen).</b> The legacy <span class="mono">.appHeader</span> (app title + global Play/Stop/Mic + mic readout) is <b>removed</b>. Global transport moves into the session bar / per-screen stage; the live mic Hz/cents readout moves into ⚙ (it's diagnostic, not primary). The old top tab-strip <span class="mono">nav.tabs</span> is already hidden by CSS — delete it from markup once <span class="mono">mobileShell</span> no longer reads it as a routing data source.</p></div>
+    <div class="callout"><p><b>Solfège-first debt.</b> The hymn browser still prints absolute keys ("E♭ · 4/4", <span class="mono">hymnBrowser.js</span>). Per the domain rule (never absolute note names in the UI), show meter + a relative descriptor only, and keep any concert-key readout behind ⚙ Advanced.</p></div>
+  </section>
+
   <!-- SESSION -->
   <section id="session">
     <span class="eyebrow">4 · The guided session</span>
@@ -413,7 +470,8 @@
   <!-- INTERVALS -->
   <section id="interval">
     <span class="eyebrow">5 · Free-play</span><h2>Interval Training</h2>
-    <p class="sub">Hear two notes; name the interval in solfège. Reveal draws both shape-notes on the staff with the distance.</p>
+    <p class="sub"><b>Interactive answers — no more Reveal.</b> Hear the two notes, then tap the interval you heard from a row of <b>answer buttons whose set is exactly the difficulty's option list</b> (Easy shows a few, Expert shows many). Your tap IS the answer: a correct pick flashes green and draws Do→Sol on the staff with both shape-notes and the distance; a wrong pick flashes red and still reveals the right one. Then a new interval plays. The old "Reveal + self-judge" flow is gone.</p>
+    <div class="note">Every drill in this room follows the same model: <b>play → tap an option → auto-reveal</b>. The options are generated from the same <span class="mono">DIFFICULTY_PRESETS</span> the engine already uses, so the buttons never offer an answer the drill can't pose. A <b>Practice ⇄ Arcade</b> toggle in the Ear header switches to the gamified hopper — see <span class="mono">design/solfege-eartrainer-game.html</span>. Practice is always the default.</div>
     <div class="stagewrap">
       <div><div class="label"><span class="plat">📱 Mobile</span></div><div class="phone"><div class="scr">
         <div class="appbar"><span class="t">Intervals</span><span class="btn icon">⚙</span></div>
@@ -446,7 +504,7 @@
   <!-- CHORD LISTENING (cluster) -->
   <section id="cluster">
     <span class="eyebrow">5 · Free-play</span><h2>Pitch Distinction <span class="muted" style="font-size:.6em">(was “Hidden Cluster”)</span></h2>
-    <p class="sub">A stack of notes plays; pick apart how many and which. Reveal stacks the shape-notes on the staff.</p>
+    <p class="sub"><b>Interval training, played harmonically.</b> Two notes sound <b>together</b> (not in sequence like Intervals) and you tap the interval between them — the <b>same answer buttons as Interval Training</b> (2nd, 3rd, 4th, 5th… from Do). Correct flashes green and stacks both shape-notes on the staff; wrong flashes red and reveals them anyway; then the next dyad plays. Hearing an interval when the notes overlap is the harder, "pitch distinction" skill. (The count-guessing / mic-sing-the-stack variant lives in the Arcade — see the game doc.)</p>
     <div class="stagewrap">
       <div><div class="label"><span class="plat">📱 Mobile</span></div><div class="phone"><div class="scr">
         <div class="appbar"><span class="t">Pitch Distinction</span><span class="btn icon">⚙</span></div>
@@ -478,7 +536,7 @@
   <!-- CHORD QUALITY -->
   <section id="quality">
     <span class="eyebrow">5 · Free-play</span><h2>Chord Quality</h2>
-    <p class="sub">Same room, different drill: name the chord's quality. Shape-notes reveal the triad.</p>
+    <p class="sub"><b>Two modes, one drill.</b> <b>Test me</b> (default) plays a chord — you pick its quality from answer chips (major · minor · dim · aug) and the staff auto-reveals the triad. <b>Explore</b> is free play: pick any root, quality and inversion and hold it as a drone to sing against. A new singer lands in Test me with a single ▶; the explorer controls (root · inversion · drone · volumes) live in Explore mode + ⚙ Advanced. The mockup below shows Test me.</p>
     <div class="stagewrap">
       <div><div class="label"><span class="plat">📱 Mobile</span></div><div class="phone"><div class="scr">
         <div class="appbar"><span class="t">Chord Quality</span><span class="btn icon">⚙</span></div>

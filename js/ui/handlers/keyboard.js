@@ -3,7 +3,7 @@
  */
 
 import { appState } from '../../state/appState.js';
-import { flipFlashcard, nextFlashcard } from '../../exercises/flashcards.js';
+import { flipFlashcard, nextFlashcard, prevFlashcard } from '../../exercises/flashcards.js';
 
 export function handleGlobalKeyPress(event) {
   if (shouldIgnoreKeyPress(event)) {
@@ -22,8 +22,13 @@ export function handleGlobalKeyPress(event) {
       event.preventDefault();
       flipFlashcard();
     }
-    if (key === 'n') {
+    if (key === 'n' || key === 'arrowright') {
+      event.preventDefault();
       nextFlashcard();
+    }
+    if (key === 'arrowleft') {
+      event.preventDefault();
+      prevFlashcard();
     }
   }
 }

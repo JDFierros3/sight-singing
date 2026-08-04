@@ -4,6 +4,12 @@ node_modules/
 # Local Claude Code settings — machine-specific, not shared
 .claude/settings.local.json
 
+# Local MCP server config — machine-specific, not shared
+.mcp.json
+
+# Playwright MCP scratch output
+.playwright-mcp/
+
 # Editor / tooling
 .cursor/
 

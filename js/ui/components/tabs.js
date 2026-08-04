@@ -7,6 +7,9 @@ import { appState, updateDisplaySetting } from '../../state/appState.js';
 import { displaySATBExerciseOnStaff, getAllSATBExercises } from '../../exercises/satb.js';
 import { displayWarmupStaff } from '../../exercises/warmup.js';
 import { initializeFlashcards } from '../../exercises/flashcards.js';
+import { renderIntervalAnswers } from '../../exercises/intervals.js';
+import { renderClusterAnswers } from '../../exercises/cluster.js';
+import { renderChordAnswers, initChordMode } from '../../exercises/chords.js';
 import { stopAllPlayback } from '../components/transport.js';
 import { renderStaff } from '../../rendering/staff.js';
 import { renderTheoryContent, saveExpandedLessons } from './theoryContent.js';
@@ -315,6 +318,12 @@ export function switchToTab(tabName) {
     }, 10);
   }
 
+  // Ear-room drills render their interactive answer buttons on entry so the options
+  // are visible before the first Play.
+  if (tabName === 'intervals') setTimeout(() => renderIntervalAnswers(), 10);
+  if (tabName === 'cluster') setTimeout(() => renderClusterAnswers(), 10);
+  if (tabName === 'chord-quality') setTimeout(() => { initChordMode(); renderChordAnswers(); }, 10);
+
   // Handle theory content rendering (reuse isLargeScreen from above)
   if (isLargeScreen && document.body.classList.contains('theory-sidebar-active')) {
     // Sidebar is open - render theory content in sidebar
@@ -344,10 +353,24 @@ function moveTheoryToSidebar() {
       sidebar.innerHTML = '';
       sidebar.appendChild(theoryPanel);
     }
-    
+    // innerHTML='' wipes the static close button — re-add it so there's always a way out.
+    ensureSidebarCloseButton(sidebar);
+
     // Restore scroll position after content is moved
     restoreSidebarScrollPosition();
   }
+}
+
+// A pinned × in the theory sidebar (the only way to close it now that Learn opens Flashcards).
+function ensureSidebarCloseButton(sidebar) {
+  if (sidebar.querySelector('#theorySidebarClose')) return;
+  const btn = document.createElement('button');
+  btn.id = 'theorySidebarClose';
+  btn.className = 'theory-close';
+  btn.setAttribute('aria-label', 'Close lessons');
+  btn.title = 'Close lessons';
+  btn.textContent = '✕';
+  sidebar.insertBefore(btn, sidebar.firstChild);
 }
 
 function moveTheoryToMainContent() {

@@ -112,132 +112,153 @@
         <!-- Homepage content rendered by homepage.js -->
       </section>
 
-      <section id="panel-chord-quality" class="panel" role="tabpanel" aria-labelledby="tab-chord-quality" style="display:none">
-        <fieldset>
-          <legend>Chord Quality</legend>
-          <div>
-            <label>Chord root (relative to Do)</label>
+      <section id="panel-chord-quality" class="panel exercise" role="tabpanel" aria-labelledby="tab-chord-quality" style="display:none">
+        <div class="seg-toggle" id="chordMode" role="group" aria-label="Chord quality mode">
+          <button type="button" class="seg-btn on" data-chordmode="test">Test me</button>
+          <button type="button" class="seg-btn" data-chordmode="explore">Explore</button>
+        </div>
+
+        <!-- TEST ME: hear a chord, guess its quality -->
+        <div id="chordTest" class="chord-mode">
+          <div class="ex-prompt">Hear the chord, then tap its quality.<button class="link-btn learn-link" data-open-theory="5">What's chord quality?</button></div>
+          <div class="xport">
+            <button id="playChord" class="xport-play" type="button" aria-label="Play chord">▶</button>
+            <span id="chordResult" class="ex-result mono" aria-live="polite">Press play to start</span>
+          </div>
+          <div id="chordAnswers" class="answer-row" role="group" aria-label="Chord quality answers"></div>
+        </div>
+
+        <!-- EXPLORE: free-play chord builder + drone -->
+        <div id="chordExplore" class="chord-mode" hidden>
+          <div class="ex-prompt">Build any chord and hold it as a drone to sing against.</div>
+          <div class="adv-field">
+            <span class="adv-label">Chord root (relative to Do)</span>
             <div class="row" id="chordRootButtonGroup" role="group" aria-label="Select chord root"></div>
           </div>
-          <div style="margin-top:12px;">
-            <label>Chord quality</label>
+          <div class="adv-field">
+            <span class="adv-label">Chord quality</span>
             <div class="row" id="chordQualityButtonGroup" role="group" aria-label="Select chord quality"></div>
           </div>
-          <div style="margin-top:12px;">
-            <label>Inversion</label>
+          <div class="adv-field">
+            <span class="adv-label">Inversion</span>
             <div class="row" id="chordInversionButtonGroup" role="group" aria-label="Select chord inversion"></div>
           </div>
-          <div class="help" style="margin-top:8px;">A chord's "quality" is its emotional color: major sounds bright, minor sounds darker, diminished sounds tense. Select a root, quality, and inversion to hear and see it on the staff. The drone lets you feel the chord against your voice.</div>
-          <p class="theory-link"><button class="link-btn" data-open-theory="5">Learn more: Music Theory &rarr; Lesson 5: Chord Quality &amp; Harmony</button></p>
-
-          <div class="row" style="margin-top:16px;">
+          <div class="row" style="margin-top:4px;">
             <button id="startDrone" class="primary" aria-label="Start drone">Start Drone</button>
             <button id="stopDrone" aria-label="Stop drone">Stop Drone</button>
           </div>
-          <label for="droneGain">Drone volume (master)</label>
-          <input id="droneGain" type="range" min="0" max="1" value="0.25" step="0.01" aria-label="Drone volume" />
+          <div class="adv-field">
+            <label for="droneGain">Drone volume</label>
+            <input id="droneGain" type="range" min="0" max="1" value="0.25" step="0.01" aria-label="Drone volume" />
+          </div>
           <div id="individualDroneVolumes" style="margin-top:8px; display:none;">
             <label>Individual pitch volumes</label>
             <div id="droneVolumeControls"></div>
           </div>
-        </fieldset>
+          <p class="theory-link"><button class="link-btn" data-open-theory="5">Music Theory &rarr; Lesson 5: Chord Quality &amp; Harmony</button></p>
+        </div>
       </section>
 
-      <section id="panel-warmup" class="panel" role="tabpanel" aria-labelledby="tab-warmup" style="display:none">
-        <fieldset>
-          <legend>Warmup Exercises</legend>
-          <div class="row">
-            <button id="btnWarmup" class="primary" aria-label="Play warmup">Play Warm Up</button>
-            <span id="warmupBadge" class="chip" aria-live="polite">Ready</span>
+      <section id="panel-warmup" class="panel exercise" role="tabpanel" aria-labelledby="tab-warmup" style="display:none">
+        <!-- Pick what to sing: three pattern pills. Directions live in Advanced. -->
+        <div class="ex-prompt" style="font-size:13px;color:var(--muted)">Pick what to sing, then press play and sing along.<button class="link-btn learn-link" data-open-theory="2">New to warm-ups?</button></div>
+        <div class="pill-row" id="warmupPatterns" role="group" aria-label="Warm-up patterns">
+          <button type="button" class="pill-toggle on" data-pattern="scale" aria-pressed="true">Major scale</button>
+          <button type="button" class="pill-toggle on" data-pattern="intervals" aria-pressed="true">Intervals</button>
+          <button type="button" class="pill-toggle on" data-pattern="arpeggios" aria-pressed="true">Arpeggios</button>
+        </div>
+
+        <!-- Engraved warmup patterns with solfège syllables under each note (VexFlow). -->
+        <div id="warmupVisual" class="perf-surface" hidden></div>
+
+        <!-- One obvious transport: restart · play · full-screen, plus a read-only tuning readout. -->
+        <div class="xport" role="group" aria-label="Playback">
+          <button id="btnWarmupRestart" class="xport-btn" type="button" aria-label="Restart from the top" title="Restart">↺</button>
+          <button id="btnWarmup" class="xport-play" type="button" aria-label="Play warm up">▶</button>
+          <button id="btnWarmupFull" class="xport-btn" type="button" aria-label="Full screen" title="Full screen">⤢</button>
+          <span id="warmupStatus" class="xport-status mono" aria-live="polite">—</span>
+          <span id="warmupBadge" class="sr-only" aria-live="polite">Ready</span>
+        </div>
+
+        <!-- Everything a power user might tune; a new singer never opens this. -->
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="advanced-body">
+            <div class="adv-field">
+              <label for="warmupTempo">Tempo <span id="warmupTempoVal" class="mono">76</span> bpm</label>
+              <input id="warmupTempo" type="range" min="40" max="120" value="76" step="1" aria-label="Tempo in beats per minute" />
+            </div>
+            <div class="adv-field">
+              <span class="adv-label">Directions</span>
+              <label class="adv-check"><input type="checkbox" id="warmupDirUp" checked /> Ascending ↑</label>
+              <label class="adv-check"><input type="checkbox" id="warmupDirDown" checked /> Descending ↓</label>
+            </div>
+            <div class="adv-field">
+              <label for="warmupClef">Clef</label>
+              <select id="warmupClef" aria-label="Staff clef">
+                <option value="auto" selected>Auto (from your voice)</option>
+                <option value="treble">Treble</option>
+                <option value="bass">Bass</option>
+              </select>
+            </div>
+            <p class="theory-link"><button class="link-btn" data-open-theory="2">Music Theory &rarr; Lesson 2: Warmup &amp; Singing Foundations</button></p>
           </div>
-          <fieldset style="margin-top:8px; margin-bottom:8px;">
-            <legend style="font-size:14px;">Select stanzas to play</legend>
-            <label style="display:block; margin:4px 0;">
-              <input type="checkbox" id="warmupStanza-0" checked aria-label="Major scale up" />
-              Major scale ↑
-            </label>
-            <label style="display:block; margin:4px 0;">
-              <input type="checkbox" id="warmupStanza-1" checked aria-label="Major scale down" />
-              Major scale ↓
-            </label>
-            <label style="display:block; margin:4px 0;">
-              <input type="checkbox" id="warmupStanza-2" checked aria-label="Intervals from Do up" />
-              Intervals from Do ↑
-            </label>
-            <label style="display:block; margin:4px 0;">
-              <input type="checkbox" id="warmupStanza-3" checked aria-label="Intervals from Do down" />
-              Intervals from Do ↓
-            </label>
-            <label style="display:block; margin:4px 0;">
-              <input type="checkbox" id="warmupStanza-4" checked aria-label="Arpeggios up" />
-              Arpeggios (↑)
-            </label>
-            <label style="display:block; margin:4px 0;">
-              <input type="checkbox" id="warmupStanza-5" checked aria-label="Arpeggios down" />
-              Arpeggios (↓)
-            </label>
-          </fieldset>
-          <label for="warmupTempo">Tempo (BPM)</label>
-          <input id="warmupTempo" type="range" min="40" max="120" value="60" step="5" aria-label="Tempo in beats per minute" />
-          <!-- Engraved warmup patterns with solfège syllables under each note (VexFlow). -->
-          <div id="warmupVisual" class="perf-surface" hidden></div>
-          <div class="help" style="margin-top:8px">Singing scales and intervals repeatedly builds muscle memory for pitch. Check the stanzas you want, set a comfortable tempo, then press Play and sing along. The red line moves at tempo so you can follow visually.</div>
-          <p class="theory-link"><button class="link-btn" data-open-theory="2">Learn more: Music Theory &rarr; Lesson 2: Warmup &amp; Singing Foundations</button></p>
-        </fieldset>
+        </details>
       </section>
 
-      <section id="panel-cluster" class="panel" role="tabpanel" aria-labelledby="tab-cluster" style="display:none">
-        <fieldset>
-          <legend>Hidden Cluster</legend>
-          <div class="help">Polyphony training: you'll hear 2-3 pitches played simultaneously. Identify each pitch by ear — hum them out one at a time. Use Reveal only after you've committed to an answer. This builds the harmonic hearing needed for SATB singing.</div>
-          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px; margin:8px 0">
-            <input id="hideAnswers-cluster" type="checkbox" checked aria-label="Hide staff answers until Reveal is clicked" />
-            Hide staff answers (until Reveal)
-          </label>
-          <div class="row" style="margin-bottom:4px">
-            <button class="difficulty-btn" data-difficulty="easy" data-exercise="cluster" aria-label="Easy difficulty" title="Diatonic notes within one octave">Easy</button>
-            <button class="difficulty-btn" data-difficulty="medium" data-exercise="cluster" aria-label="Medium difficulty" title="Diatonic notes across two octaves">Medium</button>
-            <button class="difficulty-btn" data-difficulty="hard" data-exercise="cluster" aria-label="Hard difficulty" title="Diatonic notes across full range">Hard</button>
-            <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="cluster" aria-label="Extra hard difficulty" title="Chromatic notes across full range">Extra Hard</button>
+      <section id="panel-cluster" class="panel exercise" role="tabpanel" aria-labelledby="tab-cluster" style="display:none">
+        <div class="ex-prompt">Two notes sound <b>together</b> — tap the interval you hear between them.<button class="link-btn learn-link" data-open-theory="4">What's pitch distinction?</button></div>
+        <div class="xport">
+          <button id="playCluster" class="xport-play" type="button" aria-label="Play the two notes together">▶</button>
+          <span id="clusterResult" class="ex-result mono" aria-live="polite">Press play to start</span>
+          <span id="hiddenBadge" class="sr-only" aria-live="polite">Press Play to start</span>
+        </div>
+        <div id="clusterAnswers" class="answer-row" role="group" aria-label="Interval answers"></div>
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="advanced-body">
+            <div class="adv-field">
+              <span class="adv-label">Level</span>
+              <div class="pill-row" role="group" aria-label="Cluster difficulty">
+                <button class="difficulty-btn active" data-difficulty="easy" data-exercise="cluster" title="Diatonic notes within one octave">Easy</button>
+                <button class="difficulty-btn" data-difficulty="medium" data-exercise="cluster" title="Diatonic notes across two octaves">Medium</button>
+                <button class="difficulty-btn" data-difficulty="hard" data-exercise="cluster" title="Diatonic notes across full range">Hard</button>
+                <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="cluster" title="Chromatic notes across full range">Expert</button>
+              </div>
+              <div class="difficulty-desc muted-note" id="clusterDifficultyDesc">Diatonic notes within one octave</div>
+            </div>
+            <div class="adv-field">
+              <label for="clusterThinkTime">Play length <span id="clusterThinkTimeValue" class="mono">3</span> s</label>
+              <input id="clusterThinkTime" type="range" min="1" max="10" value="3" step="1" aria-label="Cluster playback duration in seconds" />
+            </div>
+            <label class="adv-check"><input id="onScaleOnly-cluster" type="checkbox" checked /> Scale notes only (diatonic)</label>
+            <p class="theory-link"><button class="link-btn" data-open-theory="4">Music Theory &rarr; Lesson 4: Cluster Detection</button></p>
           </div>
-          <div class="difficulty-desc" id="clusterDifficultyDesc">Diatonic notes within one octave</div>
-          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px; margin-bottom:8px">
-            <input id="onScaleOnly-cluster" type="checkbox" checked aria-label="Constrain to scale notes" />
-            Constrain to scale notes (diatonic)
-          </label>
-          <label for="clusterThinkTime">Duration: <span id="clusterThinkTimeValue">3</span> seconds</label>
-          <input id="clusterThinkTime" type="range" min="1" max="10" value="3" step="1" aria-label="Cluster playback duration in seconds" />
-          <div class="row">
-            <button id="playHidden2" aria-label="Play 2 hidden tones">Play 2</button>
-            <button id="playHidden3" aria-label="Play 3 hidden tones">Play 3</button>
-            <button id="revealHidden" aria-label="Reveal hidden cluster">Reveal</button>
-            <span id="hiddenBadge" class="chip" aria-live="polite">Press Play to start</span>
-          </div>
-          <p class="theory-link"><button class="link-btn" data-open-theory="4">Learn more: Music Theory &rarr; Lesson 4: Cluster Detection</button></p>
-        </fieldset>
+        </details>
       </section>
 
-      <section id="panel-intervals" class="panel" role="tabpanel" aria-labelledby="tab-intervals" style="display:none">
-        <fieldset>
-          <legend>Interval Training</legend>
-          <div class="help">You'll hear two pitches in sequence. Identify the second pitch relative to the first using solfege (e.g., "Do to Sol" = a perfect fifth). Press Reveal only after you decide — guessing before listening doesn't build the skill.</div>
-          <div class="row" style="margin-bottom:4px">
-            <button class="difficulty-btn" data-difficulty="easy" data-exercise="interval" aria-label="Easy difficulty" title="Ascending intervals from Do, diatonic only">Easy</button>
-            <button class="difficulty-btn" data-difficulty="medium" data-exercise="interval" aria-label="Medium difficulty" title="Intervals from Do (up or down), diatonic only">Medium</button>
-            <button class="difficulty-btn" data-difficulty="hard" data-exercise="interval" aria-label="Hard difficulty" title="Intervals from any note, diatonic only">Hard</button>
-            <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="interval" aria-label="Extra hard difficulty" title="Any intervals, chromatic allowed">Extra Hard</button>
-          </div>
-          <div class="difficulty-desc" id="intervalDifficultyDesc">Ascending intervals from Do, diatonic only</div>
-          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px; margin-bottom:8px">
-            <input id="hideAnswers-intervals" type="checkbox" checked aria-label="Hide staff answers until Reveal is clicked" />
-            Hide staff answers (until Reveal)
-          </label>
-          <label class="flex" style="justify-content:flex-start; align-items:center; gap:8px; margin-bottom:8px">
-            <input id="onScaleOnly-intervals" type="checkbox" checked aria-label="Constrain to scale notes" />
-            Constrain to scale notes (diatonic)
-          </label>
-          <div class="grid3">
-            <div>
+      <section id="panel-intervals" class="panel exercise" role="tabpanel" aria-labelledby="tab-intervals" style="display:none">
+        <div class="ex-prompt">Hear the two notes, then tap the interval you heard.<button class="link-btn learn-link" data-open-theory="3">What's an interval?</button></div>
+        <div class="xport">
+          <button id="playInterval" class="xport-play" type="button" aria-label="Play interval">▶</button>
+          <span id="intervalResult" class="ex-result mono" aria-live="polite">Press play to start</span>
+          <span id="intervalBadge" class="sr-only" aria-live="polite">Press Play to start</span>
+        </div>
+        <div id="intervalAnswers" class="answer-row" role="group" aria-label="Interval answers"></div>
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="advanced-body">
+            <div class="adv-field">
+              <span class="adv-label">Level</span>
+              <div class="pill-row" role="group" aria-label="Interval difficulty">
+                <button class="difficulty-btn active" data-difficulty="easy" data-exercise="interval" title="Ascending intervals from Do, diatonic only">Easy</button>
+                <button class="difficulty-btn" data-difficulty="medium" data-exercise="interval" title="Intervals from Do (up or down), diatonic only">Medium</button>
+                <button class="difficulty-btn" data-difficulty="hard" data-exercise="interval" title="Intervals from any note, diatonic only">Hard</button>
+                <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="interval" title="Any intervals, chromatic allowed">Expert</button>
+              </div>
+              <div class="difficulty-desc muted-note" id="intervalDifficultyDesc">Ascending intervals from Do, diatonic only</div>
+            </div>
+            <div class="adv-field">
               <label for="intervalDir">Direction</label>
               <select id="intervalDir" aria-label="Interval direction">
                 <option value="up">Up</option>
@@ -245,117 +266,108 @@
                 <option value="either" selected>Either</option>
               </select>
             </div>
-            <div>
-              <label for="intervalMin">Min (semitones)</label>
-              <input id="intervalMin" type="number" value="1" min="1" max="12" aria-label="Minimum interval in semitones" />
+            <div class="adv-field adv-row">
+              <label for="intervalMin">Min (semitones) <input id="intervalMin" type="number" value="1" min="1" max="12" aria-label="Minimum interval in semitones" /></label>
+              <label for="intervalMax">Max (semitones) <input id="intervalMax" type="number" value="12" min="1" max="24" aria-label="Maximum interval in semitones" /></label>
             </div>
-            <div>
-              <label for="intervalMax">Max (semitones)</label>
-              <input id="intervalMax" type="number" value="12" min="1" max="24" aria-label="Maximum interval in semitones" />
-            </div>
+            <label class="adv-check"><input id="onScaleOnly-intervals" type="checkbox" checked /> Scale notes only (diatonic)</label>
+            <p class="theory-link"><button class="link-btn" data-open-theory="3">Music Theory &rarr; Lesson 3: Interval Training</button></p>
           </div>
-          <div class="row">
-            <button id="playInterval" aria-label="Play interval exercise">Play Interval</button>
-            <button id="showInterval" aria-label="Reveal interval solution">Reveal</button>
-            <span id="intervalBadge" class="chip" aria-live="polite">Press Play to start</span>
-          </div>
-          <p class="theory-link"><button class="link-btn" data-open-theory="3">Learn more: Music Theory &rarr; Lesson 3: Interval Training</button></p>
-        </fieldset>
+        </details>
       </section>
 
-      <section id="panel-flashcards" class="panel" role="tabpanel" aria-labelledby="tab-flashcards" style="display:none">
-        <fieldset>
-          <legend>Flashcards • Shape ↔ Solfege</legend>
-          <div class="help">The foundation of shape-note reading: instant recognition of each shape. See a shape, say the solfege name without hesitation. Hit <span class="kbd">N</span> for next and <span class="kbd">Space</span> to flip. Goal: 20 cards in under 2 minutes.</div>
+      <section id="panel-flashcards" class="panel exercise" role="tabpanel" aria-labelledby="tab-flashcards" style="display:none">
+        <div class="ex-prompt">See the shape, say the syllable, then flip to check.<button class="link-btn learn-link" data-open-theory="1">The 7 shapes</button></div>
 
-          <div style="margin-top:8px">
-            <label for="flashcardMode">Mode</label>
-            <select id="flashcardMode" aria-label="Flashcard mode">
-              <option value="shapeToSolfege" selected>Shape → Solfege</option>
-              <option value="solfegeToShape">Solfege → Shape</option>
-            </select>
+        <div class="flashcard" role="group" aria-label="Flashcard">
+          <div id="flashcardPrompt" class="flashcardPrompt" aria-live="polite">—</div>
+          <div class="flashcardFace">
+            <span id="flashcardGlyph"></span>
           </div>
+        </div>
 
-          <div class="flashcard" role="group" aria-label="Flashcard">
-            <div id="flashcardPrompt" class="flashcardPrompt" aria-live="polite">—</div>
-            <div class="flashcardFace">
-              <span id="flashcardGlyph"></span>
+        <div class="xport" style="justify-content:center">
+          <button id="flashcardPrev" class="xport-btn" aria-label="Previous card (left arrow)" title="Previous (←)">‹</button>
+          <button id="flashcardFlip" class="btn-outline" aria-label="Flip card (space)" title="Flip (space)">Flip</button>
+          <button id="flashcardNext" class="xport-play" aria-label="Next card (right arrow)" title="Next (→)">›</button>
+          <span id="flashcardCount" class="xport-status mono">card 1</span>
+          <span id="flashcardBadge" class="sr-only" aria-live="polite">Ready</span>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="advanced-body">
+            <div class="adv-field">
+              <label for="flashcardMode">Mode</label>
+              <select id="flashcardMode" aria-label="Flashcard mode">
+                <option value="shapeToSolfege" selected>Shape → Solfege</option>
+                <option value="solfegeToShape">Solfege → Shape</option>
+              </select>
             </div>
+            <p class="theory-link"><button class="link-btn" data-open-theory="1">Music Theory &rarr; Lesson 1: Shape Notes &amp; Solfege</button></p>
           </div>
-
-          <div class="row" style="margin-top:10px">
-            <button id="flashcardNext" class="primary" aria-label="Next flashcard">Next</button>
-            <button id="flashcardFlip" aria-label="Flip flashcard">Flip</button>
-            <span id="flashcardBadge" class="chip" aria-live="polite">Ready</span>
-          </div>
-          <p class="theory-link"><button class="link-btn" data-open-theory="1">Learn more: Music Theory &rarr; Lesson 1: Shape Notes &amp; Solfege</button></p>
-        </fieldset>
+        </details>
       </section>
 
-      <section id="panel-satb" class="panel" role="tabpanel" aria-labelledby="tab-satb" style="display:none">
-        <fieldset>
-          <legend>SATB Practice <small style="font-weight:normal; color:var(--muted)">(Soprano, Alto, Tenor, Bass)</small></legend>
-          <div class="help">SATB is 4-voice harmony. Pick a hymn, select your part, then lower that part's volume slightly so you can't just follow the recording — you have to find the pitch yourself. The play line follows the notes left-to-right at tempo.</div>
-          
-          <!-- Exercise Selection -->
-          <div style="margin-bottom:12px">
-            <label>Exercise</label>
-            <div id="satbCurrentHymn" class="no-hymn">Browse the hymn library to get started</div>
-            <button id="btnBrowseHymns" class="primary" aria-label="Browse hymns" style="margin-top:8px">Browse Hymns</button>
-            <small style="display:block; margin-top:4px; color:#666">Select a hymn from the library</small>
-          </div>
-          
-          <!-- MIDI File Loading -->
-          <div style="margin-bottom:12px">
-            <label for="satbMidiFile">Load MIDI File</label>
-            <input id="satbMidiFile" type="file" accept=".mid,.midi" aria-label="Load MIDI file" />
-            <small style="display:block; margin-top:4px; color:#666">Select a MIDI file to add it to the exercise list</small>
-          </div>
-          
-          <!-- Part Selection (Aim For) -->
-          <div style="margin-bottom:12px">
-            <label style="display:block; margin-bottom:4px">Aim For Part</label>
-            <div class="row" id="satbPartSelection" role="group" aria-label="Select part to aim for">
-              <!-- Will be built by satbControls.js -->
-            </div>
-          </div>
-          
-          <!-- Tempo Control -->
-          <div style="margin-bottom:12px">
-            <label for="satbTempo">Tempo: <span id="satbTempoValue">60</span> BPM</label>
-            <input id="satbTempo" type="range" min="40" max="200" value="60" aria-label="Tempo in BPM" />
-          </div>
+      <section id="panel-satb" class="panel exercise" role="tabpanel" aria-labelledby="tab-satb" style="display:none">
+        <div class="ex-prompt">Pick a hymn and sing your part against the other three.<button class="link-btn learn-link" data-open-theory="6">New to SATB?</button></div>
 
-          <!-- Transpose Control -->
-          <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap">
-            <span>Key: <span id="satbKeyLabel">—</span></span>
-            <button id="btnSatbTransposeDown" aria-label="Transpose down 1 semitone">−</button>
-            <button id="btnSatbTransposeUp" aria-label="Transpose up 1 semitone">+</button>
-          </div>
-          
-          <!-- Play Controls -->
-          <div class="row" style="margin-bottom:12px">
-            <button id="btnSatbPlay" class="primary" aria-label="Play SATB exercise">Play</button>
-            <button id="btnSatbPause" aria-label="Pause SATB exercise" style="display:none">Pause</button>
-            <button id="btnSatbResume" class="primary" aria-label="Resume SATB exercise" style="display:none">Resume</button>
-            <button id="btnSatbStop" class="bad" aria-label="Stop SATB exercise" style="display:none">Stop</button>
-            <span id="satbBadge" class="chip" aria-live="polite">—</span>
-          </div>
-          
-          <!-- Part Volume Controls -->
-          <div style="margin-bottom:12px">
-            <label style="display:block; margin-bottom:4px">Part Volumes</label>
-            <div id="satbVolumeControls">
-              <!-- Will be built by satbControls.js -->
-            </div>
-          </div>
-          
-          <!-- Engraved SATB notation (VexFlow). Replaces the shared canvas staff on this tab. -->
-          <div id="satbVisual" class="perf-surface" hidden></div>
+        <!-- Hymn picker -->
+        <div class="satb-hymn">
+          <span id="satbCurrentHymn" class="no-hymn">Browse the hymn library to get started</span>
+          <button id="btnBrowseHymns" class="btn-outline" aria-label="Browse hymns">Browse hymns</button>
+        </div>
 
-          <div class="help">Tip: leave your own part a little quieter so you can't just follow the recording.</div>
-          <p class="theory-link"><button class="link-btn" data-open-theory="6">Learn more: Music Theory &rarr; Lesson 6: Singing SATB Harmony</button></p>
-        </fieldset>
+        <!-- Engraved SATB notation (VexFlow); the live mic-line draws on your part. -->
+        <div id="satbVisual" class="perf-surface" hidden></div>
+
+        <!-- Transport -->
+        <div class="xport">
+          <button id="btnSatbPlay" class="xport-play" aria-label="Play">▶</button>
+          <button id="btnSatbPause" class="xport-btn" aria-label="Pause" style="display:none">⏸</button>
+          <button id="btnSatbResume" class="xport-play" aria-label="Resume" style="display:none">▶</button>
+          <button id="btnSatbStop" class="xport-btn" aria-label="Stop" style="display:none">■</button>
+          <span id="satbBadge" class="xport-status" aria-live="polite">—</span>
+        </div>
+
+        <!-- How loud your own part plays vs. the other three. -->
+        <div class="part-mix">
+          <span class="pm-label">My part</span>
+          <div class="seg-toggle" id="satbPartMix" role="group" aria-label="My part volume">
+            <button type="button" class="seg-btn" data-mix="normal">Normal</button>
+            <button type="button" class="seg-btn" data-mix="amplify">Amplify</button>
+            <button type="button" class="seg-btn on" data-mix="quiet">Quiet</button>
+          </div>
+          <span class="pm-hint" id="satbPartMixHint">Quieter than the rest — so you find the pitch yourself</span>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="advanced-body">
+            <div class="adv-field">
+              <span class="adv-label">Aim for part</span>
+              <div class="row" id="satbPartSelection" role="group" aria-label="Select part to aim for"></div>
+            </div>
+            <div class="adv-field">
+              <label for="satbTempo">Tempo <span id="satbTempoValue" class="mono">60</span> bpm</label>
+              <input id="satbTempo" type="range" min="40" max="200" value="60" aria-label="Tempo in BPM" />
+            </div>
+            <div class="adv-field adv-row">
+              <span>Key: <span id="satbKeyLabel" class="mono">—</span></span>
+              <button id="btnSatbTransposeDown" aria-label="Transpose down 1 semitone">−</button>
+              <button id="btnSatbTransposeUp" aria-label="Transpose up 1 semitone">+</button>
+            </div>
+            <div class="adv-field">
+              <span class="adv-label">Part volumes (full mixer)</span>
+              <div id="satbVolumeControls"></div>
+            </div>
+            <div class="adv-field">
+              <label for="satbMidiFile">Load your own MIDI file</label>
+              <input id="satbMidiFile" type="file" accept=".mid,.midi" aria-label="Load MIDI file" />
+            </div>
+            <p class="theory-link"><button class="link-btn" data-open-theory="6">Music Theory &rarr; Lesson 6: Singing SATB Harmony</button></p>
+          </div>
+        </details>
       </section>
 
       <section id="panel-theory" class="panel" role="tabpanel" aria-labelledby="tab-theory" style="display:none">
@@ -366,6 +378,7 @@
       
       <div id="theory-sidebar-resizer" class="theory-sidebar-resizer" aria-label="Resize theory sidebar" title="Drag to resize"></div>
       <aside id="theory-sidebar" class="theory-sidebar" role="complementary" aria-label="Music Theory">
+        <button id="theorySidebarClose" class="theory-close" aria-label="Close lessons" title="Close lessons">✕</button>
         <!-- Theory content will be moved here on large screens via JavaScript -->
       </aside>
     </div>

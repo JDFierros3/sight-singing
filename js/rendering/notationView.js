@@ -235,10 +235,12 @@ export function renderHymnNotation(exercise, container, options = {}) {
       const measure = byPart[part][mi] || [];
       const tickables = [];
       const meta = [];
+      const tickStart = []; // absolute start time (exercise sec@60) of each tickable, for time-proportional x
       if (measure.length === 0) {
         // Part rests this bar (e.g. a note tied over from earlier) — keep alignment.
         tickables.push(new VF.StaveNote({ keys: [clef === 'treble' ? 'b/4' : 'd/3'], duration: 'wr' }));
         meta.push(null);
+        tickStart.push(mi * measureLenSec);
       } else {
         const restKey = clef === 'treble' ? 'b/4' : 'd/3';
         let cursor = mi * measureLenSec; // beat position reached so far within this measure
@@ -251,6 +253,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
             if (rdots) VF.Dot.buildAndAttach([rest], { all: true });
             tickables.push(rest);
             meta.push(null);
+            tickStart.push(cursor); // the rest starts where the previous note ended
           }
           cursor = n.start + n.dur;
           const { key, accidental, color } = midiToVexKey(n.midi, tonicPc, mode);
@@ -271,6 +274,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
           }
           tickables.push(sn);
           meta.push(n);
+          tickStart.push(n.start);
           tieChain[part].push({ sn, tieToNext: !!n.tieToNext });
           // Slur ids are namespaced PER PART here, so producers only need ids that are
           // unique within a voice — two voices may reuse id 3 without their curves merging.
@@ -284,7 +288,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
       try {
         beams = VF.Beam.generateBeams(tickables, { maintain_stem_directions: true, beam_rests: false });
       } catch (e) { beams = []; }
-      built[part] = { voice, tickables, meta, beams };
+      built[part] = { voice, tickables, meta, beams, tickStart };
     }
 
     const trebleVoices = PARTS_ACTIVE.filter(p => p === 'S' || p === 'A').map(p => built[p].voice);
@@ -295,19 +299,43 @@ export function renderHymnNotation(exercise, container, options = {}) {
     const formatWidth = Math.max(60, w - (first ? clefExtra + 22 : 22));
     formatter.format([...trebleVoices, ...bassVoices], formatWidth);
 
+    // TIME-PROPORTIONAL SPACING: VexFlow's formatter spaces notes non-linearly (softmax), so
+    // eighth notes drift from a constant-speed playhead. Re-place every tickable so its x is
+    // proportional to its start TIME within the measure — matching exactly the per-measure
+    // linear map the playhead uses (measure area [noteStartX, x+w]). Now one tempo lines up.
+    for (const part of PARTS_ACTIVE) {
+      const b = built[part];
+      const stave = (part === 'S' || part === 'A') ? treble : bass;
+      const startX = stave.getNoteStartX();
+      const areaW = Math.max(20, (x + w) - startX);
+      b.tickables.forEach((t, i) => {
+        const st = b.tickStart[i];
+        if (!Number.isFinite(st) || typeof t.setXShift !== 'function' || typeof t.getAbsoluteX !== 'function') return;
+        const frac = Math.max(0, Math.min(0.985, (st - mi * measureLenSec) / measureLenSec));
+        const targetX = startX + frac * areaW;
+        try { t.setXShift(targetX - t.getAbsoluteX()); } catch (e) {}
+      });
+    }
+
     for (const part of PARTS_ACTIVE) {
       const b = built[part];
       const stave = (part === 'S' || part === 'A') ? treble : bass;
       b.voice.draw(ctx, stave);
       (b.beams || []).forEach(beam => { try { beam.setContext(ctx).draw(); } catch (e) {} });
+      // Record onset positions using the SAME time-proportional x the notes were shifted to
+      // and the playhead uses — so shape-head overlay, lyrics, mic-line fit, and playhead all
+      // share one coordinate (getAbsoluteX doesn't always reflect setXShift, so compute it).
+      const startX = stave.getNoteStartX();
+      const areaW = Math.max(20, (x + w) - startX);
       b.tickables.forEach((t, i) => {
         const m = b.meta[i];
         // Record one position per note ONSET (not per tied continuation), so lyric alignment
         // and the pitch-line fit stay one-entry-per-note.
-        if (!m || !m.isOnset || !t.getAbsoluteX) return;
+        if (!m || !m.isOnset) return;
         let y = trebleY + 40;
         try { y = t.getYs ? t.getYs()[0] : y; } catch (e) {}
-        partPositions[part].push({ x: t.getAbsoluteX(), y, midi: m.midi, startTime: m.start });
+        const frac = Math.max(0, Math.min(0.985, (m.start - mi * measureLenSec) / measureLenSec));
+        partPositions[part].push({ x: startX + frac * areaW, y, midi: m.midi, startTime: m.start });
       });
     }
     x += w;

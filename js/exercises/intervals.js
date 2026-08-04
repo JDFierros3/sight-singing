@@ -60,7 +60,12 @@ export function playIntervalExercise() {
   
   // Re-render staff to clear any previously revealed answers
   renderStaff();
-  
+
+  // Fresh, enabled answer buttons for this round.
+  renderIntervalAnswers();
+  const resultEl = getElementById('intervalResult');
+  if (resultEl) resultEl.textContent = 'Listen…';
+
   playTonesForDuration([noteA], 1.2, 'Interval A');
   setTimeout(() => {
     playTonesForDuration([noteB], 1.2, 'Interval B');
@@ -242,7 +247,93 @@ function formatIntervalDisplay(noteA, noteB) {
   
   const intervalName = getIntervalName(semitones);
   const directionText = isUp ? ' up' : ' down';
-  
+
   return `${solfegeA} → ${solfegeB}  (${intervalName}${directionText})`;
+}
+
+/* -------------------------------------------------- interactive answers --- */
+
+// Friendly labels per simple-interval semitone (0–12). The button the singer taps;
+// the Do–x sublabel is shown only when the interval is always measured from Do.
+export const INTERVAL_OPTIONS = {
+  1:  { label: '♭2nd',    sub: 'Do–Ra' },
+  2:  { label: '2nd',     sub: 'Do–Re' },
+  3:  { label: '♭3rd',    sub: 'Do–Me' },
+  4:  { label: '3rd',     sub: 'Do–Mi' },
+  5:  { label: '4th',     sub: 'Do–Fa' },
+  6:  { label: 'Tritone', sub: 'Do–Fi' },
+  7:  { label: '5th',     sub: 'Do–Sol' },
+  8:  { label: '♭6th',    sub: 'Do–Le' },
+  9:  { label: '6th',     sub: 'Do–La' },
+  10: { label: '♭7th',    sub: 'Do–Te' },
+  11: { label: '7th',     sub: 'Do–Ti' },
+  12: { label: 'Octave',  sub: 'Do–Do' }
+};
+
+// Collapse any distance to a simple-interval key 0–12, preserving the octave as 12.
+export function intervalKey(dist) {
+  const d = Math.abs(dist);
+  const m = d % 12;
+  return (m === 0 && d > 0) ? 12 : m;
+}
+
+// Shared answer-button renderer (used by Intervals AND Pitch Distinction). Builds one
+// `.ans` button per interval key, calling onKey(key) on tap.
+export function renderAnswerButtons(row, keys, fromDo, onKey) {
+  if (!row) return;
+  row.innerHTML = '';
+  keys.forEach(key => {
+    const opt = INTERVAL_OPTIONS[key] || { label: `${key} st`, sub: '' };
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ans';
+    btn.dataset.key = String(key);
+    btn.innerHTML = `${opt.label}${fromDo && opt.sub ? `<small>${opt.sub}</small>` : ''}`;
+    btn.addEventListener('click', () => onKey(key));
+    row.appendChild(btn);
+  });
+}
+
+// Shared grading paint: green on the actual key, red on a wrong pick, all disabled.
+export function paintAnswerResult(row, actualKey, clickedKey) {
+  if (!row) return;
+  row.querySelectorAll('.ans').forEach(b => {
+    b.disabled = true;
+    const k = Number(b.dataset.key);
+    if (k === actualKey) b.classList.add('good');
+    if (k === clickedKey && clickedKey !== actualKey) b.classList.add('bad');
+  });
+}
+
+// The answer options for the CURRENT difficulty/range — exactly the intervals the
+// generator can pose, so the buttons never offer an impossible answer.
+function currentIntervalOptionKeys() {
+  const range = getIntervalRange();
+  const spans = buildValidIntervalSpans(range.min, range.max);
+  const keys = new Set();
+  spans.forEach(s => { const k = intervalKey(s); if (k >= 1) keys.add(k); });
+  return [...keys].sort((a, b) => a - b);
+}
+
+// (Re)build the answer button row for the current difficulty; buttons start enabled/clean.
+export function renderIntervalAnswers() {
+  const fromDo = appState.exercise.intervalDifficulty === 'easy' ||
+                 appState.exercise.intervalDifficulty === 'medium';
+  renderAnswerButtons(getElementById('intervalAnswers'), currentIntervalOptionKeys(), fromDo, handleIntervalAnswerClick);
+}
+
+// Grade the tapped interval, then auto-reveal on the staff and spell it out.
+function handleIntervalAnswerClick(clickedKey) {
+  const iv = appState.exercise.interval;
+  if (!iv) return; // nothing has played yet
+  const actualKey = intervalKey(iv.b - iv.a);
+  const correct = clickedKey === actualKey;
+
+  paintAnswerResult(getElementById('intervalAnswers'), actualKey, clickedKey);
+
+  appState.exercise.showAnswers.intervals = true;
+  renderStaff();
+  const result = getElementById('intervalResult');
+  if (result) result.textContent = `${correct ? '✓' : '✗'}  ${formatIntervalDisplay(iv.a, iv.b)}`;
 }
 
