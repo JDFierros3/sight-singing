@@ -65,8 +65,10 @@ function scaleToLength(steps, length) {
 
 /* ---------------------------------------------------------- persistence ---- */
 
+// Save the in-progress session so it can be resumed on this device. We never remove it here —
+// only completeSession() clears it — so "Free play" pauses the session rather than discarding it.
 function persist() {
-  if (!current) { try { localStorage.removeItem(SESSION_KEY); } catch (e) {} return; }
+  if (!current) return;
   try {
     localStorage.setItem(SESSION_KEY, JSON.stringify({ steps: current.steps, index: current.index }));
   } catch (e) { /* ignore */ }
@@ -132,15 +134,16 @@ export function prevStep() {
 
 export const skipStep = nextStep; // Skip == advance (kept distinct in UI wording).
 
+/** Leave the session UI but KEEP the saved snapshot, so Home's "Resume" can pick it back up. */
 export function exitSession() {
+  if (current) persist();
   current = null;
-  persist();
   document.dispatchEvent(new CustomEvent('session:changed'));
 }
 
 function completeSession() {
   current = null;
-  persist();
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ }
   document.dispatchEvent(new CustomEvent('session:complete'));
 }
 
