@@ -38,7 +38,7 @@ export function generateSetlist(profile) {
   const f = profile.focus || {};
   if (f.ear) {
     push('intervals', 'Intervals from Do', 'intervals', { kind: 'ear' });
-    push('cluster', 'Chord listening', 'cluster', { kind: 'ear' });
+    push('cluster', 'Pitch distinction', 'cluster', { kind: 'ear' });
     push('chord-quality', 'Chord quality', 'chord-quality', { kind: 'ear' });
   }
   if (f.theory) {
