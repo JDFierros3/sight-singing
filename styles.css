@@ -1768,3 +1768,43 @@ body.onb-open { overflow: hidden; }
   .session-bar .sb-btn[data-act="exit"] { order: 5; } /* push Free-play to wrap under on narrow screens */
 }
 
+/* ===================================================================== *
+ * Mobile App Shell — bottom nav (5 rooms) + per-room sub-nav.
+ * Only active on phones; desktop keeps its tab strip until the Studio pass.
+ * ===================================================================== */
+.mobile-nav { display: none; }
+.room-subnav { display: none; }
+@media (max-width: 768px) {
+  .mobile-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+    display: flex; align-items: stretch;
+    background: #171a2b; border-top: 1px solid #2a2f48;
+    padding: 6px 4px; padding-bottom: max(6px, env(safe-area-inset-bottom));
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  .mobile-nav .mn-it {
+    flex: 1; background: none; border: none; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    color: #98a0bd; font-size: 10px; font-weight: 600; padding: 4px 0;
+  }
+  .mobile-nav .mn-it .d { font-size: 19px; line-height: 1; }
+  .mobile-nav .mn-it.on { color: #e6b968; }
+
+  /* the desktop tab strip + tab dropdown are replaced by the bottom nav */
+  .tabs, .tabSelectBlock { display: none !important; }
+
+  .room-subnav {
+    display: flex; gap: 6px; padding: 8px 10px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .room-subnav[hidden] { display: none; }
+  .room-subnav .rs-it {
+    white-space: nowrap; cursor: pointer;
+    background: #1e2237; border: 1px solid #2a2f48; color: #98a0bd;
+    border-radius: 999px; padding: 7px 13px; font-size: 13px; font-weight: 600;
+  }
+  .room-subnav .rs-it.on { background: #e6b968; color: #241a06; border-color: transparent; }
+
+  /* clear the fixed bottom nav */
+  body { padding-bottom: 64px; }
+}
+
