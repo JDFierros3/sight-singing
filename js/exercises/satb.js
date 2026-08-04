@@ -17,7 +17,7 @@ import { loadOpenPsalmHandoff } from './openPsalmHandoff.js';
 import { buildPartSelectionButtons, buildPartVolumeControls, updatePartSelection } from '../ui/builders/satbControls.js';
 import { getAccidentalForNote } from '../utils/keySignature.js';
 import {
-  configurePerformance, showNotation, enterPerformance, exitPerformance, startScroll
+  configurePerformance, showNotation, enterPerformance, exitPerformance, startScroll, withLeadIn
 } from '../rendering/performanceView.js';
 
 // Point the shared performance surface at the SATB tab (container + clock + state).
@@ -99,7 +99,8 @@ export async function playSATBExercise() {
     return;
   }
   
-  const exercise = getTransposedExercise(baseExercise, appState.satb.transposeSemis);
+  // One empty lead-in bar so the playhead establishes its pace before the first note.
+  const exercise = withLeadIn(getTransposedExercise(baseExercise, appState.satb.transposeSemis), 1);
 
   // Ensure staff key context exists during playback (used for solfege mapping + key signature spacing)
   if (Number.isFinite(exercise.midiKeyMidi)) {

@@ -27,7 +27,7 @@ function initializeTuning() {
 
 function initializeDisplay() {
   return {
-    tolerance: 60,
+    tolerance: 100,
     zoom: 1.5,
     playAim: true,
     showAccidentalsAndKey: false // Unified setting for both accidentals and key signatures

@@ -55,7 +55,7 @@ export function detectPitchWithAutocorrelation(buffer, sampleRate) {
   }
 
   const rms = calculateRMS(buffer);
-  if (rms < 0.005) {
+  if (rms < 0.003) { // low silence gate so quieter/decaying sustained notes don't drop the line
     return -1;
   }
 
@@ -104,16 +104,30 @@ export function findAutocorrelationPeak(acArray, minLag = 0) {
     skipIndex++;
   }
 
-  let maxValue = -Infinity;
-  let maxPosition = -1;
-
+  // Reference height = the tallest peak over the valid range.
+  let globalMax = -Infinity;
   for (let i = skipIndex; i < acArray.length; i++) {
-    if (acArray[i] > maxValue) {
-      maxValue = acArray[i];
-      maxPosition = i;
+    if (acArray[i] > globalMax) globalMax = acArray[i];
+  }
+  if (globalMax <= 0) return -1;
+
+  // Octave-error guard: the human voice is harmonic-rich, so the sub-harmonic peak (an octave
+  // DOWN, at ~2× the true period) is often marginally taller than the fundamental. Picking the
+  // GLOBAL max there reports an octave low. Instead take the FIRST local-maximum peak that
+  // clears most of the reference height — i.e. the shortest period / true fundamental.
+  const threshold = 0.9 * globalMax;
+  for (let i = skipIndex + 1; i < acArray.length - 1; i++) {
+    if (acArray[i] >= threshold && acArray[i] >= acArray[i - 1] && acArray[i] > acArray[i + 1]) {
+      return i;
     }
   }
 
+  // Fallback: no peak cleared the threshold — return the global-max position.
+  let maxPosition = skipIndex;
+  let maxValue = -Infinity;
+  for (let i = skipIndex; i < acArray.length; i++) {
+    if (acArray[i] > maxValue) { maxValue = acArray[i]; maxPosition = i; }
+  }
   return maxPosition;
 }
 
@@ -133,7 +147,7 @@ export function refinePeakPosition(acArray, peakIndex) {
 // between 16ms frames, and the autocorrelation is the loop's single most expensive step —
 // halving how often it runs (vs 60fps) is a free win, especially on mobile.
 let _lastDetectAt = 0;
-const DETECT_INTERVAL_MS = 33;
+const DETECT_INTERVAL_MS = 22; // ~45 Hz — snappier pitch pickup for fast passages
 
 export function getCurrentPitch() {
   const now = performance.now();
@@ -188,8 +202,9 @@ function updateStablePitch(rawHz) {
   const now = performance.now();
   const toleranceCents = Number(appState.display?.tolerance) || 25;
 
-  // How long pitch must remain within tolerance to be considered stable
-  const holdMs = Math.max(50, Math.min(400, toleranceCents * 4));
+  // How long pitch must remain within tolerance to be considered stable. Capped low so a high
+  // tolerance (forgiving) doesn't also make the readout sluggish to confirm a note.
+  const holdMs = Math.max(50, Math.min(150, toleranceCents * 2));
   // How long we keep last stable pitch before clearing when input disappears/jitters
   const decayMs = Math.max(150, Math.min(800, toleranceCents * 8));
 

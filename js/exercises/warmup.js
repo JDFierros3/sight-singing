@@ -13,7 +13,7 @@ import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
 import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence, getCurrentSequenceId, trackBadgeTimeout, removeBadgeTimeout } from '../player/sequenceManager.js';
 import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from '../audio/instruments.js';
-import { configurePerformance, showNotation, enterPerformance, exitPerformance, startScroll } from '../rendering/performanceView.js';
+import { configurePerformance, showNotation, enterPerformance, exitPerformance, startScroll, withLeadIn } from '../rendering/performanceView.js';
 import { spellMidiInKey } from '../utils/keySignature.js';
 import { getVoiceTuning } from '../session/profile.js';
 import { midiToNoteName } from '../utils/musicTheory.js';
@@ -90,12 +90,13 @@ function bindWarmupControls() {
   warmupControlsBound = true;
 }
 
-// Apply the voice's default tempo the first time in, before the singer has touched the slider.
+const DEFAULT_WARMUP_TEMPO = 60; // a comfortable default for warm-ups regardless of voice type
+// Apply the default tempo the first time in, before the singer has touched the slider.
 function applyVoiceDefaults() {
   const slider = getElementById('warmupTempo');
   if (slider && !warmupTempoTouched && !appState.exercise.warmupRunning) {
-    slider.value = String(getVoiceTuning().warmTempo);
-    appState.staff.tempo = getVoiceTuning().warmTempo;
+    slider.value = String(DEFAULT_WARMUP_TEMPO);
+    appState.staff.tempo = DEFAULT_WARMUP_TEMPO;
   }
 }
 
@@ -142,18 +143,18 @@ function buildWarmupExercise() {
   const tonicPc = ((appState.tuning.doMidi % 12) + 12) % 12;
   const notes = [];
   const lyricsByNote = [];
+  const REST_SEC = 4; // one empty measure between exercises — now renders as a rest bar and the
+                      // (time-proportional) playhead glides through the gap in sync.
   let t = 0;
-  // NOTE: a rest measure between exercises needs the notation to place notes proportional to
-  // time (so the constant-speed playhead still lines up). Until that lands, stanzas run
-  // back-to-back — adding a silent time gap here desyncs the playhead. See follow-up.
-  for (const st of stanzas) {
+  stanzas.forEach((st, si) => {
     for (const n of st.notes) {
       notes.push({ midi: n.midi, startTime: t + n.startTime, duration: n.duration, part: 'S' });
       const spelled = spellMidiInKey(n.midi, tonicPc, 'major');
       lyricsByNote.push(spelled ? spelled.solfege : '');
     }
     t += st.duration;
-  }
+    if (si < stanzas.length - 1) t += REST_SEC; // breathing room between exercises
+  });
   if (!notes.length) return null;
   return {
     id: 'warmup',
@@ -174,7 +175,7 @@ function getWarmupTempo() {
   const slider = getElementById('warmupTempo');
   const v = slider ? Number(slider.value) : NaN;
   if (Number.isFinite(v) && v > 0) return v;
-  return getVoiceTuning().warmTempo || 76;
+  return DEFAULT_WARMUP_TEMPO;
 }
 
 // The active stanza indices, read from the three pattern pills × the Advanced direction toggles.
@@ -212,8 +213,10 @@ export async function runWarmupSequence(selectedStanzaIndices = null) {
 
   // One concatenated exercise (the selected patterns, solfege-labelled) drives both the
   // engraved scroll and the audio, so the staff you see is exactly the staff you hear.
-  const exercise = buildWarmupExercise();
-  if (!exercise) return;
+  // A one-bar lead-in gives the playhead room to establish its pace before the first note.
+  const base = buildWarmupExercise();
+  if (!base) return;
+  const exercise = withLeadIn(base, 1);
 
   // Warmup always sings at its OWN tempo slider — never the shared staff.tempo that the
   // SATB tab overwrites with a hymn's (faster) tempo. Otherwise a warm-up inherits it.

@@ -14,9 +14,10 @@
 
 import { getElementById } from '../utils/dom.js';
 import { appState } from '../state/appState.js';
-import { pitchState } from '../pitch/detection.js';
+import { pitchState, getCurrentPitch } from '../pitch/detection.js';
 import { frequencyToMidi } from '../utils/audioMath.js';
 import { renderHymnNotation } from './notationView.js';
+import { getVoiceTuning } from '../session/profile.js';
 
 /**
  * @typedef {Object} PerfConfig
@@ -133,9 +134,41 @@ function ensureOverlays(container) {
 
 /* ---------------------------------------------------------- scroll loop --- */
 
-// Map exercise time (seconds @60bpm) -> x, LINEARLY within each measure so the playhead
-// glides at a steady speed instead of snapping between note positions.
+// Map exercise time (seconds @60bpm) -> x by interpolating through the ACTUAL note positions.
+// Notes are now engraved proportional to time (notationView sets each tick context's x by
+// time), so this straight-line interpolation both moves at a steady tempo AND lands the
+// playhead exactly on each note as it sounds. Falls back to the measure map if no notes.
 function buildTimeToX(l) {
+  const knots = [];
+  const parts = l.partPositions || {};
+  for (const p of ['S', 'A', 'T', 'B']) {
+    for (const n of (parts[p] || [])) {
+      if (Number.isFinite(n.startTime) && Number.isFinite(n.x)) knots.push({ t: n.startTime, x: n.x });
+    }
+  }
+  if (knots.length) {
+    knots.sort((a, b) => a.t - b.t || a.x - b.x);
+    const k = [];
+    for (const p of knots) {                     // collapse chord notes (same time) to one knot
+      const last = k[k.length - 1];
+      if (last && Math.abs(last.t - p.t) < 1e-4) last.x = Math.min(last.x, p.x);
+      else k.push({ t: p.t, x: p.x });
+    }
+    // Lead-in: if the first note starts after t=0 (an empty bar was prepended), anchor a knot at
+    // the very start of the staff so the playhead glides across the empty bar to the first note.
+    if (k[0].t > 1e-4 && l.measurePositions && l.measurePositions.length) {
+      k.unshift({ t: 0, x: l.measurePositions[0].x });
+    }
+    let cursor = 0; // remembered segment index — playback time is monotonic, so O(1) amortized
+    return (t) => {
+      if (t <= k[0].t) { cursor = 0; return k[0].x; }
+      if (t >= k[k.length - 1].t) return k[k.length - 1].x;
+      if (t < k[cursor].t) cursor = 0;                        // seeked backwards (restart) — rescan
+      while (cursor < k.length - 1 && k[cursor + 1].t <= t) cursor++;
+      const a = k[cursor], b = k[cursor + 1];
+      return a.x + ((t - a.t) / ((b.t - a.t) || 1)) * (b.x - a.x);
+    };
+  }
   const mp = l.measurePositions || [];
   const mlen = l.measureLenSec || 1;
   return (t) => {
@@ -146,6 +179,22 @@ function buildTimeToX(l) {
     const frac = Math.max(0, Math.min(1, (t - m.startTime) / mlen));
     return m.x + frac * m.width;
   };
+}
+
+// Prepend `measures` empty bar(s) to a play-along exercise: every note's start is pushed back,
+// so the leading bar(s) engrave as rests and the scrolling playhead has room to establish its
+// pace before the first note sounds. Returns a NEW exercise (audio + notation both read it).
+export function withLeadIn(exercise, measures = 1) {
+  if (!exercise || measures <= 0) return exercise;
+  const num = exercise.timeSigNum || 4;
+  const den = exercise.timeSigDen || 4;
+  const lead = measures * num * (4 / den);
+  const parts = {};
+  for (const p of ['S', 'A', 'T', 'B']) {
+    parts[p] = (exercise.parts && exercise.parts[p] ? exercise.parts[p] : [])
+      .map(n => ({ ...n, startTime: (n.startTime || 0) + lead }));
+  }
+  return { ...exercise, parts, duration: (exercise.duration || 0) + lead };
 }
 
 // The playhead is pinned ~30% from the left; the STAFF slides under it via a GPU transform
@@ -179,22 +228,47 @@ export function stopScroll() {
 // The singer's detected pitch as a horizontal line on the staff, coloured green/yellow/red
 // by how close it is to the current target note. Denoised here (median-of-3 + fast EMA) so
 // it's responsive without relying on the global hold-gated stableHz.
-const MIC_EMA_ALPHA = 0.4;
+const MIC_EMA_ALPHA = 0.55; // snappier follow so the line keeps up on fast passages
+const MIC_HOLD_MS = 850;    // keep the line up through detection dropouts (no strobing / vanishing)
 let micMidiEma = null;
 let micMidiHistory = [];
+let micLastValidAt = 0;
 let partFitCache = { key: null, fit: null };
 
 function updateMicLine() {
   if (!micLineEl || !layout) return;
-  const hz = pitchState.hz || 0; // per-frame detection (RMS-gated) — no hold delay
-  if (hz <= 0) { micLineEl.style.display = 'none'; resetMicLine(); return; }
+  // Detect right here (throttled internally to ~22ms) so the line reads the freshest pitch even
+  // if the main render loop hitches — it no longer depends on that loop's timing.
+  getCurrentPitch();
+  const hz = pitchState.hz || 0; // per-frame detection (RMS-gated)
+  const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  if (hz <= 0) {
+    // A single-frame dropout is normal even on a sustained note — hold the last line rather
+    // than flashing off. Only actually hide after MIC_HOLD_MS of continuous silence.
+    if (micLastValidAt && (now - micLastValidAt) < MIC_HOLD_MS) return; // keep showing last position
+    micLineEl.style.display = 'none';
+    resetMicLine();
+    return;
+  }
+  micLastValidAt = now;
 
   let sungMidi = frequencyToMidi(hz, appState.tuning.a4);
   if (!Number.isFinite(sungMidi)) { micLineEl.style.display = 'none'; return; }
 
-  // Fold octave detection glitches toward the note being sung (pitch-class match).
+  // Fold octave detection glitches toward the note being sung (pitch-class match). With a target
+  // (SATB), fold to it; free-singing (warm-up), fold toward what you were just singing so a stray
+  // octave jump snaps back instead of throwing the line.
   const target = cfg.getTargetMidi ? cfg.getTargetMidi() : null;
-  if (Number.isFinite(target)) sungMidi = foldToOctave(sungMidi, target);
+  if (Number.isFinite(target)) {
+    // A concrete target (SATB): fold the octave to match the note you're aiming for.
+    sungMidi = foldToOctave(sungMidi, target);
+  } else {
+    // Free-singing (warm-up / between notes): fold toward what you were just singing, then into
+    // the voice type's comfortable range. Autocorrelation octave errors land a full octave off,
+    // and we KNOW roughly where this singer's notes live — so this is the most reliable guard.
+    if (micMidiEma != null) sungMidi = foldToOctave(sungMidi, micMidiEma);
+    sungMidi = foldIntoRange(sungMidi, getVoiceTuning().range);
+  }
 
   const denoised = pushMedian(sungMidi);
   micMidiEma = micMidiEma == null ? denoised : micMidiEma * (1 - MIC_EMA_ALPHA) + denoised * MIC_EMA_ALPHA;
@@ -206,8 +280,11 @@ function updateMicLine() {
   micLineEl.style.display = 'block';
 
   if (Number.isFinite(target)) {
+    // Green/yellow thresholds scale with the pitch tolerance, so maxing tolerance makes the
+    // line forgiving (easy green) and tightening it demands precision.
+    const tol = Math.max(10, Number(appState.display?.tolerance) || 100);
     const cents = Math.abs(micMidiEma - target) * 100;
-    micLineEl.style.background = cents <= 20 ? '#22c55e' : (cents <= 50 ? '#eab308' : '#ef4444');
+    micLineEl.style.background = cents <= tol ? '#22c55e' : (cents <= tol * 1.6 ? '#eab308' : '#ef4444');
   } else {
     micLineEl.style.background = '#60a5fa';
   }
@@ -228,6 +305,18 @@ function foldToOctave(midi, ref) {
   while (midi - ref > 6) midi -= 12;
   while (ref - midi > 6) midi += 12;
   return midi;
+}
+
+// Shift `midi` by whole octaves until it sits inside the singer's range (with a little headroom).
+// Corrects both octave-up and octave-down detection errors — we know where this voice lives.
+function foldIntoRange(midi, range) {
+  if (!Number.isFinite(midi) || !Array.isArray(range) || range.length < 2) return midi;
+  const lo = range[0] - 2, hi = range[1] + 2;
+  let m = midi, guard = 0;
+  while (m < lo && guard++ < 8) m += 12;
+  guard = 0;
+  while (m > hi && guard++ < 8) m -= 12;
+  return m;
 }
 
 // Linear midi->y fit from just the chosen part's noteheads (one staff, no lyric-gap

@@ -868,8 +868,9 @@ function drawScrollingNotes(noteMapper, dimensions) {
     const y = noteMapper(note.midi);
     
     // Only skip if y is not finite or wildly off-canvas; ledger notes may be above 0.
+    // (Silently skip — this runs per note per frame, so logging here floods the console and
+    // tanks the frame rate.)
     if (!Number.isFinite(y) || y < -80 || y > dimensions.height + 80) {
-      console.warn(`Out-of-bounds Y for scrolling note MIDI ${note.midi}: ${y}`);
       return;
     }
     
@@ -927,8 +928,8 @@ function drawStaticNotes(noteMapper, dimensions) {
     const y = noteMapper(note.midi);
     
     // Only skip if y is not finite or wildly off-canvas; ledger notes may be above 0.
+    // (Silently skip — logging per note per redraw floods the console and costs frames.)
     if (!Number.isFinite(y) || y < -80 || y > dimensions.height + 80) {
-      console.warn(`Out-of-bounds Y for static note MIDI ${note.midi}: ${y}`);
       return;
     }
     

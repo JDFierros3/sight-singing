@@ -300,9 +300,10 @@ export function renderHymnNotation(exercise, container, options = {}) {
     formatter.format([...trebleVoices, ...bassVoices], formatWidth);
 
     // TIME-PROPORTIONAL SPACING: VexFlow's formatter spaces notes non-linearly (softmax), so
-    // eighth notes drift from a constant-speed playhead. Re-place every tickable so its x is
-    // proportional to its start TIME within the measure — matching exactly the per-measure
-    // linear map the playhead uses (measure area [noteStartX, x+w]). Now one tempo lines up.
+    // eighth notes drift from a constant-speed playhead. Re-place each note by setting its
+    // TickContext x proportional to its start TIME within the measure. VexFlow draws from the
+    // tick context (and getAbsoluteX reads it), so this actually moves the NOTES — not just an
+    // overlay. Notes that sound together share one tick context, so they stay vertically aligned.
     for (const part of PARTS_ACTIVE) {
       const b = built[part];
       const stave = (part === 'S' || part === 'A') ? treble : bass;
@@ -310,10 +311,10 @@ export function renderHymnNotation(exercise, container, options = {}) {
       const areaW = Math.max(20, (x + w) - startX);
       b.tickables.forEach((t, i) => {
         const st = b.tickStart[i];
-        if (!Number.isFinite(st) || typeof t.setXShift !== 'function' || typeof t.getAbsoluteX !== 'function') return;
+        const tc = (typeof t.getTickContext === 'function') ? t.getTickContext() : null;
+        if (!Number.isFinite(st) || !tc || typeof tc.setX !== 'function') return;
         const frac = Math.max(0, Math.min(0.985, (st - mi * measureLenSec) / measureLenSec));
-        const targetX = startX + frac * areaW;
-        try { t.setXShift(targetX - t.getAbsoluteX()); } catch (e) {}
+        try { tc.setX(frac * areaW); } catch (e) {}
       });
     }
 
@@ -322,20 +323,17 @@ export function renderHymnNotation(exercise, container, options = {}) {
       const stave = (part === 'S' || part === 'A') ? treble : bass;
       b.voice.draw(ctx, stave);
       (b.beams || []).forEach(beam => { try { beam.setContext(ctx).draw(); } catch (e) {} });
-      // Record onset positions using the SAME time-proportional x the notes were shifted to
-      // and the playhead uses — so shape-head overlay, lyrics, mic-line fit, and playhead all
-      // share one coordinate (getAbsoluteX doesn't always reflect setXShift, so compute it).
-      const startX = stave.getNoteStartX();
-      const areaW = Math.max(20, (x + w) - startX);
+      // Record onset positions from the notes' TRUE drawn x (getAbsoluteX), which now reflects
+      // the time-proportional tick-context we set above. Lyrics, shape-head overlay, mic-line
+      // fit, and the playhead all key off this — one shared coordinate, so they stay aligned.
       b.tickables.forEach((t, i) => {
         const m = b.meta[i];
         // Record one position per note ONSET (not per tied continuation), so lyric alignment
         // and the pitch-line fit stay one-entry-per-note.
-        if (!m || !m.isOnset) return;
+        if (!m || !m.isOnset || !t.getAbsoluteX) return;
         let y = trebleY + 40;
         try { y = t.getYs ? t.getYs()[0] : y; } catch (e) {}
-        const frac = Math.max(0, Math.min(0.985, (m.start - mi * measureLenSec) / measureLenSec));
-        partPositions[part].push({ x: startX + frac * areaW, y, midi: m.midi, startTime: m.start });
+        partPositions[part].push({ x: t.getAbsoluteX(), y, midi: m.midi, startTime: m.start });
       });
     }
     x += w;
