@@ -88,7 +88,6 @@ function renderWelcome() {
   return `
     <div class="onb-shapes">${shapeRow()}</div>
     <h2 class="onb-h">Learn to sing by<br>shape &amp; syllable</h2>
-    <p class="onb-sub">movable-Do · sing against a drone · no scoring</p>
     <button class="onb-primary" data-go="1">Start singing</button>`;
 }
 
