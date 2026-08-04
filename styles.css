@@ -1847,3 +1847,49 @@ body.onb-open { overflow: hidden; }
   }
 }
 
+/* ===================================================================== *
+ * Home launcher — greeting, resume card, room cards, actions.
+ * ===================================================================== */
+.home-launch { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.home-launch .hl-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.home-launch .hl-greet { font-family: Georgia, serif; font-size: 22px; color: var(--ink, #eef1fb); }
+.home-launch .hl-streak {
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+  background: #153426; color: #7fe0a6; border: 1px solid #245c40; border-radius: 999px; padding: 5px 11px;
+}
+.home-launch .hl-resume {
+  display: flex; align-items: center; gap: 12px; text-align: left; cursor: pointer;
+  background: #1e2237; border: 1px solid #e6b968; border-radius: 14px; padding: 14px 16px; color: #eef1fb;
+}
+.home-launch .hl-resume-tx b { display: block; font-size: 15px; }
+.home-launch .hl-resume-tx small { color: #98a0bd; font-size: 12px; }
+.home-launch .hl-resume-go {
+  margin-left: auto; width: 40px; height: 40px; flex: 0 0 auto; border-radius: 50%;
+  background: #e6b968; color: #241a06; display: grid; place-items: center; font-size: 16px; font-weight: 800;
+}
+.home-launch .hl-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.home-launch .hl-card {
+  display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
+  background: #171a2b; border: 1px solid #2a2f48; border-radius: 16px; padding: 16px; min-height: 104px;
+}
+.home-launch .hl-card:hover { border-color: #3a4260; }
+.home-launch .hl-ic {
+  width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center;
+  font-size: 19px; color: #10121c; margin-bottom: 6px;
+}
+.home-launch .hl-nm { font-size: 15px; font-weight: 700; color: #eef1fb; }
+.home-launch .hl-ds { font-size: 12px; color: #98a0bd; }
+.home-launch .hl-actions { display: flex; flex-direction: column; gap: 8px; }
+.home-launch .hl-primary {
+  background: #e6b968; color: #241a06; border: none; border-radius: 12px;
+  padding: 14px; font-size: 15px; font-weight: 800; cursor: pointer;
+}
+.home-launch .hl-ghost {
+  background: transparent; color: #98a0bd; border: 1px solid #2a2f48; border-radius: 12px;
+  padding: 11px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.home-launch .home-solfege-section { margin-top: 8px; }
+@media (min-width: 700px) {
+  .home-launch .hl-cards { grid-template-columns: repeat(4, 1fr); }
+}
+

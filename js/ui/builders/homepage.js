@@ -1,131 +1,105 @@
 /**
- * Builds the Homepage tab content — welcome page with solfege guide and learning roadmap.
+ * Home / launcher tab. The redesigned front door: a greeting + streak, a Resume card when a
+ * session is paused, the four rooms as big cards, start/setup actions, and the 7-shapes guide.
+ * Replaces the old wall-of-text homepage (control docs now live in the settings sheet).
  */
 
 import { buildSolfegeGuide } from './solfegeGuide.js';
 import { switchToTab } from '../components/tabs.js';
+import { loadProfile, VOICE_PROFILES } from '../../session/profile.js';
+import { hasActiveSession, loadSession, resumeSession, startSession } from '../../session/session.js';
+import { startOnboarding } from '../../session/onboarding.js';
 
-const ROADMAP_STEPS = [
-  { tab: 'flashcards', label: 'Flashcards', desc: 'Memorize shape-to-solfege in under 2 minutes' },
-  { tab: 'warmup', label: 'Warmup', desc: 'Sing scales and intervals from Do' },
-  { tab: 'intervals', label: 'Intervals', desc: 'Identify the gap between two pitches' },
-  { tab: 'cluster', label: 'Cluster', desc: 'Detect 2-3 simultaneous hidden tones' },
-  { tab: 'chord-quality', label: 'Chords', desc: 'Hear major, minor, and other qualities' },
-  { tab: 'satb', label: 'SATB', desc: 'Sing your part in 4-voice harmony' },
+// Rooms as launcher cards → their primary tab. Colours are the shape-note palette.
+const ROOMS = [
+  { tab: 'warmup', label: 'Warm Up', desc: 'scales & intervals', icon: '♪', color: '#8bd3ff' },
+  { tab: 'intervals', label: 'Train Your Ear', desc: 'intervals · pitch · chords', icon: '◎', color: '#c4b5fd' },
+  { tab: 'satb', label: 'Sing in Parts', desc: 'hymns · SATB play-along', icon: '✦', color: '#fca5a5' },
+  { tab: 'theory', label: 'Learn', desc: 'lessons & flashcards', icon: '◈', color: '#fde68a' }
 ];
+
+function greeting() {
+  const h = new Date().getHours();
+  const part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const profile = loadProfile();
+  const who = profile && VOICE_PROFILES[profile.voice] ? `, ${VOICE_PROFILES[profile.voice].label}` : '';
+  return `${part}${who}`;
+}
+
+function streakCount() {
+  try {
+    const s = JSON.parse(localStorage.getItem('solfege.v1.stats') || 'null');
+    return s && s.streak ? s.streak : 0;
+  } catch (e) { return 0; }
+}
 
 export function buildHomepage() {
   const host = document.getElementById('panel-home');
   if (!host) return;
 
+  const streak = streakCount();
+  const saved = hasActiveSession() ? loadSession() : null;
+  const resumeStep = saved ? saved.steps[Math.min(saved.index, saved.steps.length - 1)] : null;
+  const hasProfile = !!loadProfile();
+
   host.innerHTML = `
-    <div class="home-hero">
-      <h2>Shape-Note Ear Trainer</h2>
-      <p class="home-tagline">Learn to sing in tune using movable-Do solfege and sacred harp shape notes.</p>
-      <p class="home-subtitle">Practice pitch recognition by ear — no scoring, just listening and singing.</p>
-      <button id="btnStartLearning" class="btn-start-learning">Start Learning</button>
-    </div>
-
-    <div class="home-concepts">
-      <div class="home-concept-card">
-        <h3>What is Movable Do?</h3>
-        <p>In movable-Do solfege, "Do" is always the root of whatever key you're in — not a fixed pitch like C.
-           The same patterns (Do Re Mi Fa Sol La Ti) repeat in every key, so once you learn the intervals, you can sing in any key.</p>
+    <div class="home-launch">
+      <div class="hl-top">
+        <div class="hl-greet">${greeting()}</div>
+        ${streak ? `<span class="hl-streak">🔥 ${streak}-day streak</span>` : ''}
       </div>
-      <div class="home-concept-card">
-        <h3>What are Shape Notes?</h3>
-        <p>Shape notes assign a distinct geometric shape to each scale degree.
-           Reading the shapes lets you identify solfege syllables at a glance — no need to memorize letter-name key signatures.</p>
+
+      ${saved ? `
+      <button class="hl-resume" id="hlResume">
+        <div class="hl-resume-tx"><b>Resume your session</b><small>Step ${saved.index + 1} of ${saved.steps.length} · ${resumeStep ? resumeStep.label : ''}</small></div>
+        <span class="hl-resume-go">▶</span>
+      </button>` : ''}
+
+      <div class="hl-cards">
+        ${ROOMS.map(r => `
+          <button class="hl-card" data-tab="${r.tab}">
+            <span class="hl-ic" style="background:${r.color}">${r.icon}</span>
+            <span class="hl-nm">${r.label}</span>
+            <span class="hl-ds">${r.desc}</span>
+          </button>`).join('')}
       </div>
-    </div>
 
-    <div class="home-solfege-section">
-      <h3>The 7 Shapes</h3>
-      <div id="solfegeGuide"></div>
-    </div>
-
-    <div class="home-roadmap-section">
-      <h3>Learning Path</h3>
-      <p class="home-roadmap-intro">Work through these exercises in order. Each one builds on the last.</p>
-      <div class="home-roadmap">
-        ${ROADMAP_STEPS.map((step, i) => `
-          <button class="home-roadmap-step" data-tab="${step.tab}">
-            <span class="home-roadmap-number">${i + 1}</span>
-            <span class="home-roadmap-label">${step.label}</span>
-            <span class="home-roadmap-desc">${step.desc}</span>
-          </button>
-        `).join(`<span class="home-roadmap-arrow" aria-hidden="true">&rarr;</span>`)}
+      <div class="hl-actions">
+        <button class="hl-primary" id="hlStart">${saved ? 'Start a new session' : "Start today's session"}</button>
+        <button class="hl-ghost" id="hlSetup">${hasProfile ? 'Change voice / setup' : 'Set up my voice'}</button>
       </div>
-    </div>
 
-    <div class="home-controls-section">
-      <h3>Global Controls</h3>
-      <p class="home-controls-intro">These controls live in the header bar and apply across all exercises.</p>
-      <div class="home-controls-grid">
-        <div class="home-control-item">
-          <span class="home-control-name">Play / Stop</span>
-          <span class="home-control-desc">Context-sensitive — plays the current exercise, starts the drone, or advances a flashcard depending on which tab you're on.</span>
-        </div>
-        <div class="home-control-item">
-          <span class="home-control-name">Do</span>
-          <span class="home-control-desc">Sets the "home" pitch for movable-Do solfege. All exercises are built relative to this note. Pick a Do that's comfortable for your voice range.</span>
-        </div>
-        <div class="home-control-item">
-          <span class="home-control-name">Voice</span>
-          <span class="home-control-desc">Choose the instrument sound: Sine Wave (pure tone), Piano, or Choir. Affects drones, warmups, intervals, and SATB playback.</span>
-        </div>
-        <div class="home-control-item">
-          <span class="home-control-name">Mic</span>
-          <span class="home-control-desc">Turns on your microphone for live pitch detection. Your voice appears on the staff in real time so you can see how close you are to the target note.</span>
-        </div>
-        <div class="home-control-item">
-          <span class="home-control-name">Tolerance</span>
-          <span class="home-control-desc">How close your pitch needs to be (in cents) for the app to consider it "on target." Lower = stricter. Start around 50-60 and tighten as you improve.</span>
-        </div>
-        <div class="home-control-item">
-          <span class="home-control-name">A4</span>
-          <span class="home-control-desc">Concert pitch reference (default 440 Hz). Only change this if you're matching a differently-tuned instrument.</span>
-        </div>
-        <div class="home-control-item">
-          <span class="home-control-name">Zoom</span>
-          <span class="home-control-desc">Adjusts the size of the musical staff. Increase if notes are hard to read, decrease to see more notes at once.</span>
-        </div>
-        <div class="home-control-item">
-          <span class="home-control-name">Show Accidentals & Key</span>
-          <span class="home-control-desc">Displays sharps, flats, and key signature on the staff. Auto-enabled on SATB and Chord Quality tabs.</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="home-shortcuts">
-      <h3>Keyboard Shortcuts</h3>
-      <div class="home-shortcut-list">
-        <span class="kbd">Space</span> Flip flashcard
-        <span class="home-shortcut-sep">&middot;</span>
-        <span class="kbd">N</span> Next flashcard
-        <span class="home-shortcut-sep">&middot;</span>
-        <span class="kbd">M</span> Toggle microphone
+      <div class="home-solfege-section">
+        <h3>The 7 Shapes</h3>
+        <div id="solfegeGuide"></div>
       </div>
     </div>
   `;
 
-  // Mount the solfege shape guide into #solfegeGuide
   buildSolfegeGuide();
 
-  // Wire up navigation
-  const btnStart = document.getElementById('btnStartLearning');
-  if (btnStart) {
-    btnStart.addEventListener('click', () => switchToTab('flashcards'));
-  }
+  host.querySelector('#hlResume')?.addEventListener('click', () => resumeSession());
+  host.querySelector('.hl-cards')?.addEventListener('click', (e) => {
+    const card = e.target.closest('[data-tab]');
+    if (card) switchToTab(card.dataset.tab);
+  });
+  host.querySelector('#hlStart')?.addEventListener('click', () => {
+    const profile = loadProfile();
+    if (profile) startSession(profile);
+    else startOnboarding();
+  });
+  host.querySelector('#hlSetup')?.addEventListener('click', () => startOnboarding());
 
-  // Roadmap step clicks
-  const roadmap = host.querySelector('.home-roadmap');
-  if (roadmap) {
-    roadmap.addEventListener('click', (e) => {
-      const step = e.target.closest('[data-tab]');
-      if (step && step.dataset.tab) {
-        switchToTab(step.dataset.tab);
-      }
-    });
-  }
+  watchHome();
+}
+
+// Rebuild the launcher whenever the singer returns to Home, so the Resume card + streak
+// reflect the latest session/stats. Registered once.
+let homeWatched = false;
+function watchHome() {
+  if (homeWatched) return;
+  homeWatched = true;
+  new MutationObserver(() => {
+    if (document.body.getAttribute('data-active-tab') === 'home') buildHomepage();
+  }).observe(document.body, { attributes: true, attributeFilter: ['data-active-tab'] });
 }
