@@ -74,6 +74,9 @@ export async function parseMidiFile(arrayBuffer) {
   return {
     tracks: midi.tracks,
     tempo: midi.header.tempos[0]?.bpm || 120,
+    // Whether the file actually specified a tempo. If not, @tonejs computed note times at
+    // 120bpm (so we must still convert with 120), but playback can default to a singable tempo.
+    hasTempoEvent: midi.header.tempos.length > 0,
     timeSignature: midi.header.timeSignatures[0] || { numerator: 4, denominator: 4 },
     ticksPerQuarter: midi.header.ticksPerQuarter,
     duration: midi.duration,
@@ -787,25 +790,30 @@ export function analyzeKeyFromMidiData(midiData) {
   const endBassMidi = lowestMidiInWindow(Math.max(0, maxEnd - endWindow), maxEnd);
   const endBassPc = Number.isFinite(endBassMidi) ? pcOf(endBassMidi) : null;
 
-  const weightedScaleFit = (tonicPc, steps) => {
-    const diatonic = new Set(steps.map(s => (s + tonicPc) % 12));
-    let score = 0;
-    notes.forEach(n => {
-      const pc = pcOf(n.midi);
-      const w = Math.max(0.05, Math.min(2.5, n.duration || 0.25));
-      if (diatonic.has(pc)) {
-        score += 2 * w;
-      } else {
-        const distances = Array.from(diatonic).map(d => {
-          const diff = ((pc - d + 12) % 12);
-          return Math.min(diff, 12 - diff);
-        });
-        const minDist = Math.min(...distances);
-        score -= (1 + minDist) * w;
-      }
-    });
-    return score;
+  // Duration-weighted pitch-class profile of the whole piece — the input to Krumhansl-Schmuckler.
+  const pcDur = new Array(12).fill(0);
+  notes.forEach(n => { pcDur[pcOf(n.midi)] += Math.max(0.05, Math.min(4, n.duration || 0.25)); });
+
+  // Krumhansl-Kessler key profiles (the classic tonal-hierarchy weights, major & minor).
+  const KK_MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+  const KK_MINOR = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+
+  const pearson = (a, b) => {
+    const n = a.length;
+    const ma = a.reduce((s, v) => s + v, 0) / n;
+    const mb = b.reduce((s, v) => s + v, 0) / n;
+    let num = 0, da = 0, db = 0;
+    for (let i = 0; i < n; i++) { const xa = a[i] - ma, xb = b[i] - mb; num += xa * xb; da += xa * xa; db += xb * xb; }
+    const den = Math.sqrt(da * db);
+    return den === 0 ? 0 : num / den;
   };
+
+  // Correlate the piece's PC profile against a key rooted at tonicPc. Scaled to sit in the same
+  // range as the cadence bonuses below, so the two blend rather than one swamping the other.
+  const weightedScaleFit = (tonicPc, profile) => 30 * pearson(
+    Array.from({ length: 12 }, (_, j) => pcDur[(tonicPc + j) % 12]),
+    profile
+  );
 
   const cadenceBonus = (tonicPc, mode) => {
     const third = (tonicPc + (mode === 'minor' ? 3 : 4)) % 12;
@@ -840,12 +848,12 @@ export function analyzeKeyFromMidiData(midiData) {
     candidates.push({
       tonic,
       mode: 'major',
-      score: weightedScaleFit(tonic, MAJOR_STEPS) + cadenceBonus(tonic, 'major')
+      score: weightedScaleFit(tonic, KK_MAJOR) + cadenceBonus(tonic, 'major')
     });
     candidates.push({
       tonic,
       mode: 'minor',
-      score: weightedScaleFit(tonic, NAT_MINOR_STEPS) + cadenceBonus(tonic, 'minor')
+      score: weightedScaleFit(tonic, KK_MINOR) + cadenceBonus(tonic, 'minor')
     });
   }
   if (Number.isFinite(headerKeyMidi)) {
@@ -935,7 +943,9 @@ function normalizeMidiExerciseTiming(exercise, midiData) {
 
   exercise.timeSigNum = num;
   exercise.timeSigDen = den;
-  exercise.tempoBpm = Math.round(tempo);
+  // If the file specified a tempo, keep it; otherwise default to a singable hymn tempo rather
+  // than @tonejs's 120 placeholder. (Notation is unaffected — this is only playback speed.)
+  exercise.tempoBpm = midiData?.hasTempoEvent ? Math.round(tempo) : 88;
   exercise.duration = maxEnd;
   return exercise;
 }
