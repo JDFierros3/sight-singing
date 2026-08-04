@@ -443,7 +443,10 @@ button.bad {
 
 canvas {
   width: 100%;
-  height: clamp(220px, 42vh, 520px);
+  /* Only the ear-training tabs use this shared canvas (warmup/satb/home/flashcards hide it),
+     where the staff is a reference, not the focus — keep it compact so the exercise controls
+     stay above the fold. */
+  height: clamp(150px, 24vh, 300px);
   border-radius: 14px;
   background: #0b0f1b;
   border: 1px solid #1f2336;
@@ -1782,7 +1785,9 @@ body.onb-open { overflow: hidden; }
  * ===================================================================== */
 .mobile-nav { display: none; }
 .desktop-rail { display: none; }
-.room-subnav { display: none; gap: 6px; padding: 8px 10px; overflow-x: auto; }
+/* Wrap rather than scroll: overflow-x:auto would force overflow-y:auto and vertically clip
+   the pills. Only 2-3 sub-tabs, so wrapping is clean. */
+.room-subnav { display: none; gap: 6px; padding: 8px 10px; flex-wrap: wrap; }
 .room-subnav .rs-it {
   white-space: nowrap; cursor: pointer;
   background: #1e2237; border: 1px solid #2a2f48; color: #98a0bd;
@@ -1831,7 +1836,7 @@ body.onb-open { overflow: hidden; }
   .tabs, .tabSelectBlock { display: none !important; }
 
   .room-subnav {
-    display: flex; gap: 6px; padding: 8px 10px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    display: flex; gap: 6px; padding: 8px 10px; flex-wrap: wrap;
   }
   .room-subnav[hidden] { display: none; }
   .room-subnav .rs-it {
