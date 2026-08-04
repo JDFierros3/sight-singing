@@ -2069,9 +2069,10 @@ details.advanced[open] > summary::before { transform: rotate(90deg); }
 .part-mix .pm-label { font-size: 14px; font-weight: 600; color: var(--text); }
 .part-mix .pm-hint { font-size: 12px; color: var(--muted); }
 
-/* Slim the legacy header: the app title + global Play/Stop are redundant now that every room
-   has its own in-panel transport. Keep only the Mic toggle + readout + settings gear. */
+/* Slim the legacy header: the app title, global Play/Stop, and the old "Hide/Show controls"
+   toggles are all redundant now that every room has its own transport and the rail / bottom-nav
+   handle navigation. Keep only the Mic toggle + readout + settings gear (Mic always up). */
 .appHeader .appHeaderRow:first-child { display: none; }
 #btnGlobalPlay, #btnGlobalStop { display: none !important; }
+#toggleRibbon, #showHeaderFab { display: none !important; }  /* legacy show/hide-controls — gone */
 .appHeader { padding-top: 8px; padding-bottom: 8px; }
-

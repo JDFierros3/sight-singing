@@ -143,8 +143,7 @@ function buildWarmupExercise() {
   const tonicPc = ((appState.tuning.doMidi % 12) + 12) % 12;
   const notes = [];
   const lyricsByNote = [];
-  const REST_SEC = 4; // one empty measure between exercises — now renders as a rest bar and the
-                      // (time-proportional) playhead glides through the gap in sync.
+  const REST_SEC = 2; // a short breath between exercises (patterns now also breathe internally)
   let t = 0;
   stanzas.forEach((st, si) => {
     for (const n of st.notes) {
@@ -388,123 +387,55 @@ function buildWarmupPlan() {
 }
 
 
-function createStanza1() {
-  // Major scale up - 8 notes, quarter notes
-  const scaleDegrees = [0, 2, 4, 5, 7, 9, 11, 12];
-  const noteDuration = 0.5; // Quarter note at 60 BPM = 0.5 seconds
-  const notes = scaleDegrees.map((degree, index) => ({
-    midi: appState.tuning.doMidi + degree,
-    startTime: index * noteDuration,
-    duration: noteDuration
-  }));
-  
-  // Duration is when the last note ends
-  const duration = (notes.length - 1) * noteDuration + noteDuration;
-  
-  return {
-    label: 'Major scale ↑',
-    notes: notes,
-    duration: duration // Total duration of the stanza
-  };
+// Warm-up phrases as QUARTER notes (1 beat each) with breaths (rests) between phrases, so they
+// sing slower and more sustained than the old eighth-note timing. A rest is just a gap in the
+// timeline — the notation renders it and the playhead glides through in sync.
+const Q = 1;            // quarter note = 1 beat (@60bpm baseline; tempo-scaled at play time)
+const PHRASE_REST = 2;  // a two-beat breath between phrases within a pattern
+
+// Build a stanza from an event list. Each event is a semitone offset from Do (a note) or 'r'
+// (a rest). Returns the standard { label, notes, duration } stanza shape.
+function buildStanza(label, events) {
+  const notes = [];
+  let t = 0;
+  for (const e of events) {
+    if (e === 'r') { t += PHRASE_REST; continue; }
+    notes.push({ midi: appState.tuning.doMidi + e, startTime: t, duration: Q });
+    t += Q;
+  }
+  return { label, notes, duration: t };
 }
 
-function createStanza2() {
-  // Major scale down - 8 notes
-  const scaleDegrees = [12, 11, 9, 7, 5, 4, 2, 0];
-  const baseNoteDuration = 0.5;
-  const notes = scaleDegrees.map((degree, index) => ({
-    midi: appState.tuning.doMidi + degree,
-    startTime: index * baseNoteDuration,
-    duration: baseNoteDuration
-  }));
-  
-  // Duration is when the last note ends
-  const duration = (notes.length - 1) * baseNoteDuration + baseNoteDuration;
-  
-  return {
-    label: 'Major scale ↓',
-    notes: notes,
-    duration: duration
-  };
+function createStanza1() { // Major scale up
+  return buildStanza('Major scale ↑', [0, 2, 4, 5, 7, 9, 11, 12]);
 }
 
-function createStanza3() {
-  // Intervals from Do (up)
-  const intervals = [0, 2, 0, 4, 0, 5, 0, 7, 0, 9, 0, 11, 0, 12];
-  const baseNoteDuration = 0.5;
-  const notes = intervals.map((degree, index) => ({
-    midi: appState.tuning.doMidi + degree,
-    startTime: index * baseNoteDuration,
-    duration: baseNoteDuration
-  }));
-  
-  // Duration is when the last note ends
-  const duration = (notes.length - 1) * baseNoteDuration + baseNoteDuration;
-  
-  return {
-    label: 'Intervals from Do ↑',
-    notes: notes,
-    duration: duration
-  };
+function createStanza2() { // Major scale down
+  return buildStanza('Major scale ↓', [12, 11, 9, 7, 5, 4, 2, 0]);
 }
 
-function createStanza4() {
-  // Intervals from Do (down)
-  // Pattern: high Do, then step down (Ti, La, Sol, Fa, Mi, Re, Do),
-  // always returning to high Do between each target interval.
-  //
-  // This matches the “Intervals from Do” drill style used in shape-note contexts.
-  const intervals = [12, 11, 12, 9, 12, 7, 12, 5, 12, 4, 12, 2, 12, 0];
-  const baseNoteDuration = 0.5;
-  const notes = intervals.map((degree, index) => ({
-    midi: appState.tuning.doMidi + degree,
-    startTime: index * baseNoteDuration,
-    duration: baseNoteDuration
-  }));
-  
-  // Duration is when the last note ends
-  const duration = (notes.length - 1) * baseNoteDuration + baseNoteDuration;
-  
-  return {
-    label: 'Intervals from Do ↓',
-    notes: notes,
-    duration: duration
-  };
+function createStanza3() { // Intervals from Do (up): Do–Re, breathe, Do–Mi, breathe, …
+  const ev = [];
+  [2, 4, 5, 7, 9, 11, 12].forEach((deg, i, a) => { ev.push(0, deg); if (i < a.length - 1) ev.push('r'); });
+  return buildStanza('Intervals from Do ↑', ev);
+}
+
+function createStanza4() { // Intervals from Do (down): Do'–Ti, breathe, Do'–La, breathe, …
+  const ev = [];
+  [11, 9, 7, 5, 4, 2, 0].forEach((deg, i, a) => { ev.push(12, deg); if (i < a.length - 1) ev.push('r'); });
+  return buildStanza('Intervals from Do ↓', ev);
 }
 
 function createAllArpeggiosStanza(direction) {
+  // Each triad as an up-and-back arpeggio (Do Mi Sol Mi Do), then a breath before the next.
   const degrees = [0, 2, 4, 5, 7, 9];
-  const allNotes = [];
-  let currentTime = 0;
-  const baseNoteDuration = 0.5;
-  
-  degrees.forEach(degree => {
-    const arpeggioSemis = direction === 'up' 
-      ? buildArpeggioUp(degree)
-      : buildArpeggioDown(degree);
-    
-    arpeggioSemis.forEach(semi => {
-      allNotes.push({
-        midi: appState.tuning.doMidi + degree + semi,
-        startTime: currentTime,
-        duration: baseNoteDuration
-      });
-      currentTime += baseNoteDuration;
-    });
+  const ev = [];
+  degrees.forEach((degree, i) => {
+    const arp = direction === 'up' ? buildArpeggioUp(degree) : buildArpeggioDown(degree);
+    arp.forEach(semi => ev.push(degree + semi));
+    if (i < degrees.length - 1) ev.push('r');
   });
-  
-  // Duration is when the last note ends
-  const duration = allNotes.length > 0 
-    ? (allNotes[allNotes.length - 1].startTime + allNotes[allNotes.length - 1].duration)
-    : 0;
-  
-  const label = `Arpeggios (${direction === 'up' ? '↑' : '↓'})`;
-  
-  return {
-    label: label,
-    notes: allNotes,
-    duration: duration
-  };
+  return buildStanza(`Arpeggios (${direction === 'up' ? '↑' : '↓'})`, ev);
 }
 
 
