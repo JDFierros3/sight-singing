@@ -1666,3 +1666,15 @@ body.perf-performing .perf-playhead {
   100% { transform: scale(1); opacity: 0.92; }
 }
 
+/* Brass accent for the single primary action (global Play), per the design system.
+   The one button that should always pop above the rest of the chrome. */
+#btnGlobalPlay:not(:disabled) {
+  background: #e6b968;
+  border-color: transparent;
+  color: #241a06;
+  font-weight: 800;
+}
+#btnGlobalPlay:not(:disabled):hover {
+  background: #eec580;
+}
+
