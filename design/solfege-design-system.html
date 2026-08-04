@@ -1,0 +1,600 @@
+<style>
+  /* =========================================================================
+     SOLFÈGE — DESIGN SYSTEM & SCREEN MOCKUPS  (source of truth)
+     Two palettes live here:
+       • DOC chrome  — the paper/ink surface this reference is printed on (themed)
+       • PRODUCT (--p-*) — the actual app screen palette, fixed dark inside every
+         device frame, so mockups read as the real product in either doc theme.
+     The seven solfège shape-note colours are identity and never change.
+     ========================================================================= */
+  :root{
+    --paper:#f2f3fb; --sink:#e9eaf5; --card:#fff; --line:#dde0ef;
+    --ink:#191c2b; --ink-2:#3f4460; --ink-3:#6c7192;
+    --accent:#a9741a; --accent-soft:#f0e4cc;
+    /* solfège shape-note colours (identity) */
+    --do:#3fb6b6; --re:#5fbf6a; --mi:#e3ba2f; --fa:#e6809a; --sol:#9f88e0; --la:#e79ec6; --ti:#5c9bf0;
+    --good:#2fae63; --warn:#d59a2a; --bad:#d94f45;
+    /* product screen palette */
+    --p-bg:#0f1220; --p-panel:#171a2b; --p-panel-2:#1e2237; --p-line:#2a2f48;
+    --p-text:#eef1fb; --p-soft:#98a0bd; --p-accent:#e6b968; --p-brass-ink:#241a06;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --maxw:1120px;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --paper:#0c0e18; --sink:#11131f; --card:#161a29; --line:#262b40;
+    --ink:#edeffb; --ink-2:#c1c6dd; --ink-3:#8890ac; --accent:#e6b968; --accent-soft:#33291a;}}
+  :root[data-theme="light"]{--paper:#f2f3fb;--sink:#e9eaf5;--card:#fff;--line:#dde0ef;--ink:#191c2b;--ink-2:#3f4460;--ink-3:#6c7192;--accent:#a9741a;--accent-soft:#f0e4cc;}
+  :root[data-theme="dark"]{--paper:#0c0e18;--sink:#11131f;--card:#161a29;--line:#262b40;--ink:#edeffb;--ink-2:#c1c6dd;--ink-3:#8890ac;--accent:#e6b968;--accent-soft:#33291a;}
+
+  *{box-sizing:border-box}
+  body{margin:0}
+  .page{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding:0 24px 100px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;text-wrap:balance;margin:0}
+  p{margin:0 0 1em;max-width:70ch}
+  .eyebrow{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+  .muted{color:var(--ink-3)} .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  header.hero{padding:76px 0 34px;border-bottom:1px solid var(--line)}
+  .hero h1{font-size:clamp(32px,5.4vw,54px);line-height:1.05;letter-spacing:-.015em;margin:.3em 0 .45em}
+  .hero p{font-size:clamp(17px,2.2vw,20px);color:var(--ink-2);max-width:64ch}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+  .toc a{font-size:13px;text-decoration:none;color:var(--ink-2);background:var(--sink);border:1px solid var(--line);border-radius:999px;padding:6px 13px}
+  section{padding:56px 0;border-bottom:1px solid var(--line)}
+  section > .eyebrow{display:block;margin-bottom:10px}
+  h2{font-size:clamp(23px,3.2vw,32px);letter-spacing:-.01em;margin-bottom:.35em}
+  .sub{color:var(--ink-2);max-width:66ch;margin-bottom:22px}
+  h3.blk{font-size:18px;margin:26px 0 12px}
+  .grid{display:grid;gap:16px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.g3,.g4{grid-template-columns:1fr 1fr}}
+  @media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+  /* ---------- FOUNDATION: tokens ---------- */
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+  .sw{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+  .sw .chip{height:52px} .sw .meta{padding:8px 10px;font-size:11px}
+  .sw .meta b{display:block;font-size:12px} .sw .meta .hex{font-family:var(--mono);color:var(--ink-3)}
+  .typerow{display:flex;align-items:baseline;gap:16px;border-bottom:1px solid var(--line);padding:10px 0}
+  .typerow .lab{width:120px;flex:0 0 auto;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* ---------- SHAPE NOTES (the identity component) ---------- */
+  .sn{display:inline-block;width:15px;height:13px;background:currentColor;vertical-align:middle}
+  .sn.do{color:var(--do);clip-path:polygon(50% 0,100% 100%,0 100%)}
+  .sn.re{color:var(--re);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+  .sn.mi{color:var(--mi);clip-path:polygon(0 0,100% 50%,0 100%)}
+  .sn.fa{color:var(--fa);clip-path:polygon(0 0,100% 0,50% 100%)}
+  .sn.sol{color:var(--sol);border-radius:50%}
+  .sn.la{color:var(--la)}
+  .sn.ti{color:var(--ti);clip-path:polygon(100% 0,0 50%,100% 100%)}
+  .snrow{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end}
+  .snrow .cell{text-align:center;font-size:11px;color:var(--ink-3)}
+  .snrow .cell .sn{width:26px;height:22px;margin-bottom:6px}
+
+  /* ---------- PRODUCT COMPONENT KIT (used in every mockup) ---------- */
+  .demo{background:var(--p-bg);border:1px solid var(--p-line);border-radius:14px;padding:16px;color:var(--p-text)}
+  .demo .cap{font-size:11px;color:var(--ink-3);margin-top:8px}
+  .btn{font-family:var(--sans);font-size:13px;font-weight:600;border-radius:10px;padding:9px 14px;display:inline-flex;gap:7px;align-items:center;border:1px solid var(--p-line);background:var(--p-panel-2);color:var(--p-text)}
+  .btn.brass{background:var(--p-accent);color:var(--p-brass-ink);border-color:transparent;font-weight:800}
+  .btn.ghost{background:transparent;color:var(--p-soft)}
+  .btn.danger{background:#3a2226;color:#f0b4b4;border-color:#5b2f34}
+  .btn.icon{padding:9px;width:36px;height:36px;justify-content:center}
+  .pill{font-size:11px;border-radius:999px;padding:5px 11px;border:1px solid var(--p-line);background:var(--p-panel-2);color:var(--p-soft)}
+  .pill.on{background:var(--p-accent);color:var(--p-brass-ink);border-color:transparent;font-weight:700}
+  .pill.good{background:#153426;color:#7fe0a6;border-color:#245c40}
+
+  /* staff */
+  .stave{position:relative;background:var(--p-panel);border:1px solid var(--p-line);border-radius:12px;height:118px;overflow:hidden}
+  .stave .l{position:absolute;left:14px;right:14px;height:1px;background:var(--p-line)}
+  .stave .clef{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-family:var(--serif);font-size:30px;color:var(--p-soft)}
+  .stave .n{position:absolute;transform:translate(-50%,-50%)}
+  .stave .n .sn{width:15px;height:13px}
+  .stave .n .syl{position:absolute;top:15px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--p-soft);font-family:var(--serif);white-space:nowrap}
+  .stave .playhead{position:absolute;top:8px;bottom:8px;width:2px;background:var(--bad)}
+  .stave .micline{position:absolute;height:2px;background:var(--good);border-radius:2px}
+
+  /* device frames */
+  .phone{width:280px;background:var(--p-bg);border:1px solid var(--p-line);border-radius:32px;padding:13px 11px 14px;color:var(--p-text);box-shadow:0 36px 70px -40px rgba(0,0,0,.55);position:relative}
+  .phone::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:64px;height:5px;border-radius:3px;background:var(--p-line)}
+  .scr{margin-top:15px;display:flex;flex-direction:column;gap:9px;min-height:150px}
+  .appbar{display:flex;align-items:center;justify-content:space-between;padding:0 2px}
+  .appbar .t{font-family:var(--serif);font-size:15px}
+  .appbar .r{display:flex;gap:6px}
+  .bottomnav{display:flex;justify-content:space-between;border-top:1px solid var(--p-line);padding-top:8px;margin-top:auto}
+  .bottomnav .it{flex:1;text-align:center;font-size:9px;color:var(--p-soft)} .bottomnav .it .d{font-size:15px;margin-bottom:2px;line-height:1}
+  .bottomnav .it.on{color:var(--p-accent)}
+
+  .browser{background:var(--p-bg);border:1px solid var(--p-line);border-radius:14px;overflow:hidden;color:var(--p-text);box-shadow:0 36px 70px -44px rgba(0,0,0,.55)}
+  .chrome{display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--p-panel);border-bottom:1px solid var(--p-line)}
+  .chrome i{width:10px;height:10px;border-radius:50%;background:var(--p-line)} .chrome .url{margin-left:10px;font-size:11px;color:var(--p-soft);font-family:var(--mono)}
+  .deskbody{display:grid;grid-template-columns:56px 1fr 168px;min-height:300px}
+  .rail{background:var(--p-panel);border-right:1px solid var(--p-line);padding:12px 0;display:flex;flex-direction:column;gap:6px;align-items:center}
+  .rail .r{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:15px;color:var(--p-soft)} .rail .r.on{background:var(--p-accent);color:var(--p-brass-ink)}
+  .rail .r small{font-size:7px}
+  .stage{padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+  .inspector{background:var(--p-panel);border-left:1px solid var(--p-line);padding:13px 12px;display:flex;flex-direction:column;gap:9px}
+  .inspector .h{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--p-soft)}
+  .field{background:var(--p-panel-2);border:1px solid var(--p-line);border-radius:9px;padding:8px 10px;font-size:12px;color:var(--p-text);display:flex;justify-content:space-between}
+  .field span{color:var(--p-soft);font-family:var(--mono)}
+  .fold{border:1px dashed var(--p-line);border-radius:9px;padding:8px 10px;font-size:11px;color:var(--p-soft)}
+
+  /* session bar / cards / pickers */
+  .sessbar{display:flex;align-items:center;gap:9px;background:var(--p-panel-2);border:1px solid var(--p-accent);border-radius:11px;padding:8px 10px}
+  .sessbar .dots{display:flex;gap:3px} .sessbar .dots i{width:6px;height:6px;border-radius:50%;background:var(--p-line)} .sessbar .dots i.on{background:var(--p-accent)}
+  .sessbar .lb{font-size:11px;line-height:1.25} .sessbar .lb small{display:block;color:var(--p-soft);font-size:9px}
+  .sessbar .actions{margin-left:auto;display:flex;gap:5px;align-items:center}
+  .sessbar .mini{font-size:10px;color:var(--p-soft)}
+  .card{background:var(--p-panel);border:1px solid var(--p-line);border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:6px}
+  .card .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;color:#0f1220}
+  .card .nm{font-size:13.5px;font-weight:600} .card .ds{font-size:11px;color:var(--p-soft)}
+  .voicebtns{display:flex;flex-wrap:wrap;gap:6px} .voicebtns b{font-weight:600;font-size:12px;padding:8px 12px;border-radius:999px;border:1px solid var(--p-line);background:var(--p-panel-2);color:var(--p-soft)} .voicebtns b.sel{background:var(--p-accent);color:var(--p-brass-ink);border-color:transparent}
+  .rangebar{height:12px;border-radius:7px;background:linear-gradient(90deg,var(--do),var(--sol));position:relative;opacity:.85} .rangebar::after{content:"";position:absolute;left:36%;right:24%;top:-3px;bottom:-3px;border:2px solid var(--p-accent);border-radius:8px}
+  .quiz{display:flex;gap:6px} .quiz b{flex:1;text-align:center;font-size:12px;font-weight:600;padding:11px 6px;border-radius:10px;border:1px solid var(--p-line);background:var(--p-panel-2);color:var(--p-soft)} .quiz b.sel{border-color:var(--p-accent);color:var(--p-text);background:var(--p-panel)}
+  .transport{display:flex;align-items:center;justify-content:center;gap:14px} .transport .pp{width:48px;height:48px;border-radius:50%;background:var(--p-accent);color:var(--p-brass-ink);display:grid;place-items:center;font-size:20px;font-weight:800} .transport .sm{width:34px;height:34px;border-radius:50%;background:var(--p-panel-2);border:1px solid var(--p-line);color:var(--p-soft);display:grid;place-items:center;font-size:13px}
+  .flash{background:var(--p-panel);border:1px solid var(--p-line);border-radius:14px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .lessonrow{display:flex;align-items:center;gap:9px;background:var(--p-panel-2);border:1px solid var(--p-line);border-radius:10px;padding:9px 11px;font-size:12px}
+  .lessonrow .n{width:22px;height:22px;border-radius:50%;background:var(--p-panel);border:1px solid var(--p-line);display:grid;place-items:center;font-size:10px;color:var(--p-soft)} .lessonrow .n.done{background:var(--good);color:#08120b;border-color:transparent}
+
+  .label{display:flex;align-items:center;gap:8px;margin:20px 0 10px} .label .k{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em} .label .t{font-size:13px;font-weight:700;color:var(--ink)} .label .plat{margin-left:auto;font-size:11px;color:var(--ink-3)}
+  .stagewrap{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+  .phones{display:flex;gap:16px;flex-wrap:wrap}
+  .note{font-size:13px;color:var(--ink-2);border-left:3px solid var(--accent);padding:3px 0 3px 12px;margin:10px 0}
+  .callout{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:12px;padding:16px 18px} .callout p{margin:0;color:var(--ink-2)} .callout b{color:var(--ink)}
+  .greet{font-size:12px;color:var(--p-soft);padding:0 2px}
+  @media(prefers-reduced-motion:no-preference){.pulse{animation:pz 2.4s ease-in-out infinite}@keyframes pz{0%,100%{box-shadow:0 0 0 4px rgba(230,185,104,.18)}50%{box-shadow:0 0 0 8px rgba(230,185,104,.05)}}}
+</style>
+
+<div class="page"><div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow">Source of truth · Solfège Sight-Singing</span>
+    <h1>Design system &amp; screen mockups</h1>
+    <p>The canonical reference for the app's redesign: the tokens and components on top, the full mobile &amp; desktop screens built from them below. Mobile and desktop are <b>deliberately different layouts</b>, not one stretched. Shape-note heads appear in every activity — that's the pedagogy, non-negotiable.</p>
+    <div class="toc">
+      <a href="#foundations">Foundations</a><a href="#components">Components</a><a href="#session">Session flow</a>
+      <a href="#home">Home</a><a href="#warmup">Warm Up</a><a href="#ear">Ear Training</a><a href="#sing">Sing in Parts</a><a href="#flash">Flashcards</a><a href="#theory">Music Theory</a>
+    </div>
+  </header>
+
+  <!-- ================= FOUNDATIONS ================= -->
+  <section id="foundations">
+    <span class="eyebrow">1 · Foundations</span>
+    <h2>Tokens</h2>
+    <p class="sub">Every colour, type role, and radius the app draws from. The seven solfège colours are identity and never change; the brass accent marks the single primary action on any screen.</p>
+
+    <h3 class="blk">Solfège shape-notes — the signature</h3>
+    <div class="demo">
+      <div class="snrow">
+        <div class="cell"><span class="sn do"></span>Do<br><span class="mono" style="color:var(--p-soft)">triangle</span></div>
+        <div class="cell"><span class="sn re"></span>Re<br><span class="mono" style="color:var(--p-soft)">diamond</span></div>
+        <div class="cell"><span class="sn mi"></span>Mi<br><span class="mono" style="color:var(--p-soft)">▸ triangle</span></div>
+        <div class="cell"><span class="sn fa"></span>Fa<br><span class="mono" style="color:var(--p-soft)">▽ triangle</span></div>
+        <div class="cell"><span class="sn sol"></span>Sol<br><span class="mono" style="color:var(--p-soft)">circle</span></div>
+        <div class="cell"><span class="sn la"></span>La<br><span class="mono" style="color:var(--p-soft)">square</span></div>
+        <div class="cell"><span class="sn ti"></span>Ti<br><span class="mono" style="color:var(--p-soft)">◂ triangle</span></div>
+      </div>
+      <div class="cap">Aikin 7-shape noteheads. Already how the app renders (VexFlow + canvas); the redesign keeps them in every staff, flashcard, and answer chip.</div>
+    </div>
+
+    <h3 class="blk">Colour</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#0f1220"></div><div class="meta"><b>Stage</b><span class="hex">#0F1220 · --p-bg</span></div></div>
+      <div class="sw"><div class="chip" style="background:#171a2b"></div><div class="meta"><b>Panel</b><span class="hex">#171A2B · --p-panel</span></div></div>
+      <div class="sw"><div class="chip" style="background:#e6b968"></div><div class="meta"><b>Brass accent</b><span class="hex">#E6B968 · primary</span></div></div>
+      <div class="sw"><div class="chip" style="background:#2fae63"></div><div class="meta"><b>In tune</b><span class="hex">#2FAE63 · good</span></div></div>
+      <div class="sw"><div class="chip" style="background:#d59a2a"></div><div class="meta"><b>Close</b><span class="hex">#D59A2A · warn</span></div></div>
+      <div class="sw"><div class="chip" style="background:#d94f45"></div><div class="meta"><b>Off</b><span class="hex">#D94F45 · bad</span></div></div>
+      <div class="sw"><div class="chip" style="background:linear-gradient(90deg,#3fb6b6,#5fbf6a,#e3ba2f,#e6809a,#9f88e0,#e79ec6,#5c9bf0)"></div><div class="meta"><b>Solfège spectrum</b><span class="hex">Do → Ti identity</span></div></div>
+    </div>
+
+    <h3 class="blk">Type</h3>
+    <div class="demo" style="background:var(--card);border-color:var(--line);color:var(--ink)">
+      <div class="typerow"><span class="lab">Display / serif</span><span style="font-family:var(--serif);font-size:26px">Sing by shape &amp; syllable</span></div>
+      <div class="typerow"><span class="lab">UI / sans</span><span style="font-family:var(--sans);font-size:16px">Buttons, labels, body — system sans</span></div>
+      <div class="typerow"><span class="lab">Data / mono</span><span class="mono" style="font-size:15px">A3 · 84 bpm · Δ −6 cents</span></div>
+    </div>
+  </section>
+
+  <!-- ================= COMPONENTS ================= -->
+  <section id="components">
+    <span class="eyebrow">2 · Components</span>
+    <h2>The kit</h2>
+    <p class="sub">Reusable parts every screen is assembled from. Build these once; the mockups below are nothing but arrangements of them.</p>
+
+    <div class="grid g3">
+      <div><div class="label"><span class="t">Buttons</span></div>
+        <div class="demo" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="btn brass">▶ Play</span><span class="btn">Set Do</span><span class="btn ghost">Skip</span><span class="btn danger">Stop</span><span class="btn icon">⚙</span>
+        </div>
+      </div>
+      <div><div class="label"><span class="t">Pills &amp; chips</span></div>
+        <div class="demo" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="pill on">Alto</span><span class="pill">Key Eb</span><span class="pill mono">Do A3</span><span class="pill good">🔥 3-day streak</span>
+        </div>
+      </div>
+      <div><div class="label"><span class="t">Answer chips (ear)</span></div>
+        <div class="demo"><div class="quiz"><b>Major</b><b class="sel">Minor</b><b>Dim</b></div></div>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:16px">
+      <div><div class="label"><span class="t">Staff · treble, shape notes, pitch-line</span></div>
+        <div class="demo"><div class="stave">
+          <span class="l" style="top:34px"></span><span class="l" style="top:50px"></span><span class="l" style="top:66px"></span><span class="l" style="top:82px"></span><span class="l" style="top:98px"></span>
+          <span class="clef">𝄞</span>
+          <span class="n" style="left:26%;top:82px"><span class="sn do"></span><span class="syl">Do</span></span>
+          <span class="n" style="left:40%;top:66px"><span class="sn re"></span><span class="syl">Re</span></span>
+          <span class="n" style="left:54%;top:58px"><span class="sn mi"></span><span class="syl">Mi</span></span>
+          <span class="n" style="left:68%;top:50px"><span class="sn fa"></span><span class="syl">Fa</span></span>
+          <span class="n" style="left:82%;top:42px"><span class="sn sol"></span><span class="syl">Sol</span></span>
+          <span class="playhead" style="left:54%"></span><span class="micline" style="left:54%;right:14px;top:56px"></span>
+        </div></div>
+      </div>
+      <div><div class="label"><span class="t">Staff · bass clef (low voices)</span></div>
+        <div class="demo"><div class="stave">
+          <span class="l" style="top:34px"></span><span class="l" style="top:50px"></span><span class="l" style="top:66px"></span><span class="l" style="top:82px"></span><span class="l" style="top:98px"></span>
+          <span class="clef">𝄢</span>
+          <span class="n" style="left:28%;top:90px"><span class="sn do"></span><span class="syl">Do</span></span>
+          <span class="n" style="left:44%;top:74px"><span class="sn re"></span><span class="syl">Re</span></span>
+          <span class="n" style="left:60%;top:66px"><span class="sn mi"></span><span class="syl">Mi</span></span>
+          <span class="n" style="left:76%;top:58px"><span class="sn fa"></span><span class="syl">Fa</span></span>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="grid g4" style="margin-top:16px">
+      <div><div class="label"><span class="t">Activity card</span></div>
+        <div class="demo"><div class="card"><div class="ic" style="background:var(--do)">♪</div><div class="nm">Warm Up</div><div class="ds">scales &amp; intervals</div></div></div></div>
+      <div><div class="label"><span class="t">Session bar</span></div>
+        <div class="demo"><div class="sessbar"><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div><div class="lb">4 / 7<small>play freely</small></div><div class="actions"><span class="btn ghost" style="padding:5px 8px">‹</span><span class="btn brass" style="padding:6px 10px">Next ›</span></div></div></div></div>
+      <div><div class="label"><span class="t">Voice picker</span></div>
+        <div class="demo"><div class="voicebtns"><b>S</b><b class="sel">A</b><b>T</b><b>Bar</b><b>B</b></div></div></div>
+      <div><div class="label"><span class="t">Bottom nav / rail</span></div>
+        <div class="demo"><div class="bottomnav" style="border:none;padding:0;margin:0"><div class="it on"><div class="d">◎</div>Session</div><div class="it"><div class="d">♪</div>Warm</div><div class="it"><div class="d">?</div>Ear</div><div class="it"><div class="d">✦</div>Sing</div><div class="it"><div class="d">◈</div>Learn</div></div></div></div>
+    </div>
+  </section>
+
+  <!-- ================= SESSION FLOW ================= -->
+  <section id="session">
+    <span class="eyebrow">3 · The guided session</span>
+    <h2>Session flow — mobile &amp; desktop</h2>
+    <p class="sub">The front door. Voice type and focus build a setlist from the real activities; a companion bar rides on top of each one (Back · Skip · Next, Next primary; free-play always reachable; streak, no scores). Mobile is a stacked wizard → bottom-nav app; desktop is a centred card wizard → rail-and-inspector studio.</p>
+
+    <div class="label"><span class="k">3.1</span><span class="t">Onboarding</span><span class="plat">📱 Mobile — stacked wizard</span></div>
+    <div class="phones">
+      <!-- welcome -->
+      <div class="phone"><div class="scr">
+        <div class="appbar"><span class="t">Shape-Note</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:10px 4px">
+          <div class="snrow" style="gap:8px"><span class="sn do"></span><span class="sn re"></span><span class="sn mi"></span><span class="sn fa"></span><span class="sn sol"></span></div>
+          <div style="font-family:var(--serif);font-size:19px;line-height:1.25">Learn to sing by shape &amp; syllable</div>
+          <div class="greet">movable-Do · sing against a drone · no scoring</div>
+          <span class="btn brass" style="padding:12px 22px;font-size:15px">Start singing</span>
+        </div>
+      </div></div>
+      <!-- voice -->
+      <div class="phone"><div class="scr">
+        <div class="appbar"><span class="t">Your voice</span><span class="pill">1 of 3</span></div>
+        <div class="greet">What do you mostly sing?</div>
+        <div class="voicebtns" style="gap:8px"><b>Soprano</b><b class="sel">Alto</b><b>Tenor</b><b>Baritone</b><b>Bass</b></div>
+        <div class="demo" style="padding:11px;margin-top:2px"><div style="font-size:11px;color:var(--p-soft);margin-bottom:6px">Not sure?</div><span class="btn" style="width:100%;justify-content:center">🎤 Hum your comfy note — we'll guess</span></div>
+        <span class="btn brass" style="justify-content:center;margin-top:auto">Continue →</span>
+      </div></div>
+      <!-- range -->
+      <div class="phone"><div class="scr">
+        <div class="appbar"><span class="t">Comfortable range</span><span class="pill">2 of 3</span></div>
+        <div class="greet">Based on Alto, we set your Do and range. Nudge if you like.</div>
+        <div class="demo" style="padding:14px"><div style="font-size:11px;color:var(--p-soft);margin-bottom:10px">Alto · your singing range</div><div class="rangebar"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px;align-items:center"><span class="pill mono">Do = A3</span><span class="btn" style="padding:7px 12px">▶ Hear Do</span></div>
+        </div>
+        <span class="btn brass" style="justify-content:center;margin-top:auto">Continue →</span>
+      </div></div>
+      <!-- focus + length -->
+      <div class="phone"><div class="scr">
+        <div class="appbar"><span class="t">Today's focus</span><span class="pill">3 of 3</span></div>
+        <div class="greet">What do you want to work on?</div>
+        <div class="voicebtns"><b class="sel">✓ Ear training</b><b class="sel">✓ Music theory</b><b>SATB hymns</b><b>Sight-reading</b></div>
+        <div class="greet" style="margin-top:6px">Warm-ups always included · how long?</div>
+        <div class="quiz"><b>10m</b><b class="sel">20m</b><b>35m</b></div>
+        <span class="btn brass" style="justify-content:center;margin-top:auto">Build my session →</span>
+      </div></div>
+    </div>
+
+    <div class="label"><span class="k">3.2</span><span class="t">The setlist &amp; the companion</span><span class="plat">📱 Mobile</span></div>
+    <div class="phones">
+      <!-- setlist -->
+      <div class="phone"><div class="scr">
+        <div class="appbar"><span class="t">Today · Alto</span><span class="pill mono">20 min</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="lessonrow"><span class="n done">✓</span><span><b>Warm-up</b> · major scale <div style="color:var(--p-soft);font-size:10px">in your range</div></span><span class="pill" style="margin-left:auto">warm</span></div>
+          <div class="lessonrow"><span class="n done">✓</span><span><b>Intervals from Do</b> · 3rds &amp; 5ths</span><span class="pill" style="margin-left:auto">ear</span></div>
+          <div class="lessonrow" style="border-color:var(--p-accent)"><span class="n" style="background:var(--p-accent);color:var(--p-brass-ink);border:none">♪</span><span><b>Lesson 3.2</b> · Hearing 3rds</span><span class="pill on" style="margin-left:auto">now</span></div>
+          <div class="lessonrow"><span class="n">4</span><span><b>Chord Listening</b> · triads</span><span class="pill" style="margin-left:auto">ear</span></div>
+          <div class="lessonrow"><span class="n">5</span><span><b>Lesson 6.2</b> · Find your part</span><span class="pill" style="margin-left:auto">theory</span></div>
+          <div class="lessonrow"><span class="n">6</span><span><b>Sing:</b> Abide With Me</span><span class="pill" style="margin-left:auto">hymn</span></div>
+        </div>
+        <div class="greet" style="margin-top:2px">Tap any step, or just press Next.</div>
+      </div></div>
+      <!-- in-session companion on a real tab -->
+      <div class="phone"><div class="scr">
+        <div class="sessbar"><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><div class="lb">Step 4 of 7<small>play as much as you like</small></div><div class="actions"><span class="btn ghost" style="padding:5px 7px">‹ Back</span></div></div>
+        <div class="demo" style="padding:11px"><div style="font-size:10px;letter-spacing:.05em;color:var(--p-soft);margin-bottom:8px">CHORD LISTENING · triads</div>
+          <div class="btn" style="width:100%;justify-content:center;margin-bottom:8px"><span style="width:22px;height:22px;border-radius:50%;background:var(--p-accent);color:var(--p-brass-ink);display:grid;place-items:center;font-size:11px;font-weight:800">▶</span> Hear the chord</div>
+          <div class="quiz"><b>Major</b><b class="sel">Minor</b><b>Dim</b></div>
+          <div style="font-size:10px;color:var(--p-soft);text-align:center;margin-top:8px">↺ replay freely</div>
+        </div>
+        <div style="display:flex;gap:8px"><span class="btn ghost" style="flex:1;justify-content:center">Skip</span><span class="btn brass" style="flex:2;justify-content:center">Next ›</span></div>
+        <div class="bottomnav"><div class="it on"><div class="d">◎</div>Session</div><div class="it"><div class="d">♪</div>Warm</div><div class="it"><div class="d">?</div>Ear</div><div class="it"><div class="d">✦</div>Sing</div><div class="it"><div class="d">◈</div>Learn</div></div>
+      </div></div>
+    </div>
+    <div class="note">Mobile keeps one thing on screen: the session bar on top, the current activity in the middle, Back/Skip/Next at the thumb, and the bottom nav to wander off (the session waits).</div>
+
+    <div class="label"><span class="k">3.3</span><span class="t">Onboarding &amp; in-session</span><span class="plat">🖥 Desktop — centred wizard, then studio</span></div>
+    <div class="grid g2">
+      <div class="browser"><div class="chrome"><i></i><i></i><i></i><span class="url">shape-note.app · welcome</span></div>
+        <div style="padding:34px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;background:var(--p-bg)">
+          <div class="snrow" style="gap:10px"><span class="sn do" style="width:22px;height:19px"></span><span class="sn re" style="width:22px;height:19px"></span><span class="sn mi" style="width:22px;height:19px"></span><span class="sn fa" style="width:22px;height:19px"></span><span class="sn sol" style="width:22px;height:19px"></span></div>
+          <div style="font-family:var(--serif);font-size:24px">Let's set you up</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><span class="greet" style="width:100%">I mostly sing…</span><span class="pill">Soprano</span><span class="pill on">Alto</span><span class="pill">Tenor</span><span class="pill">Baritone</span><span class="pill">Bass</span></div>
+          <div class="rangebar" style="width:70%"></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="pill mono">Do A3</span><span class="greet">Ear training + Theory · 20 min</span></div>
+          <span class="btn brass" style="padding:12px 26px;font-size:15px">Build my session →</span>
+        </div>
+      </div>
+      <div class="browser"><div class="chrome"><i></i><i></i><i></i><span class="url">shape-note.app · session · step 4/7</span></div>
+        <div class="sessbar" style="border-radius:0;border-left:none;border-right:none;border-top:none"><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><div class="lb">Today · Alto · Step 4 of 7<small>Chord Listening</small></div><div class="actions"><span class="btn ghost" style="padding:5px 9px">‹ Back</span><span class="btn ghost" style="padding:5px 9px">Skip</span><span class="btn brass" style="padding:6px 12px">Next ›</span></div></div>
+        <div class="deskbody" style="min-height:230px">
+          <div class="rail"><div class="r on">◎</div><div class="r">♪</div><div class="r">?</div><div class="r">✦</div><div class="r">◈</div><div class="r" style="margin-top:auto">⚙</div></div>
+          <div class="stage"><div style="font-size:12px;color:var(--p-soft)">Chord Listening · triads</div>
+            <div class="btn" style="align-self:flex-start;padding:11px 16px"><span style="width:22px;height:22px;border-radius:50%;background:var(--p-accent);color:var(--p-brass-ink);display:grid;place-items:center;font-size:11px;font-weight:800">▶</span> Hear the chord</div>
+            <div class="quiz" style="max-width:340px"><b>Major</b><b class="sel">Minor</b><b>Diminished</b></div>
+            <div style="font-size:11px;color:var(--p-soft)">↺ replay freely — Next when it clicks · or “Explore on your own” anytime</div>
+          </div>
+          <div class="inspector"><div class="h">This exercise</div><div class="field">Root <span>Do</span></div><div class="field">Voice <span>Piano</span></div><div class="fold">▸ Advanced · A4 · Sensitivity</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="note">Desktop spreads the same state across a persistent left rail + a right inspector (the deeper knobs the phone tucks into a sheet). Genuinely different layout, identical session engine.</div>
+  </section>
+
+  <!-- ================= FREE-PLAY: HOME ================= -->
+  <section id="home">
+    <span class="eyebrow">4 · Free-play pages</span>
+    <h2>Home / launcher</h2>
+    <p class="sub">The "Explore on your own" world — reachable anytime from a session. Big plain-language destinations; the eight tabs collapse into four rooms. Tuning lives behind the gear.</p>
+    <div class="stagewrap">
+      <div><div class="label"><span class="plat">📱 Mobile</span></div>
+        <div class="phone"><div class="scr">
+          <div class="appbar"><span class="t">Home</span><span class="btn icon">⚙</span></div>
+          <div class="greet">Evening, Alto — free play, or resume your session?</div>
+          <div class="grid" style="grid-template-columns:1fr 1fr;gap:9px">
+            <div class="card"><div class="ic" style="background:var(--do)">♪</div><div class="nm">Warm Up</div><div class="ds">scales · intervals</div></div>
+            <div class="card"><div class="ic" style="background:var(--sol)">?</div><div class="nm">Train Ear</div><div class="ds">intervals · chords</div></div>
+            <div class="card"><div class="ic" style="background:var(--fa)">✦</div><div class="nm">Sing</div><div class="ds">hymns · SATB</div></div>
+            <div class="card"><div class="ic" style="background:var(--mi)">◈</div><div class="nm">Learn</div><div class="ds">10 lessons</div></div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="pill good">🔥 3-day streak</span><span class="btn brass" style="margin-left:auto;padding:8px 12px">Resume session ›</span></div>
+          <div class="bottomnav"><div class="it on"><div class="d">⌂</div>Home</div><div class="it"><div class="d">♪</div>Warm</div><div class="it"><div class="d">?</div>Ear</div><div class="it"><div class="d">✦</div>Sing</div><div class="it"><div class="d">◈</div>Learn</div></div>
+        </div></div>
+      </div>
+      <div style="flex:1;min-width:300px"><div class="label"><span class="plat">🖥 Desktop</span></div>
+        <div class="browser"><div class="chrome"><i></i><i></i><i></i><span class="url">shape-note.app</span></div>
+          <div class="deskbody" style="grid-template-columns:56px 1fr;min-height:250px">
+            <div class="rail"><div class="r on">⌂</div><div class="r">♪</div><div class="r">?</div><div class="r">✦</div><div class="r">◈</div><div class="r" style="margin-top:auto">⚙</div></div>
+            <div class="stage">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-family:var(--serif);font-size:20px">Good evening, Alto</div><span class="btn brass">Resume session ›</span></div>
+              <div class="grid g4" style="gap:11px">
+                <div class="card"><div class="ic" style="background:var(--do)">♪</div><div class="nm">Warm Up</div><div class="ds">scales · intervals</div></div>
+                <div class="card"><div class="ic" style="background:var(--sol)">?</div><div class="nm">Train Your Ear</div><div class="ds">intervals · clusters · chords</div></div>
+                <div class="card"><div class="ic" style="background:var(--fa)">✦</div><div class="nm">Sing in Parts</div><div class="ds">hymns · SATB play-along</div></div>
+                <div class="card"><div class="ic" style="background:var(--mi)">◈</div><div class="nm">Learn</div><div class="ds">10 theory lessons</div></div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center"><span class="pill good">🔥 3-day streak</span><span class="pill mono">Do A3</span><span class="pill on">Alto</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WARM UP ================= -->
+  <section id="warmup">
+    <span class="eyebrow">4 · Free-play pages</span>
+    <h2>Warm Up</h2>
+    <p class="sub">A single engraved staff of the selected patterns in <b>your</b> range (bass clef for low voices), with shape-note heads + solfège under each. Full-screen play-along scrolls it under the playhead.</p>
+    <div class="stagewrap">
+      <div><div class="label"><span class="plat">📱 Mobile</span></div>
+        <div class="phone"><div class="scr">
+          <div class="appbar"><span class="t">Warm Up</span><span class="btn icon">⚙</span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill on">Major scale</span><span class="pill on">Intervals</span><span class="pill">Arpeggios</span></div>
+          <div class="stave" style="height:104px">
+            <span class="l" style="top:30px"></span><span class="l" style="top:44px"></span><span class="l" style="top:58px"></span><span class="l" style="top:72px"></span><span class="l" style="top:86px"></span><span class="clef">𝄞</span>
+            <span class="n" style="left:30%;top:78px"><span class="sn do"></span><span class="syl">Do</span></span><span class="n" style="left:46%;top:64px"><span class="sn re"></span><span class="syl">Re</span></span><span class="n" style="left:62%;top:56px"><span class="sn mi"></span><span class="syl">Mi</span></span><span class="n" style="left:78%;top:48px"><span class="sn fa"></span><span class="syl">Fa</span></span>
+          </div>
+          <div class="pill mono" style="align-self:center">Do A3 · bass clef · 76 bpm</div>
+          <div class="transport" style="margin-top:2px"><span class="sm">↺</span><span class="pp">▶</span><span class="sm">⤢</span></div>
+          <div class="bottomnav"><div class="it"><div class="d">⌂</div>Home</div><div class="it on"><div class="d">♪</div>Warm</div><div class="it"><div class="d">?</div>Ear</div><div class="it"><div class="d">✦</div>Sing</div><div class="it"><div class="d">◈</div>Learn</div></div>
+        </div></div>
+      </div>
+      <div style="flex:1;min-width:320px"><div class="label"><span class="plat">🖥 Desktop</span></div>
+        <div class="browser"><div class="chrome"><i></i><i></i><i></i><span class="url">shape-note.app · warm-up</span></div>
+          <div class="deskbody" style="min-height:240px">
+            <div class="rail"><div class="r">⌂</div><div class="r on">♪</div><div class="r">?</div><div class="r">✦</div><div class="r">◈</div><div class="r" style="margin-top:auto">⚙</div></div>
+            <div class="stage">
+              <div style="font-size:12px;color:var(--p-soft)">Warm Up · Alto · Do A3</div>
+              <div class="stave" style="height:150px">
+                <span class="l" style="top:46px"></span><span class="l" style="top:64px"></span><span class="l" style="top:82px"></span><span class="l" style="top:100px"></span><span class="l" style="top:118px"></span><span class="clef">𝄞</span>
+                <span class="n" style="left:16%;top:108px"><span class="sn do"></span><span class="syl">Do</span></span><span class="n" style="left:30%;top:90px"><span class="sn re"></span><span class="syl">Re</span></span><span class="n" style="left:44%;top:80px"><span class="sn mi"></span><span class="syl">Mi</span></span><span class="n" style="left:58%;top:70px"><span class="sn fa"></span><span class="syl">Fa</span></span><span class="n" style="left:72%;top:62px"><span class="sn sol"></span><span class="syl">Sol</span></span><span class="n" style="left:86%;top:70px"><span class="sn fa"></span><span class="syl">Fa</span></span>
+                <span class="playhead" style="left:44%"></span>
+              </div>
+              <div class="transport" style="justify-content:flex-start"><span class="sm">↺</span><span class="pp">▶</span><span class="sm">⤢</span></div>
+            </div>
+            <div class="inspector"><div class="h">Warm-up</div><div class="field">Patterns <span>3</span></div><div class="field">Tempo <span>76</span></div><div class="field">Do <span>A3</span></div><div class="fold">▸ Advanced</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= EAR TRAINING ================= -->
+  <section id="ear">
+    <span class="eyebrow">4 · Free-play pages</span>
+    <h2>Train Your Ear</h2>
+    <p class="sub">One room for intervals, hidden clusters, and chord quality (the three old tabs). Hear it, answer with shape-note chips, reveal on the staff. Green/amber feedback, never a score.</p>
+    <div class="stagewrap">
+      <div><div class="label"><span class="plat">📱 Mobile</span></div>
+        <div class="phone"><div class="scr">
+          <div class="appbar"><span class="t">Train Ear</span><span class="btn icon">⚙</span></div>
+          <div style="display:flex;gap:6px"><span class="pill on">Intervals</span><span class="pill">Clusters</span><span class="pill">Chords</span></div>
+          <div class="demo" style="padding:12px;display:flex;flex-direction:column;gap:9px;align-items:center">
+            <div style="font-size:12px;color:var(--p-soft)">Interval from Do — what is it?</div>
+            <div class="btn" style="width:100%;justify-content:center"><span style="width:22px;height:22px;border-radius:50%;background:var(--p-accent);color:var(--p-brass-ink);display:grid;place-items:center;font-weight:800">▶</span> Play interval</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+              <span class="pill">Do–Re</span><span class="pill on">Do–Mi</span><span class="pill">Do–Fa</span><span class="pill">Do–Sol</span>
+            </div>
+            <div class="pill good">✓ Do–Mi · a major 3rd</div>
+          </div>
+          <div class="bottomnav"><div class="it"><div class="d">⌂</div>Home</div><div class="it"><div class="d">♪</div>Warm</div><div class="it on"><div class="d">?</div>Ear</div><div class="it"><div class="d">✦</div>Sing</div><div class="it"><div class="d">◈</div>Learn</div></div>
+        </div></div>
+      </div>
+      <div style="flex:1;min-width:320px"><div class="label"><span class="plat">🖥 Desktop</span></div>
+        <div class="browser"><div class="chrome"><i></i><i></i><i></i><span class="url">shape-note.app · ear · chord quality</span></div>
+          <div class="deskbody" style="min-height:240px">
+            <div class="rail"><div class="r">⌂</div><div class="r">♪</div><div class="r on">?</div><div class="r">✦</div><div class="r">◈</div><div class="r" style="margin-top:auto">⚙</div></div>
+            <div class="stage">
+              <div style="display:flex;gap:8px"><span class="pill on">Intervals</span><span class="pill">Hidden clusters</span><span class="pill">Chord quality</span></div>
+              <div class="stave" style="height:130px">
+                <span class="l" style="top:40px"></span><span class="l" style="top:56px"></span><span class="l" style="top:72px"></span><span class="l" style="top:88px"></span><span class="l" style="top:104px"></span><span class="clef">𝄞</span>
+                <span class="n" style="left:40%;top:88px"><span class="sn do"></span></span><span class="n" style="left:40%;top:72px"><span class="sn mi"></span></span><span class="n" style="left:40%;top:56px"><span class="sn sol"></span></span>
+                <span class="n" style="left:66%;top:64px;color:var(--p-soft);font-size:11px"><span style="font-family:var(--serif)">Do–Mi–Sol = major</span></span>
+              </div>
+              <div class="quiz" style="max-width:380px"><b class="sel">Major</b><b>Minor</b><b>Dim</b><b>Aug</b></div>
+              <div style="font-size:11px;color:var(--p-soft)">↺ replay · reveal shows the shape-notes on the staff</div>
+            </div>
+            <div class="inspector"><div class="h">This drill</div><div class="field">Root <span>Do</span></div><div class="field">Voice <span>Piano</span></div><div class="field">Reveal <span>on answer</span></div><div class="fold">▸ Advanced</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SING IN PARTS ================= -->
+  <section id="sing">
+    <span class="eyebrow">4 · Free-play pages</span>
+    <h2>Sing in Parts (SATB)</h2>
+    <p class="sub">The hero screen. A real engraved hymn — grand staff, shape-note heads, lyrics — scrolls under the playhead while your live pitch draws the coloured mic-line onto your part. Full-screen on mobile; staged with an inspector on desktop.</p>
+    <div class="stagewrap">
+      <div><div class="label"><span class="plat">📱 Mobile — full-screen play-along</span></div>
+        <div class="phone"><div class="scr">
+          <div class="sessbar" style="border-color:var(--p-line)"><span class="t" style="font-size:13px">Abide With Me</span><div class="actions"><span class="pill on">Alto</span><span class="btn icon" style="width:30px;height:30px">⤢</span></div></div>
+          <div class="stave" style="height:150px">
+            <span class="l" style="top:28px"></span><span class="l" style="top:42px"></span><span class="l" style="top:56px"></span><span class="l" style="top:70px"></span><span class="l" style="top:84px"></span>
+            <span class="l" style="top:108px"></span><span class="l" style="top:122px"></span><span class="l" style="top:136px"></span>
+            <span class="clef" style="top:56px">𝄞</span>
+            <span class="n" style="left:24%;top:70px"><span class="sn do"></span><span class="syl">A—</span></span><span class="n" style="left:40%;top:56px"><span class="sn ti"></span><span class="syl">bide</span></span><span class="n" style="left:56%;top:50px"><span class="sn la"></span><span class="syl">with</span></span><span class="n" style="left:72%;top:56px"><span class="sn sol"></span><span class="syl">me</span></span>
+            <span class="playhead" style="left:40%"></span><span class="micline" style="left:40%;right:14px;top:53px"></span>
+          </div>
+          <div style="display:flex;gap:6px"><span class="pill">Part Alto</span><span class="pill">Key Eb</span><span class="pill mono">84 bpm</span></div>
+          <div class="transport"><span class="sm">↺</span><span class="pp">▶</span><span class="sm">⤢</span></div>
+          <div class="bottomnav"><div class="it"><div class="d">⌂</div>Home</div><div class="it"><div class="d">♪</div>Warm</div><div class="it"><div class="d">?</div>Ear</div><div class="it on"><div class="d">✦</div>Sing</div><div class="it"><div class="d">◈</div>Learn</div></div>
+        </div></div>
+      </div>
+      <div style="flex:1;min-width:320px"><div class="label"><span class="plat">🖥 Desktop</span></div>
+        <div class="browser"><div class="chrome"><i></i><i></i><i></i><span class="url">shape-note.app · sing · abide-with-me</span></div>
+          <div class="deskbody" style="min-height:260px">
+            <div class="rail"><div class="r">⌂</div><div class="r">♪</div><div class="r">?</div><div class="r on">✦</div><div class="r">◈</div><div class="r" style="margin-top:auto">⚙</div></div>
+            <div class="stage">
+              <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--serif);font-size:17px">Abide With Me</div><span class="btn">Browse hymns</span></div>
+              <div class="stave" style="height:170px">
+                <span class="l" style="top:34px"></span><span class="l" style="top:48px"></span><span class="l" style="top:62px"></span><span class="l" style="top:76px"></span><span class="l" style="top:90px"></span>
+                <span class="l" style="top:118px"></span><span class="l" style="top:132px"></span><span class="l" style="top:146px"></span><span class="l" style="top:160px"></span>
+                <span class="clef" style="top:62px">𝄞</span><span class="clef" style="top:139px">𝄢</span>
+                <span class="n" style="left:22%;top:76px"><span class="sn do"></span><span class="syl">A—</span></span><span class="n" style="left:38%;top:62px"><span class="sn ti"></span><span class="syl">bide</span></span><span class="n" style="left:54%;top:56px"><span class="sn la"></span><span class="syl">with</span></span><span class="n" style="left:70%;top:62px"><span class="sn sol"></span><span class="syl">me</span></span>
+                <span class="n" style="left:22%;top:139px"><span class="sn do"></span></span><span class="n" style="left:38%;top:132px"><span class="sn re"></span></span><span class="n" style="left:54%;top:139px"><span class="sn mi"></span></span><span class="n" style="left:70%;top:146px"><span class="sn do"></span></span>
+                <span class="playhead" style="left:38%"></span><span class="micline" style="left:38%;right:14px;top:59px"></span>
+              </div>
+              <div class="transport" style="justify-content:flex-start"><span class="sm">↺</span><span class="pp">▶</span><span class="sm">⤢</span></div>
+            </div>
+            <div class="inspector"><div class="h">This hymn</div><div class="field">Part <span>Alto</span></div><div class="field">Key <span>Eb</span></div><div class="field">Tempo <span>84</span></div><div class="field">Voice <span>Piano</span></div><div class="fold">▸ Advanced · A4 · Sensitivity</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FLASHCARDS ================= -->
+  <section id="flash">
+    <span class="eyebrow">4 · Free-play pages</span>
+    <h2>Flashcards</h2>
+    <p class="sub">A single big shape-note card: see the shape, say the syllable, flip to check. Swipe on mobile; arrow keys on desktop. Pure recognition drilling of the shapes themselves.</p>
+    <div class="stagewrap">
+      <div><div class="label"><span class="plat">📱 Mobile</span></div>
+        <div class="phone"><div class="scr">
+          <div class="appbar"><span class="t">Flashcards</span><span class="btn icon">⚙</span></div>
+          <div class="flash" style="min-height:170px"><span class="sn sol" style="width:60px;height:52px"></span><div style="font-size:12px;color:var(--p-soft)">What syllable &amp; hand-sign?</div></div>
+          <div style="display:flex;gap:8px"><span class="btn ghost" style="flex:1;justify-content:center">‹ Prev</span><span class="btn" style="flex:1;justify-content:center">Flip</span><span class="btn brass" style="flex:1;justify-content:center">Next ›</span></div>
+          <div class="pill mono" style="align-self:center">card 5 / 7</div>
+          <div class="bottomnav"><div class="it"><div class="d">⌂</div>Home</div><div class="it"><div class="d">♪</div>Warm</div><div class="it"><div class="d">?</div>Ear</div><div class="it"><div class="d">✦</div>Sing</div><div class="it on"><div class="d">◈</div>Learn</div></div>
+        </div></div>
+      </div>
+      <div style="flex:1;min-width:300px"><div class="label"><span class="plat">🖥 Desktop</span></div>
+        <div class="browser"><div class="chrome"><i></i><i></i><i></i><span class="url">shape-note.app · flashcards</span></div>
+          <div class="deskbody" style="grid-template-columns:56px 1fr;min-height:230px">
+            <div class="rail"><div class="r">⌂</div><div class="r">♪</div><div class="r">?</div><div class="r">✦</div><div class="r on">◈</div><div class="r" style="margin-top:auto">⚙</div></div>
+            <div class="stage" style="align-items:center;justify-content:center">
+              <div class="flash" style="width:280px;height:180px"><span class="sn sol" style="width:70px;height:60px"></span><div style="font-family:var(--serif);font-size:16px;color:var(--p-soft)">Name it, then flip</div></div>
+              <div style="display:flex;gap:10px"><span class="btn ghost">‹ Prev (←)</span><span class="btn">Flip (space)</span><span class="btn brass">Next (→)</span></div>
+              <div class="pill mono">card 5 / 7 · shuffle on</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MUSIC THEORY ================= -->
+  <section id="theory">
+    <span class="eyebrow">4 · Free-play pages</span>
+    <h2>Music Theory</h2>
+    <p class="sub">The lessons — as a readable list on mobile, and a two-pane reader on desktop (contents left, lesson right). Each lesson can drop you straight into the relevant exercise, and sessions pull individual lessons in by id.</p>
+    <div class="stagewrap">
+      <div><div class="label"><span class="plat">📱 Mobile</span></div>
+        <div class="phone"><div class="scr">
+          <div class="appbar"><span class="t">Learn</span><span class="btn icon">⚙</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div class="lessonrow"><span class="n done">✓</span><span><b>1 · Shapes &amp; syllables</b></span></div>
+            <div class="lessonrow"><span class="n done">✓</span><span><b>2 · Warm-ups &amp; foundations</b></span></div>
+            <div class="lessonrow" style="border-color:var(--p-accent)"><span class="n" style="background:var(--p-accent);color:var(--p-brass-ink);border:none">3</span><span><b>3 · Intervals</b> · continue</span></div>
+            <div class="lessonrow"><span class="n">4</span><span><b>4 · Hidden clusters</b></span></div>
+            <div class="lessonrow"><span class="n">6</span><span><b>6 · SATB harmony</b></span></div>
+            <div class="lessonrow"><span class="n">7</span><span><b>7 · FA SO LA tradition</b></span></div>
+          </div>
+          <div class="bottomnav"><div class="it"><div class="d">⌂</div>Home</div><div class="it"><div class="d">♪</div>Warm</div><div class="it"><div class="d">?</div>Ear</div><div class="it"><div class="d">✦</div>Sing</div><div class="it on"><div class="d">◈</div>Learn</div></div>
+        </div></div>
+      </div>
+      <div style="flex:1;min-width:320px"><div class="label"><span class="plat">🖥 Desktop — two-pane reader</span></div>
+        <div class="browser"><div class="chrome"><i></i><i></i><i></i><span class="url">shape-note.app · learn · 3.2</span></div>
+          <div class="deskbody" style="grid-template-columns:56px 170px 1fr;min-height:250px">
+            <div class="rail"><div class="r">⌂</div><div class="r">♪</div><div class="r">?</div><div class="r">✦</div><div class="r on">◈</div><div class="r" style="margin-top:auto">⚙</div></div>
+            <div class="inspector" style="border-left:none;border-right:1px solid var(--p-line)"><div class="h">Contents</div>
+              <div style="font-size:11px;color:var(--p-soft);display:flex;flex-direction:column;gap:7px"><span>1 · Shapes</span><span>2 · Warm-ups</span><span style="color:var(--p-accent);font-weight:700">3 · Intervals</span><span style="padding-left:10px;color:var(--p-text)">3.2 Hearing 3rds</span><span>4 · Clusters</span><span>6 · SATB</span><span>7 · FA SO LA</span></div>
+            </div>
+            <div class="stage">
+              <div style="font-family:var(--serif);font-size:19px">3.2 · Hearing 3rds</div>
+              <div style="font-size:12.5px;color:var(--p-soft);line-height:1.7">A third spans three letter-names — Do to Mi. Sing <span class="sn do" style="width:12px;height:10px"></span> Do, then <span class="sn mi" style="width:12px;height:10px"></span> Mi, and feel the gap. Major thirds sound bright; minor thirds sound soft…</div>
+              <div style="display:flex;gap:8px"><span class="btn brass">▶ Try it in Warm-up</span><span class="btn ghost">Next lesson ›</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="border:none">
+    <span class="eyebrow">Using this file</span>
+    <h2>How to treat this document</h2>
+    <div class="callout"><p><b>This is the canonical UX reference.</b> It lives in the repo at <span class="mono">design/solfege-design-system.html</span> and is published as an artifact for viewing. Future work — and future Claude sessions with fresh context — should read it as the source of truth for layout, component names, colours, and the mobile-vs-desktop split. When we implement, the CSS classes here (<span class="mono">.sn</span>, <span class="mono">.sessbar</span>, <span class="mono">.card</span>, <span class="mono">.rail</span>, <span class="mono">.inspector</span>, <span class="mono">.quiz</span>, <span class="mono">.stave</span>) become the real component vocabulary. If we later want a formally hosted design system, these same components can be pushed to a Claude Design project.</p></div>
+    <p class="muted" style="margin-top:14px">Schematic fidelity — real labels, real shape-notes, approximate spacing. Product screens use the app's dark palette in both document themes.</p>
+  </section>
+
+</div></div>
