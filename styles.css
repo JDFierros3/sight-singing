@@ -343,7 +343,11 @@ fieldset {
 
 legend {
   padding: 0 6px;
-  color: var(--muted);
+  color: #9aa4b2;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 label {
@@ -388,9 +392,13 @@ button:hover {
 }
 
 button.primary {
-  background: #1a2a3a;
-  border-color: #2b465f;
+  background: #e6b968;
+  border-color: transparent;
+  color: #241a06;
+  font-weight: 700;
 }
+button.primary:hover { background: #eec580; }
+button.primary:disabled { background: #2a3350; color: #8890ac; border-color: #2b465f; }
 
 button.good {
   border-color: #1f513f;
