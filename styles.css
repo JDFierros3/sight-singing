@@ -1678,3 +1678,63 @@ body.perf-performing .perf-playhead {
   background: #eec580;
 }
 
+/* ===================================================================== *
+ * Onboarding wizard overlay (mobile-first). Full-screen, one step at a
+ * time, tuned to the app's dark palette + brass primary action.
+ * ===================================================================== */
+.onb {
+  position: fixed; inset: 0; z-index: 1000;
+  background: #0f1220;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+.onb[hidden] { display: none; }
+body.onb-open { overflow: hidden; }
+.onb-card {
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 16px;
+  text-align: center; color: #eef1fb;
+}
+.onb-shapes { display: flex; gap: 8px; justify-content: center; align-items: flex-end; }
+.onb-h { font-family: Georgia, "Iowan Old Style", serif; font-size: 25px; font-weight: 600; margin: 0; line-height: 1.2; }
+.onb-sub { color: #98a0bd; font-size: 14px; margin: 0; }
+.onb-hint { color: #98a0bd; font-size: 12.5px; margin: 0; }
+.onb-step { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #e6b968; font-weight: 700; }
+.onb-q { color: #98a0bd; font-size: 13px; margin-top: 4px; }
+.onb-primary {
+  background: #e6b968; color: #241a06; border: none; border-radius: 12px;
+  padding: 14px; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 4px;
+}
+.onb-primary:hover { background: #eec580; }
+.onb-secondary {
+  background: #1e2237; color: #eef1fb; border: 1px solid #2a2f48; border-radius: 12px;
+  padding: 11px; font-size: 14px; cursor: pointer;
+}
+.onb-voices { display: flex; flex-direction: column; gap: 10px; }
+.onb-voice {
+  background: #1e2237; color: #eef1fb; border: 1px solid #2a2f48; border-radius: 12px;
+  padding: 14px; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.onb-voice.sel { background: #e6b968; color: #241a06; border-color: transparent; }
+.onb-do { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.onb-do-note { display: flex; flex-direction: column; }
+.onb-do-name { font-family: Georgia, serif; font-size: 40px; line-height: 1; }
+.onb-do-note small { color: #98a0bd; letter-spacing: .12em; text-transform: uppercase; font-size: 11px; }
+.onb-step-btn {
+  width: 48px; height: 48px; border-radius: 50%; flex: 0 0 auto;
+  background: #1e2237; border: 1px solid #2a2f48; color: #eef1fb; font-size: 22px; cursor: pointer;
+}
+.onb-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.onb-chip {
+  background: #1e2237; color: #98a0bd; border: 1px solid #2a2f48; border-radius: 999px;
+  padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.onb-chip.sel { background: #e6b968; color: #241a06; border-color: transparent; }
+.onb-seg-row { display: flex; gap: 8px; }
+.onb-seg {
+  flex: 1; background: #1e2237; color: #98a0bd; border: 1px solid #2a2f48; border-radius: 10px;
+  padding: 11px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.onb-seg.sel { border-color: #e6b968; color: #eef1fb; background: #171a2b; }
+

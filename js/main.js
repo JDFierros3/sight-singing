@@ -25,6 +25,7 @@ import { handleGlobalPlay, handleGlobalStop, refreshGlobalTransportUI } from './
 import { beepDo } from './audio/doPitch.js';
 import { changeSatbTranspose } from './exercises/satb.js';
 import { hadOpenPsalmHandoff } from './exercises/openPsalmHandoff.js';
+import { maybeStartOnboarding } from './session/onboarding.js';
 // Tests are imported when needed
 // import './tests/tests.js';
 
@@ -126,9 +127,13 @@ async function buildUserInterface() {
   buildHomepage();
 
   // Land the singer on their song (the engraved SATB staff) when they arrived via an
-  // OpenPsalm.com handoff link, so it looks like the page it was linked from.
+  // OpenPsalm.com handoff link, so it looks like the page it was linked from. Otherwise:
+  // first-time singers get the onboarding wizard; returning singers have their saved voice
+  // profile applied (movable-Do + aim part) with no interruption.
   if (hadOpenPsalmHandoff()) {
     switchToTab('satb');
+  } else {
+    maybeStartOnboarding();
   }
 
   // Initialize staff panning (for manual panning when not playing)
