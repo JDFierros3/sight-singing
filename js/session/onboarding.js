@@ -7,9 +7,8 @@
 
 import { appState } from '../state/appState.js';
 import { VOICE_PROFILES, loadProfile, saveProfile, applyProfile, makeProfile } from './profile.js';
-import { switchToTab } from '../ui/components/tabs.js';
-import { displayWarmupStaff } from '../exercises/warmup.js';
 import { beepDo } from '../audio/doPitch.js';
+import { startSession } from './session.js';
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const noteName = (m) => NOTE_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
@@ -200,7 +199,7 @@ function finish() {
   saveProfile(profile);
   applyProfile(profile);
   closeOverlay();
-  // Interim landing until the session engine is wired: the Warm Up staff, tuned to their Do.
-  switchToTab('warmup');
-  displayWarmupStaff();
+  // Build the setlist from the profile and drop the singer onto its first step (the session
+  // companion bar takes over from here).
+  startSession(profile);
 }

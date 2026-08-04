@@ -1738,3 +1738,33 @@ body.onb-open { overflow: hidden; }
 }
 .onb-seg.sel { border-color: #e6b968; color: #eef1fb; background: #171a2b; }
 
+/* ===================================================================== *
+ * Guided-session companion bar — sticky strip above the active tab.
+ * ===================================================================== */
+.session-bar {
+  position: sticky; top: 0; z-index: 60;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top));
+  background: #1e2237; border-bottom: 1px solid #e6b968;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color: #eef1fb;
+}
+.session-bar[hidden] { display: none; }
+.session-bar .sb-dots { display: flex; gap: 3px; }
+.session-bar .sb-dots i { width: 6px; height: 6px; border-radius: 50%; background: #2a2f48; }
+.session-bar .sb-dots i.on { background: #e6b968; }
+.session-bar .sb-label { font-size: 12px; line-height: 1.2; }
+.session-bar .sb-label small { display: block; color: #98a0bd; font-size: 10px; }
+.session-bar .sb-done { font-size: 13px; font-weight: 600; }
+.session-bar .sb-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.session-bar .sb-btn {
+  font-size: 12px; font-weight: 600; border-radius: 999px; padding: 7px 12px;
+  background: #171a2b; color: #eef1fb; border: 1px solid #2a2f48; cursor: pointer;
+}
+.session-bar .sb-btn.ghost { background: transparent; color: #98a0bd; }
+.session-bar .sb-btn.brass { background: #e6b968; color: #241a06; border-color: transparent; font-weight: 800; }
+.session-bar .sb-btn:disabled { opacity: .4; cursor: default; }
+@media (max-width: 480px) {
+  .session-bar .sb-btn[data-act="exit"] { order: 5; } /* push Free-play to wrap under on narrow screens */
+}
+
