@@ -22,12 +22,28 @@ export function initSettingsSheet() {
         <span class="ss-title">Settings</span>
         <button class="ss-close" data-close aria-label="Close settings">✕</button>
       </div>
-      <div class="ss-body"></div>
+      <div class="ss-body">
+        <div class="ss-tier"><h4>Basic</h4><div class="ss-basic"></div></div>
+        <details class="ss-adv"><summary>Advanced</summary><div class="ss-advbody"></div></details>
+      </div>
     </div>`;
   document.body.appendChild(sheet);
 
-  // Relocate the live controls into the sheet (node move preserves ids + event bindings).
-  sheet.querySelector('.ss-body').appendChild(ribbon);
+  // Relocate the live controls into the sheet (node moves preserve ids + event bindings) and
+  // sort each control group into Basic (everyday) or Advanced (rarely touched) by which control
+  // it contains. Relabel a couple to plain language along the way.
+  relabel(ribbon, 'doNote', 'Starting note (Do)');
+  relabel(ribbon, 'a4', 'Concert pitch (A4)');
+  relabel(ribbon, 'zoom', 'Staff zoom');
+
+  const BASIC_IDS = ['doNote', 'instrument'];
+  const basic = sheet.querySelector('.ss-basic');
+  const advanced = sheet.querySelector('.ss-advbody');
+  ribbon.querySelectorAll('.controlGroup').forEach(group => {
+    const isBasic = BASIC_IDS.some(id => group.querySelector('#' + id));
+    (isBasic ? basic : advanced).appendChild(group);
+  });
+  ribbon.remove(); // now empty
 
   // Gear button in the compact header row.
   const gear = document.createElement('button');
@@ -49,6 +65,12 @@ export function initSettingsSheet() {
   const fab = getElementById('showHeaderFab');
   if (fab) fab.style.display = 'none';
   document.body.classList.remove('mobile-header-hidden', 'controls-collapsed');
+}
+
+// Rename a control's <label> (the one bound to the given input id) to plain language.
+function relabel(root, inputId, text) {
+  const label = root.querySelector(`label[for="${inputId}"]`);
+  if (label) label.textContent = text;
 }
 
 function openSheet() {

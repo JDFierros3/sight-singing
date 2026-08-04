@@ -1831,9 +1831,18 @@ body.onb-open { overflow: hidden; }
   width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
   background: #1e2237; border: 1px solid #2a2f48; color: #eef1fb; font-size: 15px;
 }
-.settings-sheet .ss-body { padding: 16px; overflow-y: auto; }
-/* stack the relocated ribbon vertically inside the sheet */
-.settings-sheet .controlRibbon { display: flex; flex-direction: column; gap: 16px; }
+.settings-sheet .ss-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.settings-sheet .ss-tier h4 {
+  margin: 0 0 10px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #98a0bd; font-weight: 700;
+}
+.settings-sheet .ss-basic, .settings-sheet .ss-advbody { display: flex; flex-direction: column; gap: 14px; }
+.settings-sheet .ss-adv { border-top: 1px solid #2a2f48; padding-top: 12px; }
+.settings-sheet .ss-adv > summary {
+  cursor: pointer; list-style: none; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: #98a0bd; font-weight: 700; padding-bottom: 10px;
+}
+.settings-sheet .ss-adv > summary::before { content: "▸ "; }
+.settings-sheet .ss-adv[open] > summary::before { content: "▾ "; }
 .settings-sheet .controlGroup { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
 .settings-sheet .controlGroup input[type="range"] { width: 100%; }
 #btnSettings { font-size: 16px; }
