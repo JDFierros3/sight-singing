@@ -23,9 +23,27 @@ const lastTabInRoom = {}; // remember the sub-tab a room was last left on
 
 export function initMobileShell() {
   buildNav();
+  buildRail();
   ensureSubnav();
   new MutationObserver(syncActive).observe(document.body, { attributes: true, attributeFilter: ['data-active-tab'] });
   syncActive();
+}
+
+// Desktop counterpart of the bottom nav: a slim left icon rail (rooms + a settings gear).
+function buildRail() {
+  let rail = document.getElementById('desktopRail');
+  if (!rail) {
+    rail = document.createElement('nav');
+    rail.id = 'desktopRail';
+    rail.className = 'desktop-rail';
+    rail.setAttribute('aria-label', 'Rooms');
+    document.body.appendChild(rail);
+  }
+  rail.innerHTML = ROOMS.map(r =>
+    `<button class="dr-it" data-room="${r.id}" title="${r.label}"><span class="d" aria-hidden="true">${r.icon}</span>${r.label}</button>`).join('')
+    + `<button class="dr-it dr-gear" data-gear title="Settings"><span class="d" aria-hidden="true">⚙</span></button>`;
+  rail.querySelectorAll('[data-room]').forEach(btn => btn.addEventListener('click', () => openRoom(btn.dataset.room)));
+  rail.querySelector('[data-gear]')?.addEventListener('click', () => document.getElementById('btnSettings')?.click());
 }
 
 const currentTab = () => document.body.getAttribute('data-active-tab') || 'home';
@@ -69,7 +87,7 @@ function syncActive() {
   const tab = currentTab();
   const roomId = tabToRoom[tab] || 'home';
   lastTabInRoom[roomId] = tab;
-  document.getElementById('mobileNav')?.querySelectorAll('[data-room]')
+  document.querySelectorAll('#mobileNav [data-room], #desktopRail [data-room]')
     .forEach(b => b.classList.toggle('on', b.dataset.room === roomId));
   renderSubnav(roomId, tab);
 }
