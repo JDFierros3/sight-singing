@@ -121,6 +121,22 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const measureLenSec = num * (4 / den);          // seconds per measure at 60bpm
   const keySpec = vexKeySpec(exercise.keySignature, tonicPc, mode);
 
+  // Single-staff mode picks the clef from the melody's tessitura so a low Do (baritone/bass
+  // warm-ups) sits ON a bass staff instead of dangling under the treble as ledger-line ladders.
+  // An explicit options.clef ('treble'|'bass') wins if provided.
+  let singleClef = 'treble';
+  if (!grand) {
+    if (options.clef === 'treble' || options.clef === 'bass') {
+      singleClef = options.clef;
+    } else {
+      const ms = (exercise.parts?.S || []).map(n => n.midi).filter(Number.isFinite);
+      if (ms.length) {
+        const avg = ms.reduce((a, b) => a + b, 0) / ms.length;
+        singleClef = avg < 58 ? 'bass' : 'treble'; // ~below A3 → bass staff
+      }
+    }
+  }
+
   // Bucket note PIECES by measure (see notePieces). Each piece carries its render duration
   // and the tie/slur/fermata info needed to draw those marks.
   const byPart = { S: [], A: [], T: [], B: [] };
@@ -190,7 +206,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
     const treble = new VF.Stave(x, trebleY, w);
     const bass = grand ? new VF.Stave(x, bassY, w) : null;
     if (first) {
-      treble.addClef('treble').addKeySignature(keySpec).addTimeSignature(`${num}/${den}`);
+      treble.addClef(grand ? 'treble' : singleClef).addKeySignature(keySpec).addTimeSignature(`${num}/${den}`);
       if (bass) bass.addClef('bass').addKeySignature(keySpec).addTimeSignature(`${num}/${den}`);
       // Grand staff: centre the labels between the staves. Single staff: sit them just below it.
       lyricsY = bass
@@ -214,7 +230,7 @@ export function renderHymnNotation(exercise, container, options = {}) {
     // is one fermata, not two stacked ones. Times already marked on each staff this bar.
     const fermataTimes = { treble: new Set(), bass: new Set() };
     for (const part of PARTS_ACTIVE) {
-      const clef = (part === 'S' || part === 'A') ? 'treble' : 'bass';
+      const clef = grand ? ((part === 'S' || part === 'A') ? 'treble' : 'bass') : singleClef;
       const stemDir = (part === 'S' || part === 'T') ? VF.Stem.UP : VF.Stem.DOWN;
       const measure = byPart[part][mi] || [];
       const tickables = [];
