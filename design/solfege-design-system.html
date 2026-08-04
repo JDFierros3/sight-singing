@@ -242,7 +242,9 @@
         <div class="appbar"><span class="t">Today's focus</span><span class="pill">3 / 3</span></div>
         <div class="greet">What do you want to work on?</div>
         <div class="voicebtns"><b class="sel">✓ Ear training</b><b class="sel">✓ Music theory</b><b>SATB hymns</b><b>Sight-reading</b></div>
-        <div class="greet" style="margin-top:6px">Warm-ups always included · how long?</div>
+        <div class="greet" style="margin-top:6px">Do you have the 7 shape-notes memorized?</div>
+        <div class="quiz"><b>Yes</b><b class="sel">Not yet</b></div>
+        <div class="greet" style="margin-top:6px">How long?</div>
         <div class="quiz"><b>10m</b><b class="sel">20m</b><b>35m</b></div>
         <span class="btn brass" style="justify-content:center;margin-top:auto">Build my session →</span>
       </div></div>
@@ -267,11 +269,17 @@
           <div style="display:flex;gap:10px;justify-content:center;align-items:center"><span class="pill mono">Do A3</span><span class="btn" style="padding:7px 12px">▶ Hear Do</span></div>
           <div class="greet" style="text-align:center;margin-top:4px">Focus</div>
           <div class="voicebtns" style="justify-content:center"><b class="sel">✓ Ear</b><b class="sel">✓ Theory</b><b>SATB hymns</b><b>Sight-read</b></div>
+          <div class="greet" style="text-align:center;margin-top:4px">Shape-notes memorized?</div>
+          <div class="quiz" style="max-width:220px;align-self:center"><b>Yes</b><b class="sel">Not yet</b></div>
+          <div class="greet" style="text-align:center;margin-top:4px">Session length</div>
           <div class="quiz" style="max-width:260px;align-self:center"><b>10m</b><b class="sel">20m</b><b>35m</b></div>
           <span class="btn brass" style="align-self:center;padding:11px 24px">Build my session →</span>
         </div>
       </div>
     </div>
+  </section>
+
+    <div class="callout" style="margin-top:16px"><p><b>“Shape-notes memorized?” drives the setlist.</b> The shapes are the foundation everything else reads off, so the session generator branches on this answer: <b>Not yet →</b> the session opens with a short <b>shape-note flashcard primer</b> (see Flashcards) before the first warm-up, and lesson 1 is pulled in. <b>Yes →</b> that primer is skipped entirely and the session goes straight to warm-ups. Stored locally like the rest of the profile, so returning singers aren't asked again (until they clear it or flip it in settings).</p></div>
   </section>
 
   <!-- SESSION -->
@@ -285,6 +293,7 @@
       <div class="phone"><div class="scr">
         <div class="appbar"><span class="t">Today · Alto</span><span class="pill mono">20 min</span></div>
         <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="lessonrow"><span class="n done">✓</span><span><b>Shape-note primer</b> · flashcards</span><span class="pill" style="margin-left:auto">shapes</span></div>
           <div class="lessonrow"><span class="n done">✓</span><span><b>Warm-up</b> · scale</span><span class="pill" style="margin-left:auto">warm</span></div>
           <div class="lessonrow"><span class="n done">✓</span><span><b>Intervals from Do</b></span><span class="pill" style="margin-left:auto">ear</span></div>
           <div class="lessonrow" style="border-color:var(--p-accent)"><span class="n" style="background:var(--p-accent);color:var(--p-brass-ink);border:none">♪</span><span><b>Lesson 3.2</b> · 3rds</span><span class="pill on" style="margin-left:auto">now</span></div>
