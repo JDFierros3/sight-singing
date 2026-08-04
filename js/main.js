@@ -28,6 +28,7 @@ import { hadOpenPsalmHandoff } from './exercises/openPsalmHandoff.js';
 import { maybeStartOnboarding } from './session/onboarding.js';
 import { initSessionBar } from './session/sessionBar.js';
 import { initMobileShell } from './session/mobileShell.js';
+import { initSettingsSheet } from './session/settingsSheet.js';
 // Tests are imported when needed
 // import './tests/tests.js';
 
@@ -128,6 +129,7 @@ async function buildUserInterface() {
   initializeTabSystem();
   initSessionBar();
   initMobileShell();
+  initSettingsSheet();
   buildHomepage();
 
   // Land the singer on their song (the engraved SATB staff) when they arrived via an

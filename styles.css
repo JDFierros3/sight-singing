@@ -1808,3 +1808,42 @@ body.onb-open { overflow: hidden; }
   body { padding-bottom: 64px; }
 }
 
+/* ===================================================================== *
+ * Settings sheet — houses the relocated tuning controls behind the gear.
+ * Desktop: right-hand panel. Mobile: bottom sheet.
+ * ===================================================================== */
+.settings-sheet { position: fixed; inset: 0; z-index: 200; }
+.settings-sheet[hidden] { display: none; }
+.settings-sheet .ss-backdrop { position: absolute; inset: 0; background: rgba(3, 5, 12, 0.55); }
+.settings-sheet .ss-card {
+  position: absolute; top: 0; right: 0; bottom: 0; width: min(380px, 92vw);
+  background: #171a2b; border-left: 1px solid #2a2f48;
+  display: flex; flex-direction: column;
+  box-shadow: -20px 0 60px -30px rgba(0, 0, 0, 0.7);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+.settings-sheet .ss-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid #2a2f48;
+}
+.settings-sheet .ss-title { font-family: Georgia, serif; font-size: 18px; color: #eef1fb; }
+.settings-sheet .ss-close {
+  width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+  background: #1e2237; border: 1px solid #2a2f48; color: #eef1fb; font-size: 15px;
+}
+.settings-sheet .ss-body { padding: 16px; overflow-y: auto; }
+/* stack the relocated ribbon vertically inside the sheet */
+.settings-sheet .controlRibbon { display: flex; flex-direction: column; gap: 16px; }
+.settings-sheet .controlGroup { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.settings-sheet .controlGroup input[type="range"] { width: 100%; }
+#btnSettings { font-size: 16px; }
+
+@media (max-width: 768px) {
+  .settings-sheet .ss-card {
+    top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+    max-height: 86vh; border-left: none; border-top: 1px solid #2a2f48;
+    border-radius: 16px 16px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
