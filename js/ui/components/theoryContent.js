@@ -1830,17 +1830,16 @@ function getSubLesson6_1() {
     <div class="app-instructions">
       <h4>Detailed App Instructions:</h4>
       <ol>
-        <li><strong>Navigate to SATB Practice Tab:</strong>
+        <li><strong>Open Sing in Parts:</strong>
           <ul>
-            <li>Click the <strong>"SATB Practice"</strong> tab</li>
-            <li>You'll see controls for exercise selection, part volumes, tempo, etc.</li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>You'll see the hymn picker, the engraved staff, a <strong>&#9654; play</strong> transport, and the <strong>"My part"</strong> control</li>
           </ul>
         </li>
-        <li><strong>Select an Exercise:</strong>
+        <li><strong>Pick a Hymn:</strong>
           <ul>
-            <li>Find the <strong>"Exercise"</strong> dropdown menu at the top</li>
-            <li>Click it to see available exercises</li>
-            <li>Select the first exercise (or any simple one)</li>
+            <li>Tap <strong>"Browse hymns"</strong> to see available hymns</li>
+            <li>Pick the first hymn (or any simple one)</li>
             <li>The staff will update to show all 4 parts</li>
           </ul>
         </li>
@@ -1859,9 +1858,9 @@ function getSubLesson6_1() {
             <li>Notice: All parts use the same solfege syllables (Do, Re, Mi, etc.) but at different pitches</li>
           </ul>
         </li>
-        <li><strong>Use Part Volume Controls to Isolate Parts:</strong>
+        <li><strong>Use the Mixer to Isolate Parts:</strong>
           <ul>
-            <li>Scroll down in the SATB panel to find <strong>"Part Volumes"</strong> section</li>
+            <li>Open the <strong>"Part, tempo, key &amp; mixer"</strong> fold to find the 4-part mixer</li>
             <li>You'll see 4 volume sliders: <strong>Soprano, Alto, Tenor, Bass</strong></li>
             <li><strong>Mute other parts:</strong> Drag Soprano, Alto, and Tenor sliders all the way to the <strong>left (0)</strong></li>
             <li>Leave Bass slider at a moderate level (middle)</li>
@@ -1870,10 +1869,10 @@ function getSubLesson6_1() {
         </li>
         <li><strong>Listen to Each Part Individually:</strong>
           <ul>
-            <li><strong>Bass only:</strong> With only Bass audible, click <strong>"Play"</strong> button</li>
+            <li><strong>Bass only:</strong> With only Bass audible, press the <strong>&#9654; play button</strong></li>
             <li>Listen to the Bass part - notice it's the lowest part</li>
             <li>Watch the staff - the red play line follows the Bass notes</li>
-            <li>Stop playback (click <strong>"Stop"</strong>)</li>
+            <li>Stop playback (press the <strong>&#9632; stop button</strong>)</li>
             <li><strong>Tenor only:</strong> Mute Bass, unmute Tenor (drag Tenor slider to middle)</li>
             <li>Play and listen to Tenor - notice it's higher than Bass</li>
             <li><strong>Alto only:</strong> Mute Tenor, unmute Alto</li>
@@ -1893,8 +1892,8 @@ function getSubLesson6_1() {
         </li>
         <li><strong>Play All Parts Together:</strong>
           <ul>
-            <li>Set all 4 volume sliders to the same level (middle position)</li>
-            <li>Click <strong>"Play"</strong></li>
+            <li>Set all 4 mixer sliders to the same level (middle position)</li>
+            <li>Press the <strong>&#9654; play button</strong></li>
             <li>Listen to all 4 parts together - this is harmony!</li>
             <li>Notice how the parts blend together</li>
             <li>Watch the staff - you'll see all 4 parts with their shape notes</li>
@@ -1920,11 +1919,11 @@ function getSubLesson6_1() {
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
-        <li>If you don't see 4 parts on the staff, make sure an exercise is selected</li>
-        <li>If volume sliders don't work, make sure you're dragging them, not clicking</li>
-        <li>If playback doesn't start, check that an exercise is loaded</li>
+        <li>If you don't see 4 parts on the staff, make sure a hymn is selected</li>
+        <li>If mixer sliders don't work, make sure you're dragging them, not clicking</li>
+        <li>If playback doesn't start, check that a hymn is loaded</li>
         <li>If parts sound the same, make sure you're muting/unmuting correctly</li>
-        <li>If staff is cluttered, use the zoom slider in the header to adjust</li>
+        <li>If staff is cluttered, adjust Zoom in the Settings sheet (gear ⚙)</li>
       </ul>
     </div>
 
@@ -1960,8 +1959,8 @@ function getSubLesson6_2() {
         </li>
         <li><strong>Select Your Target Part:</strong>
           <ul>
-            <li>Go to <strong>"SATB Practice"</strong> tab</li>
-            <li>Find the <strong>"Aim For Part"</strong> section</li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>Open the <strong>"Part, tempo, key &amp; mixer"</strong> fold and find <strong>"Aim For Part"</strong></li>
             <li>You'll see 4 buttons: <strong>S, A, T, B</strong></li>
             <li>Click the button that matches your vocal range:
               <ul>
@@ -1974,19 +1973,13 @@ function getSubLesson6_2() {
             <li>The selected button should highlight/activate</li>
           </ul>
         </li>
-        <li><strong>Adjust Part Volumes:</strong>
+        <li><strong>Set How Loud Your Line Is:</strong>
           <ul>
-            <li>Find <strong>"Part Volumes"</strong> section</li>
-            <li><strong>Lower your part's volume slightly</strong>:
-              <ul>
-                <li>If aiming for Soprano, drag Soprano slider to about <strong>30-40%</strong> (not 0, but quieter)</li>
-                <li>If aiming for Alto, drag Alto slider to 30-40%</li>
-                <li>If aiming for Tenor, drag Tenor slider to 30-40%</li>
-                <li>If aiming for Bass, drag Bass slider to 30-40%</li>
-              </ul>
-            </li>
-            <li><strong>Keep other parts at normal volume</strong> (middle position, about 50-60%)</li>
+            <li>Use the <strong>"My part"</strong> control (Normal / Amplify / Quiet) to set how loud your line sits vs the others</li>
+            <li>Set it to <strong>"Quiet"</strong> so your part is a little quieter than the rest</li>
+            <li>The other parts stay at normal level, so you hear the harmony around you</li>
             <li>This way you can hear your part but also hear the harmony, and you won't just "follow the recording"</li>
+            <li>For finer control, open the <strong>"Part, tempo, key &amp; mixer"</strong> fold and use the full mixer</li>
           </ul>
         </li>
         <li><strong>Observe Your Target Part on Staff:</strong>
@@ -2000,17 +1993,17 @@ function getSubLesson6_2() {
         </li>
         <li><strong>Play and Sing Along:</strong>
           <ul>
-            <li>Click <strong>"Play"</strong> button</li>
+            <li>Press the <strong>&#9654; play button</strong></li>
             <li><strong>As the music plays, sing along with your target part</strong></li>
             <li>Watch the staff - the red play line shows where you are</li>
             <li>Watch your target part's notes - try to match them</li>
-            <li><strong>Use the microphone</strong> - your voice should appear on the staff</li>
+            <li>Turn on the <strong>"Mic"</strong> button in the header - your voice should appear on the staff</li>
             <li>Try to make your voice note align with your target part's notes</li>
           </ul>
         </li>
         <li><strong>Use Tempo Control</strong> (if needed):
           <ul>
-            <li>If the music is too fast, find the <strong>"Tempo"</strong> slider</li>
+            <li>If the music is too fast, open the <strong>"Part, tempo, key &amp; mixer"</strong> fold and find the <strong>"Tempo"</strong> slider</li>
             <li>Drag it to the <strong>left</strong> to slow down (e.g., 50 BPM or 40 BPM)</li>
             <li>Slower tempo = easier to follow and match pitches</li>
             <li>As you improve, gradually increase tempo</li>
@@ -2042,10 +2035,10 @@ function getSubLesson6_2() {
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
-        <li>If you can't hear your part, increase its volume slider slightly</li>
-        <li>If you're just following the recording, lower your part's volume more (to 20-30%)</li>
-        <li>If tempo is too fast, slow it down with the tempo slider</li>
-        <li>If your voice doesn't appear on staff, make sure mic is started</li>
+        <li>If you can't hear your part, set "My part" to Amplify (or raise it in the mixer)</li>
+        <li>If you're just following the recording, set "My part" to Quiet</li>
+        <li>If tempo is too fast, slow it down with the tempo slider in the fold</li>
+        <li>If your voice doesn't appear on staff, make sure the "Mic" button in the header is on</li>
         <li>If you're singing wrong octave, try singing an octave higher or lower</li>
         <li>If you can't find your part, try a different part (maybe Alto instead of Soprano, etc.)</li>
       </ul>
@@ -2054,7 +2047,7 @@ function getSubLesson6_2() {
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Successfully sing your part for a complete SATB exercise with 80%+ pitch accuracy (your voice note aligns with target part notes on staff for most of the exercise)</p>
       <p><strong>Progression:</strong> Move to 6.3 when benchmark achieved</p>
-      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="satb">Try it: Go to SATB Practice &rarr;</button></p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="satb">Try it: Go to Sing in Parts &rarr;</button></p>
     </div>
   `;
 }
@@ -2075,15 +2068,14 @@ function getSubLesson6_3() {
       <ol>
         <li><strong>Set Up for Part Independence Practice:</strong>
           <ul>
-            <li>Go to <strong>"SATB Practice"</strong> tab</li>
-            <li>Select an exercise</li>
-            <li>Find <strong>"Aim For Part"</strong> - select your part (S, A, T, or B)</li>
-            <li>Find <strong>"Part Volumes"</strong> section</li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>Tap <strong>"Browse hymns"</strong> and pick a hymn</li>
+            <li>Open the <strong>"Part, tempo, key &amp; mixer"</strong> fold, set <strong>"Aim For Part"</strong> to your part (S, A, T, or B), and find the mixer</li>
           </ul>
         </li>
         <li><strong>Mute Your Part Completely:</strong>
           <ul>
-            <li>Drag <strong>your part's volume slider all the way to the left (0)</strong> - completely mute it</li>
+            <li>In the mixer, drag <strong>your part's slider all the way to the left (0)</strong> - completely mute it</li>
             <li>Set <strong>other parts' volumes to normal</strong> (middle position, 50-60%)</li>
             <li>This way you'll hear the harmony but not your part</li>
           </ul>
@@ -2104,7 +2096,7 @@ function getSubLesson6_3() {
         </li>
         <li><strong>Play and Sing from Memory:</strong>
           <ul>
-            <li>Click <strong>"Play"</strong></li>
+            <li>Press the <strong>&#9654; play button</strong></li>
             <li><strong>As the other parts play, try to sing your part from memory</strong></li>
             <li>You won't hear your part, so you have to remember it</li>
             <li>Start with just the first measure or two</li>
@@ -2115,8 +2107,8 @@ function getSubLesson6_3() {
         <li><strong>Gradually Unmute to Check:</strong>
           <ul>
             <li>After trying to sing from memory, <strong>stop playback</strong></li>
-            <li><strong>Unmute your part slightly</strong> (drag slider to 20-30%)</li>
-            <li><strong>Play again</strong> and sing along</li>
+            <li><strong>Unmute your part slightly</strong> (drag its mixer slider to 20-30%)</li>
+            <li><strong>Press play again</strong> and sing along</li>
             <li>Now you can hear your part (quietly) to check if you were right</li>
             <li>If you were close, great! If not, study the part more</li>
           </ul>
@@ -2136,11 +2128,11 @@ function getSubLesson6_3() {
             <li>Gradually build up to the whole exercise</li>
           </ul>
         </li>
-        <li><strong>Use Hidden Cluster Tab for Extra Practice:</strong>
+        <li><strong>Use Pitch Distinction for Extra Practice:</strong>
           <ul>
-            <li>Go to <strong>"Hidden Cluster"</strong> tab</li>
-            <li>Click <strong>"Hard"</strong> difficulty button</li>
-            <li>Click <strong>"Play 3"</strong> or <strong>"Play 2"</strong></li>
+            <li>Go to the <strong>Ear</strong> room and open <strong>"Pitch Distinction"</strong></li>
+            <li>Pick the <strong>Hard</strong> difficulty pill (in the drill's options fold)</li>
+            <li>Press the <strong>&#9654; play button</strong></li>
             <li>This practices hearing individual voices in harmony</li>
             <li>Try to identify each tone in the cluster</li>
             <li>This skill helps with part independence</li>
@@ -2209,10 +2201,10 @@ function getSubLesson6_4() {
       <ol>
         <li><strong>Set Up Balanced Volumes:</strong>
           <ul>
-            <li>Go to <strong>"SATB Practice"</strong> tab</li>
-            <li>Select an exercise</li>
-            <li>Find <strong>"Aim For Part"</strong> - select your part</li>
-            <li>Find <strong>"Part Volumes"</strong> section</li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>Tap <strong>"Browse hymns"</strong> and pick a hymn</li>
+            <li>Set the <strong>"My part"</strong> control to <strong>"Normal"</strong> so your line sits even with the others</li>
+            <li>Open the <strong>"Part, tempo, key &amp; mixer"</strong> fold, set <strong>"Aim For Part"</strong> to your part, and find the mixer</li>
             <li><strong>Set all 4 parts to balanced volumes</strong>:
               <ul>
                 <li>Drag all sliders to about <strong>50-60%</strong> (middle position)</li>
@@ -2224,7 +2216,7 @@ function getSubLesson6_4() {
         </li>
         <li><strong>Start with Slower Tempo:</strong>
           <ul>
-            <li>Find the <strong>"Tempo"</strong> slider</li>
+            <li>In the same fold, find the <strong>"Tempo"</strong> slider</li>
             <li>Drag it to <strong>50 BPM</strong> or <strong>40 BPM</strong> (slower than default 60)</li>
             <li>Slower tempo = easier to maintain your part</li>
             <li>You can speed up later as you improve</li>
@@ -2232,8 +2224,8 @@ function getSubLesson6_4() {
         </li>
         <li><strong>Play and Sing Your Part:</strong>
           <ul>
-            <li>Make sure <strong>"Start Mic"</strong> is clicked (microphone is active)</li>
-            <li>Click <strong>"Play"</strong> button</li>
+            <li>Make sure the <strong>"Mic"</strong> button in the header is on (microphone is active)</li>
+            <li>Press the <strong>&#9654; play button</strong></li>
             <li><strong>As all 4 parts play together, sing your part</strong></li>
             <li><strong>Focus on your part</strong> - don't get distracted by other parts</li>
             <li>Watch the staff:
@@ -2259,9 +2251,9 @@ function getSubLesson6_4() {
           <ul>
             <li>If you find yourself "following" another part (singing what you hear instead of your part):
               <ul>
-                <li><strong>Lower your part's volume</strong> to 30-40% (make it quieter)</li>
+                <li>Set <strong>"My part"</strong> to <strong>"Quiet"</strong> (make your line quieter)</li>
                 <li>This forces you to rely on memory/visual cues rather than just following the sound</li>
-                <li>As you improve, gradually increase your part's volume back to 50%</li>
+                <li>As you improve, set it back to <strong>"Normal"</strong></li>
               </ul>
             </li>
           </ul>
@@ -2279,12 +2271,12 @@ function getSubLesson6_4() {
             </li>
           </ul>
         </li>
-        <li><strong>Practice with Chord Quality Tab</strong> (optional):
+        <li><strong>Practice with Chord Quality</strong> (optional):
           <ul>
-            <li>Go to <strong>"Chord Quality"</strong> tab</li>
-            <li>Click the <strong>"Do (I)"</strong> button for chord root</li>
-            <li>Click the <strong>"Major (1-3-5)"</strong> button for chord quality</li>
-            <li>Click <strong>"Start Drone"</strong> to hear the I chord (Do-Mi-So)</li>
+            <li>Go to the <strong>Ear</strong> room, open <strong>"Chord Quality"</strong>, and set the toggle to <strong>"Explore"</strong></li>
+            <li>Pick <strong>"Do (I)"</strong> as the chord root</li>
+            <li>Pick <strong>"Major (1-3-5)"</strong> as the chord quality</li>
+            <li>Press <strong>"Start Drone"</strong> to hear the I chord (Do-Mi-So)</li>
             <li><strong>Sing individual chord tones</strong> against the drone:
               <ul>
                 <li>Sing Do while drone plays Do-Mi-So</li>
@@ -2326,12 +2318,12 @@ function getSubLesson6_4() {
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
-        <li>If you keep singing other parts, lower your part's volume more (to 20-30%) to force independence</li>
+        <li>If you keep singing other parts, set "My part" to Quiet to force independence</li>
         <li>If tempo is too fast, slow it down - there's no rush</li>
         <li>If you lose your place, watch the red play line on the staff</li>
         <li>If harmony sounds bad, you might be singing wrong notes - check the staff</li>
         <li>If you can't hear yourself, you might need to sing louder or adjust mic sensitivity</li>
-        <li>If it's overwhelming, practice with just 2 parts first (mute 2 parts, keep 2 playing)</li>
+        <li>If it's overwhelming, practice with just 2 parts first (mute 2 parts in the mixer, keep 2 playing)</li>
       </ul>
     </div>
 
@@ -2358,26 +2350,25 @@ function getSubLesson5_1() {
     <div class="app-instructions">
       <h4>Detailed App Instructions:</h4>
       <ol>
-        <li><strong>Set Up Chord Quality Tab:</strong>
+        <li><strong>Open Chord Quality in Explore mode:</strong>
           <ul>
-            <li>Click the <strong>"Chord Quality"</strong> tab</li>
-            <li>You'll see buttons for chord root (Do, Re, Mi, Fa, Sol, La, Ti), chord quality (Major, Minor, etc.), and inversion (Root, 1st, 2nd)</li>
-            <li>When you click any button, the chord will automatically preview for about 0.5 seconds so you can hear it</li>
+            <li>Go to the <strong>Ear</strong> room and open <strong>"Chord Quality"</strong></li>
+            <li>Set the segmented toggle to <strong>"Explore"</strong> — this lets you build a chord and hold it as a drone to sing against</li>
+            <li>In Explore you pick a root (Do, Re, Mi, Fa, Sol, La, Ti), a quality (Major, Minor, etc.), and an inversion (Root, 1st, 2nd)</li>
           </ul>
         </li>
         <li><strong>Practice I Chord (Do-Mi-So):</strong>
           <ul>
-            <li>Click the <strong>"Do (I)"</strong> button to select it as the chord root (it will highlight)</li>
-            <li>Click the <strong>"Major (1-3-5)"</strong> button to select it as the chord quality</li>
+            <li>Pick <strong>"Do (I)"</strong> as the chord root (it will highlight)</li>
+            <li>Pick <strong>"Major (1-3-5)"</strong> as the chord quality</li>
             <li>This creates a I chord (tonic chord)</li>
-            <li><strong>Notice</strong> - when you click a button, you'll hear a brief preview (~0.5 seconds) of the chord</li>
             <li><strong>Look at the staff</strong> - you'll see Do, Mi, So displayed with their shape notes</li>
             <li><strong>Study the shapes</strong>: Notice which shape is Do (Triange), Mi (Diamond), So (oval)</li>
-            <li>Click <strong>"Start Drone"</strong> button to hear the chord continuously</li>
+            <li>Press <strong>"Start Drone"</strong> to hear the chord continuously</li>
             <li>You'll hear all 3 notes playing simultaneously (a chord)</li>
             <li><strong>Watch the staff</strong> - the active tones (playing in the drone) will be highlighted brighter</li>
             <li><strong>Listen to the quality</strong> - this is a Major chord (sounds "happy" or "bright")</li>
-            <li>Click <strong>"Stop Drone"</strong></li>
+            <li>Press <strong>"Stop Drone"</strong></li>
           </ul>
         </li>
         <li><strong>Identify Each Chord Tone:</strong>
@@ -2396,19 +2387,18 @@ function getSubLesson5_1() {
                 <li>Sing So while drone plays</li>
               </ul>
             </li>
-            <li>Use the microphone - your voice should align with each tone on the staff</li>
+            <li>Turn on the <strong>"Mic"</strong> button in the header - your voice should align with each tone on the staff</li>
           </ul>
         </li>
         <li><strong>Practice V Chord (So-Ti-Re):</strong>
           <ul>
-            <li>Click <strong>"Stop Drone"</strong> if it's still playing</li>
-            <li>Click the <strong>"Sol (V)"</strong> button to select it as the chord root</li>
+            <li>Press <strong>"Stop Drone"</strong> if it's still playing</li>
+            <li>Pick <strong>"Sol (V)"</strong> as the chord root</li>
             <li>Keep <strong>"Major (1-3-5)"</strong> selected as the chord quality</li>
             <li>This creates a V chord (dominant chord)</li>
-            <li><strong>Notice the preview</strong> - you'll hear the chord briefly when you click</li>
             <li>Look at the staff - see So, Ti, Re with their shape notes</li>
             <li><strong>Study the shapes</strong>: So (oval), Ti (Ice Cream), Re (Half Circle)</li>
-            <li>Click <strong>"Start Drone"</strong> to hear it continuously</li>
+            <li>Press <strong>"Start Drone"</strong> to hear it continuously</li>
             <li><strong>Listen to the quality</strong> - this is also a Major chord</li>
             <li><strong>Try to identify each tone</strong>: So (lowest), Ti (middle), Re (highest)</li>
             <li><strong>Sing along with each tone</strong></li>
@@ -2416,33 +2406,30 @@ function getSubLesson5_1() {
         </li>
         <li><strong>Practice IV Chord (Fa-La-Do):</strong>
           <ul>
-            <li>Click <strong>"Stop Drone"</strong> if it's still playing</li>
-            <li>Click the <strong>"Fa (IV)"</strong> button to select it as the chord root</li>
+            <li>Press <strong>"Stop Drone"</strong> if it's still playing</li>
+            <li>Pick <strong>"Fa (IV)"</strong> as the chord root</li>
             <li>Keep <strong>"Major (1-3-5)"</strong> selected as the chord quality</li>
             <li>This creates a IV chord (subdominant chord)</li>
-            <li><strong>Notice the preview</strong> - you'll hear the chord briefly when you click</li>
             <li>Look at the staff - see Fa, La, Do with their shape notes</li>
             <li><strong>Study the shapes</strong>: Fa (Flag), La (Rectangle), Do (Triangle)</li>
-            <li>Click <strong>"Start Drone"</strong> to hear it continuously</li>
+            <li>Press <strong>"Start Drone"</strong> to hear it continuously</li>
             <li><strong>Listen to the quality</strong> - also a Major chord</li>
             <li><strong>Try to identify each tone</strong>: Fa (lowest), La (middle), Do (highest)</li>
             <li><strong>Sing along with each tone</strong></li>
           </ul>
         </li>
-        <li><strong>Use Hidden Cluster Tab for Practice:</strong>
+        <li><strong>Test yourself in Test me mode:</strong>
           <ul>
-            <li>Go to <strong>"Hidden Cluster"</strong> tab</li>
-            <li>Click <strong>"Medium"</strong> difficulty button</li>
-            <li>Click <strong>"Play 3"</strong> button</li>
-            <li>You'll hear 3 tones simultaneously (like a chord)</li>
-            <li><strong>Try to identify each tone</strong> in solfege</li>
-            <li>Click <strong>"Reveal"</strong> to check</li>
-            <li>This practices hearing individual tones in a chord</li>
+            <li>Switch the segmented toggle to <strong>"Test me"</strong></li>
+            <li>Press the <strong>&#9654; play button</strong> to hear a chord</li>
+            <li><strong>Try to identify each tone</strong> in solfege, then <strong>tap the quality</strong> you hear (Major, Minor, etc.)</li>
+            <li>The drill auto-reveals whether you were right — no separate reveal step</li>
+            <li>For more practice hearing individual tones stacked together, try <strong>"Pitch Distinction"</strong> in the Ear room</li>
           </ul>
         </li>
         <li><strong>Compare Chord Qualities:</strong>
           <ul>
-            <li>Go back to <strong>"Chord Quality"</strong> tab</li>
+            <li>Back in <strong>"Explore"</strong> mode</li>
             <li>Play I chord (Do-Mi-So), listen to the quality</li>
             <li>Play V chord (So-Ti-Re), listen to the quality</li>
             <li>Play IV chord (Fa-La-Do), listen to the quality</li>
@@ -2474,9 +2461,9 @@ function getSubLesson5_1() {
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
-        <li>If you can't hear individual tones, try using the Warmup tab's arpeggios to hear each chord tone one at a time</li>
+        <li>If you can't hear individual tones, use the Warm Up room's arpeggios to hear each chord tone one at a time</li>
         <li>If chords all sound the same, listen more carefully - they have different "feels"</li>
-        <li>If you can't identify tones in a cluster, practice with Hidden Cluster tab more</li>
+        <li>If you can't identify tones in a cluster, practice with Pitch Distinction (Ear room) more</li>
         <li>If shapes are confusing, study them one at a time (just I chord first, then add others)</li>
       </ul>
     </div>
@@ -2503,64 +2490,59 @@ function getSubLesson5_2() {
     <div class="app-instructions">
       <h4>Detailed App Instructions:</h4>
       <ol>
-        <li><strong>Set Up Chord Quality Tab:</strong>
+        <li><strong>Set Up Chord Quality in Explore mode:</strong>
           <ul>
-            <li>Go to <strong>"Chord Quality"</strong> tab</li>
-            <li>You'll see buttons for chord root (Do, Re, Mi, Fa, Sol, La, Ti) and chord quality (Major, Minor, etc.)</li>
-            <li>When you click any button, the chord will automatically preview for about 0.5 seconds</li>
-            <li>The chord tones will automatically display on the staff when you select a root and quality</li>
+            <li>Go to the <strong>Ear</strong> room, open <strong>"Chord Quality"</strong>, and set the toggle to <strong>"Explore"</strong></li>
+            <li>You'll pick a chord root (Do, Re, Mi, Fa, Sol, La, Ti) and a chord quality (Major, Minor, etc.)</li>
+            <li>The chord tones display on the staff as soon as you pick a root and quality, and you hold the chord with <strong>"Start Drone"</strong></li>
           </ul>
         </li>
         <li><strong>Practice I → IV → V → I Progression:</strong>
           <ul>
             <li><strong>Step 1 - I Chord</strong>:
               <ul>
-                <li>Click the <strong>"Do (I)"</strong> button to select it as the chord root</li>
-                <li>Click the <strong>"Major (1-3-5)"</strong> button to select it as the chord quality</li>
-                <li><strong>Notice</strong> - each button click will preview the chord for ~0.5 seconds</li>
+                <li>Pick <strong>"Do (I)"</strong> as the chord root</li>
+                <li>Pick <strong>"Major (1-3-5)"</strong> as the chord quality</li>
                 <li><strong>Watch the staff</strong> - you'll see Do, Mi, So displayed with shape notes</li>
-                <li>Click <strong>"Start Drone"</strong></li>
+                <li>Press <strong>"Start Drone"</strong></li>
                 <li>Listen for 3-4 seconds</li>
                 <li><strong>Notice the "feel"</strong> - this is "home" (tonic)</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
             <li><strong>Step 2 - IV Chord</strong>:
               <ul>
-                <li>Click the <strong>"Fa (IV)"</strong> button to select it as the chord root</li>
+                <li>Pick <strong>"Fa (IV)"</strong> as the chord root</li>
                 <li>Keep <strong>"Major (1-3-5)"</strong> selected (it should already be highlighted)</li>
-                <li><strong>Notice</strong> - clicking the root button will preview the chord for ~0.5 seconds</li>
                 <li><strong>Watch the staff</strong> - the chord tones will update to show Fa, La, Do</li>
-                <li>Click <strong>"Start Drone"</strong></li>
+                <li>Press <strong>"Start Drone"</strong></li>
                 <li>Listen for 3-4 seconds</li>
                 <li><strong>Notice the "feel"</strong> - this feels "calm" or "subdominant"</li>
                 <li><strong>Compare to I chord</strong> - how does it feel different?</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
             <li><strong>Step 3 - V Chord</strong>:
               <ul>
-                <li>Click the <strong>"Sol (V)"</strong> button to select it as the chord root</li>
+                <li>Pick <strong>"Sol (V)"</strong> as the chord root</li>
                 <li>Keep <strong>"Major (1-3-5)"</strong> selected (it should already be highlighted)</li>
-                <li><strong>Notice</strong> - clicking the root button will preview the chord for ~0.5 seconds</li>
                 <li><strong>Watch the staff</strong> - the chord tones will update to show So, Ti, Re</li>
-                <li>Click <strong>"Start Drone"</strong></li>
+                <li>Press <strong>"Start Drone"</strong></li>
                 <li>Listen for 3-4 seconds</li>
                 <li><strong>Notice the "feel"</strong> - this feels "unresolved" or "wants to go somewhere" (dominant)</li>
                 <li><strong>Compare to I and IV</strong> - how does it feel different?</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
             <li><strong>Step 4 - Back to I Chord</strong>:
               <ul>
-                <li>Click the <strong>"Do (I)"</strong> button again to select it as the chord root</li>
+                <li>Pick <strong>"Do (I)"</strong> again as the chord root</li>
                 <li>Keep <strong>"Major (1-3-5)"</strong> selected (it should already be highlighted)</li>
-                <li><strong>Notice</strong> - clicking the root button will preview the chord for ~0.5 seconds</li>
                 <li><strong>Watch the staff</strong> - the chord tones will update back to Do, Mi, So</li>
-                <li>Click <strong>"Start Drone"</strong></li>
+                <li>Press <strong>"Start Drone"</strong></li>
                 <li>Listen for 3-4 seconds</li>
                 <li><strong>Notice the "feel"</strong> - this feels like "resolution" or "coming home"</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
           </ul>
@@ -2568,7 +2550,7 @@ function getSubLesson5_2() {
         <li><strong>Practice the Full Progression:</strong>
           <ul>
             <li><strong>Repeat the progression</strong> (I → IV → V → I) 5-10 times</li>
-            <li>Use the buttons to quickly switch between chord roots (each click will preview the chord)</li>
+            <li>Re-pick each root and re-start the drone to move through the chords</li>
             <li>Each time, try to <strong>identify which chord is playing</strong>:
               <ul>
                 <li>"This is I" (home)</li>
@@ -2581,12 +2563,12 @@ function getSubLesson5_2() {
             <li><strong>Feel the progression</strong> - how each chord leads to the next</li>
           </ul>
         </li>
-        <li><strong>Practice with Warmup Arpeggios:</strong>
+        <li><strong>Practice with Warm Up Arpeggios:</strong>
           <ul>
-            <li>Go to <strong>"Warmup"</strong> tab</li>
+            <li>Go to the <strong>Warm Up</strong> room</li>
             <li>Check the <strong>"Arpeggios (↑)"</strong> and/or <strong>"Arpeggios (↓)"</strong> checkboxes</li>
             <li>Uncheck other stanzas if you want to focus just on arpeggios</li>
-            <li>Click <strong>"Play Warm Up"</strong></li>
+            <li>Press the <strong>&#9654; play button</strong></li>
             <li><strong>Watch the staff</strong> as the arpeggios play</li>
             <li>You'll see I, IV, and V chord arpeggios play sequentially</li>
             <li>Each arpeggio shows the shape notes for that chord (Do-Mi-So for I, Fa-La-Do for IV, So-Ti-Re for V)</li>
@@ -2594,11 +2576,11 @@ function getSubLesson5_2() {
             <li>Listen to how each chord feels different as the arpeggios play</li>
           </ul>
         </li>
-        <li><strong>Practice with SATB Tab:</strong>
+        <li><strong>Practice with Sing in Parts:</strong>
           <ul>
-            <li>Go to <strong>"SATB Practice"</strong> tab</li>
-            <li>Select an exercise</li>
-            <li><strong>Play the exercise</strong> and listen</li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>Tap <strong>"Browse hymns"</strong> and pick a hymn</li>
+            <li>Press the <strong>&#9654; play button</strong> and listen</li>
             <li><strong>Try to identify the chord progressions</strong>:
               <ul>
                 <li>When do you hear I chord? (sounds like "home")</li>
@@ -2612,7 +2594,7 @@ function getSubLesson5_2() {
         </li>
         <li><strong>Practice Identifying Progressions:</strong>
           <ul>
-            <li>Have someone else (or alternate yourself) play a progression using the buttons</li>
+            <li>Have someone else (or alternate yourself) build a progression in Explore mode</li>
             <li><strong>Listen and identify</strong>:
               <ul>
                 <li>"That was I → IV → V → I"</li>
@@ -2644,7 +2626,7 @@ function getSubLesson5_2() {
       <ul>
         <li>If all chords sound the same, listen more carefully to the "feel" or "color"</li>
         <li>If you can't identify progressions, practice individual chords more first</li>
-        <li>If SATB is too complex, stick with Chord Quality tab for now</li>
+        <li>If Sing in Parts is too complex, stick with Chord Quality for now</li>
         <li>If you're confused, focus on just I and V first (I → V → I is simpler)</li>
       </ul>
     </div>
@@ -2672,29 +2654,27 @@ function getSubLesson5_3() {
       <ol>
         <li><strong>Compare Major vs. Minor I Chord:</strong>
           <ul>
-            <li>Go to <strong>"Chord Quality"</strong> tab</li>
-            <li><strong>Major I chord</strong>: 
+            <li>Go to the <strong>Ear</strong> room, open <strong>"Chord Quality"</strong>, and set the toggle to <strong>"Explore"</strong></li>
+            <li><strong>Major I chord</strong>:
               <ul>
-                <li>Click the <strong>"Do (I)"</strong> button to select it as the chord root</li>
-                <li>Click the <strong>"Major (1-3-5)"</strong> button to select it as the chord quality</li>
-                <li><strong>Notice</strong> - each button click will preview the chord for ~0.5 seconds</li>
+                <li>Pick <strong>"Do (I)"</strong> as the chord root</li>
+                <li>Pick <strong>"Major (1-3-5)"</strong> as the chord quality</li>
                 <li><strong>Watch the staff</strong> - you'll see Do, Mi, So displayed with shape notes</li>
-                <li>Click <strong>"Start Drone"</strong>, listen for 3-4 seconds</li>
+                <li>Press <strong>"Start Drone"</strong>, listen for 3-4 seconds</li>
                 <li><strong>Notice the quality</strong> - "bright" or "happy"</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
             <li><strong>Minor i chord</strong>:
               <ul>
                 <li>Keep <strong>"Do (I)"</strong> selected as the chord root</li>
-                <li>Click the <strong>"Minor (1-♭3-5)"</strong> button to select it as the chord quality</li>
-                <li><strong>Notice</strong> - the button click will preview the chord for ~0.5 seconds</li>
+                <li>Pick <strong>"Minor (1-♭3-5)"</strong> as the chord quality</li>
                 <li><strong>Watch the staff</strong> - the chord tones will update to show Do, Me, So (Me = lowered Mi)</li>
                 <li>Notice how the shape note for the 3rd changes (Mi becomes Me with an accidental)</li>
-                <li>Click <strong>"Start Drone"</strong>, listen for 3-4 seconds</li>
+                <li>Press <strong>"Start Drone"</strong>, listen for 3-4 seconds</li>
                 <li><strong>Notice the quality</strong> - "darker" or "sadder" than Major</li>
                 <li><strong>Compare</strong>: Major sounds "bright", minor sounds "dark"</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
           </ul>
@@ -2715,55 +2695,52 @@ function getSubLesson5_3() {
           <ul>
             <li><strong>Minor iv chord</strong>:
               <ul>
-                <li>Click the <strong>"Fa (IV)"</strong> button to select it as the chord root</li>
-                <li>Click the <strong>"Minor (1-♭3-5)"</strong> button to select it as the chord quality</li>
-                <li><strong>Notice</strong> - each button click will preview the chord for ~0.5 seconds</li>
+                <li>Pick <strong>"Fa (IV)"</strong> as the chord root</li>
+                <li>Pick <strong>"Minor (1-♭3-5)"</strong> as the chord quality</li>
                 <li><strong>Watch the staff</strong> - you'll see Fa, La♭, Do (La lowered to La♭)</li>
                 <li>Notice how the shape note for La changes (with an accidental)</li>
-                <li>Click <strong>"Start Drone"</strong>, listen to the quality - "darker" than Major IV</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Start Drone"</strong>, listen to the quality - "darker" than Major IV</li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
             <li><strong>Minor v chord</strong>:
               <ul>
-                <li>Click the <strong>"Sol (V)"</strong> button to select it as the chord root</li>
-                <li>Click the <strong>"Minor (1-♭3-5)"</strong> button to select it as the chord quality</li>
-                <li><strong>Notice</strong> - each button click will preview the chord for ~0.5 seconds</li>
+                <li>Pick <strong>"Sol (V)"</strong> as the chord root</li>
+                <li>Pick <strong>"Minor (1-♭3-5)"</strong> as the chord quality</li>
                 <li><strong>Watch the staff</strong> - you'll see So, Ti♭, Re (Ti lowered to Ti♭)</li>
                 <li>Notice how the shape note for Ti changes (with an accidental)</li>
-                <li>Click <strong>"Start Drone"</strong>, listen to the quality - "darker" than Major V</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Start Drone"</strong>, listen to the quality - "darker" than Major V</li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
           </ul>
         </li>
-        <li><strong>Use Chord Quality Buttons:</strong>
+        <li><strong>Switch Between Qualities:</strong>
           <ul>
-            <li>In <strong>"Chord Quality"</strong> tab, use the <strong>"Chord quality"</strong> buttons</li>
-            <li>Click <strong>"Major (1-3-5)"</strong> - you'll hear a brief preview of the bright quality</li>
-            <li>Click <strong>"Minor (1-♭3-5)"</strong> - you'll hear a brief preview of the dark quality</li>
+            <li>In <strong>"Chord Quality"</strong> (Explore mode), keep a root fixed and switch the quality</li>
+            <li>Pick <strong>"Major (1-3-5)"</strong>, then hold the drone to hear the bright quality</li>
+            <li>Pick <strong>"Minor (1-♭3-5)"</strong>, then hold the drone to hear the dark quality</li>
             <li><strong>Watch the staff</strong> - you'll see the chord tones update and the shape notes change</li>
             <li><strong>Practice switching</strong> between Major and minor for the same root</li>
-            <li>Each button click will automatically preview the chord for ~0.5 seconds</li>
             <li>Really listen to the difference and watch how the shape notes reflect the change</li>
           </ul>
         </li>
-        <li><strong>Practice with Warmup Arpeggios:</strong>
+        <li><strong>Practice with Warm Up Arpeggios:</strong>
           <ul>
-            <li>Go to <strong>"Warmup"</strong> tab</li>
+            <li>Go to the <strong>Warm Up</strong> room</li>
             <li>Check the <strong>"Arpeggios (↑)"</strong> and/or <strong>"Arpeggios (↓)"</strong> checkboxes</li>
-            <li>Click <strong>"Play Warm Up"</strong></li>
+            <li>Press the <strong>&#9654; play button</strong></li>
             <li><strong>Watch the staff</strong> as the arpeggios play</li>
             <li>Notice how Major chord arpeggios (I, IV, V) have different shape notes than minor chord arpeggios (ii, iii, vi)</li>
             <li>This visual practice helps you see the shape note differences between Major and minor chords</li>
             <li>Listen to the quality difference as each arpeggio plays</li>
           </ul>
         </li>
-        <li><strong>Practice with SATB Tab:</strong>
+        <li><strong>Practice with Sing in Parts:</strong>
           <ul>
-            <li>Go to <strong>"SATB Practice"</strong> tab</li>
-            <li>Load an exercise that has minor chords</li>
-            <li><strong>Play and listen</strong></li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>Tap <strong>"Browse hymns"</strong> and pick a hymn that has minor chords</li>
+            <li>Press the <strong>&#9654; play button</strong> and listen</li>
             <li><strong>Try to identify</strong>: "That section has minor chords" vs. "That section has Major chords"</li>
             <li><strong>Watch the staff</strong> - minor chords will have lowered 3rds (Me instead of Mi, etc.)</li>
             <li>Shape notes help you see which tones are in the chord</li>
@@ -2825,21 +2802,20 @@ function getSubLesson5_4() {
       <ol>
         <li><strong>Understand Chord Inversions:</strong>
           <ul>
-            <li>Go to <strong>"Chord Quality"</strong> tab</li>
-            <li><strong>Root position I chord</strong>: 
+            <li>Go to the <strong>Ear</strong> room, open <strong>"Chord Quality"</strong>, and set the toggle to <strong>"Explore"</strong></li>
+            <li><strong>Root position I chord</strong>:
               <ul>
-                <li>Click the <strong>"Do (I)"</strong> button to select it as the chord root</li>
-                <li>Click the <strong>"Major (1-3-5)"</strong> button to select it as the chord quality</li>
-                <li><strong>Notice</strong> - each button click will preview the chord for ~0.5 seconds</li>
+                <li>Pick <strong>"Do (I)"</strong> as the chord root</li>
+                <li>Pick <strong>"Major (1-3-5)"</strong> as the chord quality</li>
                 <li><strong>Watch the staff</strong> - you'll see Do, Mi, So displayed (Do is the lowest note shown)</li>
-                <li>Click <strong>"Start Drone"</strong>, listen</li>
+                <li>Press <strong>"Start Drone"</strong>, listen</li>
                 <li>Notice Do is the bass (lowest note in the chord)</li>
-                <li>Click <strong>"Stop Drone"</strong></li>
+                <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
             </li>
             <li><strong>Understanding Inversions:</strong>
               <ul>
-            <li>The Chord Quality tab has inversion buttons (Root, 1st, 2nd) that let you hear different voicings of the same chord</li>
+            <li>Explore mode has inversion buttons (Root, 1st, 2nd) that let you hear different voicings of the same chord</li>
             <li><strong>Root position</strong> (default): Do is the lowest note (Do, Mi, So)</li>
             <li><strong>First inversion</strong>: Click the "1st" button - Mi becomes the lowest note (Mi, So, Do)</li>
             <li><strong>Second inversion</strong>: Click the "2nd" button - So becomes the lowest note (So, Do, Mi)</li>
@@ -2848,11 +2824,11 @@ function getSubLesson5_4() {
             <li>In SATB, you'll see inversions when the bass part doesn't sing the root</li>
               </ul>
             </li>
-            <li><strong>Practice with Warmup Arpeggios:</strong>
+            <li><strong>Practice with Warm Up Arpeggios:</strong>
               <ul>
-                <li>Go to <strong>"Warmup"</strong> tab</li>
+                <li>Go to the <strong>Warm Up</strong> room</li>
                 <li>Check the <strong>"Arpeggios (↑)"</strong> checkbox</li>
-                <li>Click <strong>"Play Warm Up"</strong></li>
+                <li>Press the <strong>&#9654; play button</strong></li>
                 <li><strong>Watch the staff</strong> - arpeggios show root position chords (root is always the first note)</li>
                 <li>Notice how each arpeggio starts on the root (Do for I chord, Fa for IV chord, So for V chord)</li>
                 <li>This helps you understand the base chord structure before learning inversions</li>
@@ -2860,11 +2836,11 @@ function getSubLesson5_4() {
             </li>
           </ul>
         </li>
-        <li><strong>Analyze Voice Leading in SATB:</strong>
+        <li><strong>Analyze Voice Leading in Sing in Parts:</strong>
           <ul>
-            <li>Go to <strong>"SATB Practice"</strong> tab</li>
-            <li>Select an exercise</li>
-            <li><strong>Play the exercise slowly</strong> (set tempo to 50 BPM)</li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>Tap <strong>"Browse hymns"</strong> and pick a hymn</li>
+            <li><strong>Play it slowly</strong> — open the <strong>"Part, tempo, key &amp; mixer"</strong> fold and set tempo to 50 BPM, then press the <strong>&#9654; play button</strong></li>
             <li><strong>Watch the staff carefully</strong> as it plays</li>
             <li><strong>Observe how each part moves</strong>:
               <ul>
@@ -2883,9 +2859,9 @@ function getSubLesson5_4() {
             </li>
           </ul>
         </li>
-        <li><strong>Identify Chord Inversions in SATB:</strong>
+        <li><strong>Identify Chord Inversions in Sing in Parts:</strong>
           <ul>
-            <li><strong>Play an exercise</strong> and watch the staff</li>
+            <li>Press the <strong>&#9654; play button</strong> and watch the staff</li>
             <li><strong>Look for chord moments</strong> (when all 4 parts have notes at the same time)</li>
             <li><strong>Identify the bass note</strong> (lowest note in Bass part)</li>
             <li><strong>If bass sings Do</strong> and other parts sing Mi, So = root position I chord</li>
@@ -2894,20 +2870,20 @@ function getSubLesson5_4() {
             <li><strong>Shape notes help</strong> - you can see which solfege syllable the bass is singing</li>
           </ul>
         </li>
-        <li><strong>Practice with Hidden Cluster Tab:</strong>
+        <li><strong>Practice with Pitch Distinction:</strong>
           <ul>
-            <li>Go to <strong>"Hidden Cluster"</strong> tab</li>
-            <li>Click <strong>"Hard"</strong> or <strong>"Extra Hard"</strong> difficulty</li>
-            <li>Click <strong>"Play 3"</strong> or <strong>"Play 2"</strong></li>
+            <li>Go to the <strong>Ear</strong> room and open <strong>"Pitch Distinction"</strong></li>
+            <li>Pick the <strong>Hard</strong> or <strong>Expert</strong> difficulty pill (in the drill's options fold)</li>
+            <li>Press the <strong>&#9654; play button</strong> to hear the tones stacked together</li>
             <li>This practices hearing complex harmony</li>
             <li><strong>Try to identify each tone</strong> in the cluster</li>
             <li><strong>Try to identify the chord</strong> (is it I? IV? V? Major? minor?)</li>
-            <li>Click <strong>"Reveal"</strong> to check</li>
+            <li><strong>Tap the answer</strong> to auto-reveal whether you were right</li>
           </ul>
         </li>
         <li><strong>Practice All Chord Types:</strong>
           <ul>
-            <li>Go to <strong>"Chord Quality"</strong> tab</li>
+            <li>Go to <strong>"Chord Quality"</strong> (Explore mode) in the Ear room</li>
             <li><strong>Practice different chord types</strong> using the chord quality buttons:
               <ul>
                 <li>Major (1-3-5) - for I, IV, V chords</li>
@@ -2927,19 +2903,17 @@ function getSubLesson5_4() {
               </ul>
             </li>
             <li><strong>Watch the staff</strong> - chord tones update automatically when you change root, quality, or inversion</li>
-            <li><strong>Listen to the quality</strong> of each chord - each button click will preview the chord for ~0.5 seconds</li>
+            <li><strong>Listen to the quality</strong> of each chord - hold the drone to hear it sustained</li>
             <li><strong>Try different inversions</strong> - click Root, 1st, or 2nd to hear how the bass note changes the sound</li>
             <li><strong>Identify the chord tones</strong> by shape notes on the staff</li>
           </ul>
         </li>
-        <li><strong>Sing Through Complete SATB Piece:</strong>
+        <li><strong>Sing Through a Complete Hymn:</strong>
           <ul>
-            <li>Go to <strong>"SATB Practice"</strong> tab</li>
-            <li>Select a complete exercise</li>
-            <li>Set <strong>"Aim For Part"</strong> to your part</li>
-            <li>Set all parts to balanced volumes (50-60%)</li>
-            <li>Set tempo to comfortable speed (start at 50-60 BPM)</li>
-            <li><strong>Play and sing your part</strong> through the entire piece</li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>Tap <strong>"Browse hymns"</strong> and pick a complete hymn</li>
+            <li>Set the <strong>"My part"</strong> control (Normal / Amplify / Quiet) for how loud your line sits vs the others; set your aim part, balanced mixer, and tempo (start at 50-60 BPM) in the <strong>"Part, tempo, key &amp; mixer"</strong> fold</li>
+            <li>Press the <strong>&#9654; play button</strong> and sing your part through the entire piece</li>
             <li><strong>As you sing, try to identify chord progressions</strong>:
               <ul>
                 <li>"This section is I → IV → V → I"</li>
@@ -2969,8 +2943,8 @@ function getSubLesson5_4() {
       <ul>
         <li>If inversions are confusing, focus on root position chords first</li>
         <li>If voice leading is hard to see, slow down the tempo significantly</li>
-        <li>If chord identification is difficult, practice with Chord Quality tab more</li>
-        <li>If SATB is overwhelming, practice with just 2 parts first (mute 2 parts)</li>
+        <li>If chord identification is difficult, practice with Chord Quality more</li>
+        <li>If Sing in Parts is overwhelming, practice with just 2 parts first (mute 2 parts in the mixer)</li>
       </ul>
     </div>
 
@@ -3013,32 +2987,32 @@ function getSubLesson6_5() {
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
       <ul>
-        <li>Use the SATB tab to sing a hymn together, in person, as a group</li>
+        <li>Use the Sing in Parts screen to sing a hymn together, in person, as a group</li>
         <li>Set a comfortable shared key and tempo for the whole group</li>
         <li>Follow your own part on the engraved staff while hearing the people around you</li>
       </ul>
     </div>
 
-    <p>You don't need any special "group" mode or a server — the SATB tab is all you need for a room full of people to sing a hymn together. Everyone opens the same hymn on their own phone, follows their own part, and sings.</p>
+    <p>You don't need any special "group" mode or a server — the Sing in Parts screen is all you need for a room full of people to sing a hymn together. Everyone opens the same hymn on their own phone, follows their own part, and sings.</p>
 
     <div class="app-instructions">
       <h4>Setting up a group sing:</h4>
       <ol>
         <li><strong>Everyone loads the same hymn:</strong>
           <ul>
-            <li>On each phone, go to the <strong>"SATB Practice"</strong> tab and tap <strong>"Browse Hymns"</strong></li>
+            <li>On each phone, go to the <strong>Sing</strong> room, open <strong>"Sing in Parts"</strong>, and tap <strong>"Browse hymns"</strong></li>
             <li>Pick the same hymn on every device</li>
           </ul>
         </li>
         <li><strong>Each singer picks their part:</strong>
           <ul>
-            <li>Under <strong>"Aim For Part"</strong>, choose the part you're singing (S, A, T, or B)</li>
-            <li>In <strong>"Part Volumes"</strong>, turn <em>your</em> part up and the others down if you want to lean on the recording, or keep them balanced to hear the full harmony</li>
+            <li>Open the <strong>"Part, tempo, key &amp; mixer"</strong> fold and under <strong>"Aim For Part"</strong>, choose the part you're singing (S, A, T, or B)</li>
+            <li>Use the <strong>"My part"</strong> control (Normal / Amplify / Quiet) to lean on your line, or keep it Normal to hear the full harmony</li>
           </ul>
         </li>
         <li><strong>Agree on a key and tempo:</strong>
           <ul>
-            <li>Use the <strong>Key</strong> transpose buttons (− / +) so the pitch sits comfortably for the group's voices</li>
+            <li>In that same fold, use the <strong>Key</strong> transpose buttons (− / +) so the pitch sits comfortably for the group's voices</li>
             <li>The hymn loads at its own tempo; nudge the <strong>Tempo</strong> slider slower for a first read-through</li>
             <li>Make sure everyone matches the same key and tempo</li>
           </ul>
@@ -3051,7 +3025,7 @@ function getSubLesson6_5() {
         </li>
         <li><strong>Start together on a count:</strong>
           <ul>
-            <li>Have one person count off — "three, two, one, sing" — and everyone taps <strong>"Play"</strong> on that beat</li>
+            <li>Have one person count off — "three, two, one, sing" — and everyone presses the <strong>&#9654; play button</strong> on that beat</li>
             <li>Because every phone plays the same hymn at the same tempo, once you start together you stay together for the whole song</li>
             <li>Sing your part from the scrolling staff; the play line shows where you are</li>
           </ul>
@@ -3104,7 +3078,7 @@ function renderLesson7() {
 
         ${renderSubLesson('7.1', 'Understanding the FA SO LA Tradition', getSubLesson7_1())}
         ${renderSubLesson('7.2', 'Importing and Practicing with Hymn MIDI Files', getSubLesson7_2())}
-        ${renderSubLesson('7.3', 'Singing Together with the SATB Tab', getSubLesson7_3())}
+        ${renderSubLesson('7.3', 'Singing Together with Sing in Parts', getSubLesson7_3())}
       </div>
     </section>
   `;
@@ -3115,20 +3089,20 @@ function getSubLesson7_3() {
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
       <ul>
-        <li>Recreate a traditional FA SO LA singing in miniature using the SATB tab</li>
+        <li>Recreate a traditional FA SO LA singing in miniature using the Sing in Parts screen</li>
         <li>Sit in parts and sing a tune together on solfege before adding the words</li>
         <li>Use each phone as a quiet section leader so the whole group stays anchored</li>
       </ul>
     </div>
 
-    <p>The old singing schools always ran a tune through on the syllables first — everyone "sang the notes" (FA SO LA) before ever touching the lyrics. The SATB tab lets a small group do exactly that, together, in one room.</p>
+    <p>The old singing schools always ran a tune through on the syllables first — everyone "sang the notes" (FA SO LA) before ever touching the lyrics. The Sing in Parts screen lets a small group do exactly that, together, in one room.</p>
 
     <div class="app-instructions">
       <h4>Running a FA SO LA reading:</h4>
       <ol>
         <li><strong>Sit in your parts.</strong> Gather by voice — soprano, alto, tenor, bass — so you hear the singers on your own line beside you, just like a shape-note square.</li>
-        <li><strong>Load the same tune on every phone.</strong> On the <strong>"SATB Practice"</strong> tab, tap <strong>"Browse Hymns"</strong> and pick the same hymn on each device.</li>
-        <li><strong>Pick your part and lean on it.</strong> Set <strong>"Aim For Part"</strong> to your voice and raise that part in <strong>"Part Volumes"</strong> so your phone acts as a quiet section leader.</li>
+        <li><strong>Load the same tune on every phone.</strong> Go to the <strong>Sing</strong> room, open <strong>"Sing in Parts"</strong>, tap <strong>"Browse hymns"</strong>, and pick the same hymn on each device.</li>
+        <li><strong>Pick your part and lean on it.</strong> In the <strong>"Part, tempo, key &amp; mixer"</strong> fold set <strong>"Aim For Part"</strong> to your voice, then set the <strong>"My part"</strong> control to <strong>"Amplify"</strong> so your phone acts as a quiet section leader.</li>
         <li><strong>Sing the syllables first.</strong> Read the movable-Do syllable under each note and sing the tune on solfege — no words yet. Do this once or twice until the notes are solid.</li>
         <li><strong>Then add the words.</strong> Once the group can carry the tune on syllables, run it again singing the lyrics. The notes are already in your ear.</li>
       </ol>
@@ -3216,17 +3190,17 @@ function getSubLesson7_2() {
             <li>Files with 1-2 tracks can work too - the app will intelligently split them into 4 parts</li>
           </ul>
         </li>
-        <li><strong>Open the SATB Practice Tab:</strong>
+        <li><strong>Open Sing in Parts:</strong>
           <ul>
-            <li>Click on the <strong>"SATB Practice"</strong> tab</li>
-            <li>You'll see the exercise dropdown and a file input for loading MIDI files</li>
+            <li>Go to the <strong>Sing</strong> room and open <strong>"Sing in Parts"</strong></li>
+            <li>Tap <strong>"Browse hymns"</strong> to pick from the built-in hymns, and open the <strong>"Part, tempo, key &amp; mixer"</strong> fold to find <strong>"load your own MIDI file"</strong></li>
           </ul>
         </li>
         <li><strong>Import Your MIDI File:</strong>
           <ul>
-            <li>Find the <strong>"Load MIDI File"</strong> section in the SATB Practice tab</li>
-            <li>Click the file input button (or the area that says "Select a MIDI file...")</li>
-            <li>Navigate to your MIDI file on your computer and select it</li>
+            <li>In the <strong>"Part, tempo, key &amp; mixer"</strong> fold, find <strong>"load your own MIDI file"</strong></li>
+            <li>Tap it and choose your MIDI file (or the area that says "Select a MIDI file...")</li>
+            <li>Navigate to your MIDI file on your device and select it</li>
             <li>The app will begin processing the file - this may take a few seconds</li>
             <li>You'll see a loading message in the badge area</li>
           </ul>
@@ -3240,14 +3214,14 @@ function getSubLesson7_2() {
             <li>Also select whether the piece is in <strong>Major</strong> or <strong>Minor</strong> mode</li>
             <li>Click <strong>"OK"</strong> to continue (or <strong>"Cancel"</strong> if you want to try a different file)</li>
             <li><strong>Why this matters:</strong> The key signature determines which solfege syllables correspond to which notes, so getting it right is important for accurate shape note display</li>
-            <li><strong>Note:</strong> To see the key signature on the staff, enable "Show Accidentals & Key" in the header controls (this setting works globally across all tabs, not just in the SATB tab)</li>
-            <li><strong>Important:</strong> The SATB tab uses the MIDI file's key signature (if available), while other tabs use the "Do" setting (movable Do) as the key signature</li>
+            <li><strong>Note:</strong> To see the key signature on the staff, enable "Show Accidentals & Key" in the Settings sheet (gear ⚙) (this setting works globally across all rooms, not just in Sing in Parts)</li>
+            <li><strong>Important:</strong> Sing in Parts uses the MIDI file's key signature (if available), while other rooms use the "Do" setting (movable Do) as the key signature</li>
           </ul>
         </li>
         <li><strong>Verify the Import:</strong>
           <ul>
-            <li>Once loaded, the new hymn will appear in the <strong>"Exercise"</strong> dropdown</li>
-            <li>The file name (without .mid extension) will be used as the exercise name</li>
+            <li>Once loaded, the new hymn will appear in the <strong>"Browse hymns"</strong> list</li>
+            <li>The file name (without .mid extension) will be used as the hymn name</li>
             <li>The staff will automatically display all four parts (Soprano, Alto, Tenor, Bass)</li>
             <li>You'll see the shape notes for each part based on the key signature you selected</li>
             <li>If the parts look wrong (e.g., all notes in one part), the MIDI file structure might be unusual - try a different file</li>
@@ -3255,44 +3229,45 @@ function getSubLesson7_2() {
         </li>
         <li><strong>Select Your Imported Hymn:</strong>
           <ul>
-            <li>In the <strong>"Exercise"</strong> dropdown, select your newly imported hymn</li>
+            <li>Tap <strong>"Browse hymns"</strong> and select your newly imported hymn</li>
             <li>The staff will update to show that hymn's notation</li>
-            <li>You can switch between different imported hymns using this dropdown</li>
+            <li>You can switch between different imported hymns from this list</li>
           </ul>
         </li>
         <li><strong>Choose Your Part:</strong>
           <ul>
-            <li>Click on the part button you want to practice (S, A, T, or B)</li>
-            <li>This sets which part you'll "aim for" - your part will be highlighted on the staff</li>
+            <li>Open the <strong>"Part, tempo, key &amp; mixer"</strong> fold and set <strong>"Aim For Part"</strong> to the part you want to practice (S, A, T, or B)</li>
+            <li>Your part will be highlighted on the staff</li>
             <li>Start with the part that's most comfortable for your voice range</li>
           </ul>
         </li>
-        <li><strong>Set Part Volumes:</strong>
+        <li><strong>Set How Loud Your Line Is:</strong>
           <ul>
-            <li>Adjust the volume sliders for each part</li>
-            <li><strong>Set your part volume lower (30-40%)</strong> - this is important! You want to hear yourself sing, not just follow the recording</li>
-            <li>Set other parts to 50-60% so you can hear the harmony</li>
+            <li>Use the <strong>"My part"</strong> control (Normal / Amplify / Quiet) — set it to <strong>"Quiet"</strong></li>
+            <li>This is important! You want to hear yourself sing, not just follow the recording</li>
+            <li>The other parts stay at normal level so you can hear the harmony</li>
+            <li>For finer balance, use the full mixer in the <strong>"Part, tempo, key &amp; mixer"</strong> fold</li>
             <li>This simulates singing in a group where you need to hold your own part</li>
           </ul>
         </li>
         <li><strong>Set Tempo:</strong>
           <ul>
-            <li>Start with a slow tempo (50-60 BPM) to give yourself time to think</li>
+            <li>In the <strong>"Part, tempo, key &amp; mixer"</strong> fold, start with a slow tempo (50-60 BPM) to give yourself time to think</li>
             <li>As you improve, gradually increase the tempo</li>
             <li>You can adjust this during playback if needed</li>
           </ul>
         </li>
         <li><strong>Enable Microphone (Optional but Recommended):</strong>
           <ul>
-            <li>Click the <strong>"Start Mic"</strong> button in the header to enable microphone input</li>
+            <li>Tap the <strong>"Mic"</strong> button in the header to enable microphone input</li>
             <li>Allow microphone access when prompted by your browser</li>
-            <li>The app will show your detected pitch on the staff in real-time</li>
+            <li>The app will show your detected pitch on the staff in real-time (see the live "Mic: — Hz | Δ cents" readout)</li>
             <li>This gives you visual feedback on whether you're singing the correct pitch</li>
           </ul>
         </li>
         <li><strong>Practice Singing Solfege:</strong>
           <ul>
-            <li>Click <strong>"Play"</strong> to start the exercise</li>
+            <li>Press the <strong>&#9654; play button</strong> to start</li>
             <li>As the music plays, <strong>sing the solfege syllables</strong> for your part:
               <ul>
                 <li>Look at the shape notes on the staff for your part</li>
@@ -3317,7 +3292,7 @@ function getSubLesson7_2() {
         <li><strong>Build Your Hymn Collection:</strong>
           <ul>
             <li>Import multiple hymns to build a practice library</li>
-            <li>Each imported hymn stays in the exercise dropdown until you refresh the page</li>
+            <li>Each imported hymn stays in the "Browse hymns" list until you refresh the page</li>
             <li>Try importing hymns in different keys to practice various key signatures</li>
             <li>Mix major and minor hymns to experience different harmonic colors</li>
             <li>Practice the same hymn in different parts (S, A, T, B) to build flexibility</li>
@@ -3386,10 +3361,10 @@ function getSubLesson7_2() {
         <li><strong>If you can't identify the solfege syllables:</strong>
           <ul>
             <li>Review Lesson 1 on shape notes and solfege</li>
-            <li>Use the Flashcards tab to practice shape-to-solfege recognition</li>
+            <li>Use Flashcards (Learn room) to practice shape-to-solfege recognition</li>
             <li>Slow down and identify each note before singing</li>
             <li>Check the key signature - it affects which solfege syllable each note represents</li>
-            <li>Enable "Show Accidentals & Key" in the header controls to see the key signature at the start of the staff</li>
+            <li>Enable "Show Accidentals & Key" in the Settings sheet (gear ⚙) to see the key signature at the start of the staff</li>
           </ul>
         </li>
         <li><strong>If microphone isn't working:</strong>
