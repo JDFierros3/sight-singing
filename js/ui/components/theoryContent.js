@@ -233,7 +233,7 @@ function renderLesson2() {
   return `
     <section class="lesson" id="lesson-2" data-lesson="2">
       <div class="lesson-header" data-lesson-toggle="2">
-        <h2>Lesson 2: Warmup &amp; Singing Foundations</h2>
+        <h2>Lesson 2: Warm Up &amp; Singing Foundations</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="2">
@@ -251,7 +251,7 @@ function renderLesson3() {
   return `
     <section class="lesson" id="lesson-3" data-lesson="3">
       <div class="lesson-header" data-lesson-toggle="3">
-        <h2>Lesson 3: Interval Training</h2>
+        <h2>Lesson 3: Intervals</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="3">
@@ -3042,7 +3042,7 @@ function renderLesson6() {
   return `
     <section class="lesson" id="lesson-6" data-lesson="6">
       <div class="lesson-header" data-lesson-toggle="6">
-        <h2>Lesson 6: Singing SATB Harmony</h2>
+        <h2>Lesson 6: Singing in Parts</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="6">
