@@ -281,18 +281,18 @@ function renderLesson4() {
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="4">
-        <p class="lesson-goal"><strong>Goal:</strong> Hear and identify multiple simultaneous tones</p>
+        <p class="lesson-goal"><strong>Goal:</strong> Hear two notes sounding together and name the interval between them.</p>
 
         <div class="warmup-connection">
           <strong>Warmup Connection: Arpeggios &amp; Intervals from Do</strong>
-          The <strong>Arpeggios</strong> stanza is your secret weapon here. When you sing Do-Mi-Sol, you're hearing those three notes sequentially.
-          In clusters, those same notes play <em>simultaneously</em>. If you can sing the arpeggio, you can pick apart the chord.
-          Also revisit <strong>Intervals from Do</strong> — recognizing the interval between two cluster tones is how you identify the second and third notes.
+          The <strong>Arpeggios</strong> pattern is your secret weapon here. Singing the Arpeggios (Do-Mi-Sol) trains your ear for the intervals <em>inside</em> a chord — Do-Mi, Mi-Sol, Do-Sol.
+          In Pitch Distinction, two notes sound at once and you name the interval between them. Hearing a full three-note chord comes later, in the Chord Quality drill.
+          Also revisit <strong>Intervals from Do</strong> — recognizing the interval between the two tones is exactly the skill this drill asks for.
         </div>
 
-        ${renderSubLesson('4.1', 'Hearing Multiple Simultaneous Tones', getSubLesson4_1())}
-        ${renderSubLesson('4.2', 'Strategies for Picking Apart Clusters', getSubLesson4_2())}
-        ${renderSubLesson('4.3', 'From Clusters to Chords', getSubLesson4_3())}
+        ${renderSubLesson('4.1', 'Hearing Two Notes at Once', getSubLesson4_1())}
+        ${renderSubLesson('4.2', 'Separating Two Simultaneous Tones', getSubLesson4_2())}
+        ${renderSubLesson('4.3', 'From Two-Note Intervals to Chords', getSubLesson4_3())}
       </div>
     </section>
   `;
@@ -499,7 +499,7 @@ function getSubLesson1_3() {
           <ul>
             <li>Click the <strong>"Starting note (Do)"</strong> dropdown menu</li>
             <li>You'll see a list of notes (C4, C#4, D4, D#4, E4, F4, F#4, G4, G#4, A4, A#4, B4)</li>
-            <li>Select a different note (e.g., if it's C4, change it to <strong>4G</strong>)</li>
+            <li>Select a different note (e.g., if it's C4, change it to <strong>G4</strong>)</li>
             <li>Click the <strong>"Play Do"</strong> button to hear the new Do pitch</li>
           </ul>
         </li>
@@ -639,7 +639,7 @@ function getSubLesson3_1() {
             <li>Try to identify: Is it a half step (1 semitone) or whole step (2 semitones)?</li>
             <li>When you've decided, <strong>tap the answer button</strong> for what you heard (e.g., <strong>2nd</strong>)</li>
             <li>The drill instantly shows whether you were right or wrong and reveals both notes on the staff with their solfege labels</li>
-            <li>The result readout names the interval (e.g., a ♭2nd for a half step, a 2nd for a whole step)</li>
+            <li>Both half steps and whole steps read as a <strong>"2nd"</strong> in the drill — but a half step (Mi–Fa or Ti–Do) sounds narrower and tighter than a whole step (Do–Re)</li>
           </ul>
         </li>
         <li><strong>Repeat and Track Progress:</strong>
@@ -1488,7 +1488,7 @@ function getSubLesson3_3() {
           <ul>
             <li>Go back to the <strong>Intervals</strong> drill in the Ear room</li>
             <li>Press the <strong>▶ play button</strong></li>
-            <li>Remember: intervals can go up or down (you practiced this in 2.2)</li>
+            <li>Remember: intervals can go up or down (you practiced this in 3.2)</li>
             <li>Now focus on identifying the <strong>larger intervals</strong>: 6th, 7th, octave</li>
             <li><strong>Tap the answer button</strong> for what you heard to check</li>
             <li>Study the staff and result readout for feedback</li>
@@ -1554,12 +1554,14 @@ function getSubLesson3_3() {
 
 function getSubLesson4_1() {
   return `
+    <p class="lesson-intro">These are the same intervals from Lesson 3 — but now the two notes sound <em>together</em> instead of one after the other. Simultaneous (harmonic) hearing is harder, so slow it down with the Play length slider.</p>
+
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
       <ul>
-        <li>Hear and identify 2-3 simultaneous pitches</li>
+        <li>Hear two simultaneous pitches and identify the interval between them.</li>
         <li>Understand how multiple voices create harmony</li>
-        <li>Develop ability to "pick out" individual tones from a chord</li>
+        <li>Develop ability to "pick out" each of the two tones</li>
       </ul>
     </div>
 
@@ -1656,7 +1658,7 @@ function getSubLesson4_2() {
       <h4>Learning Objectives:</h4>
       <ul>
         <li>Learn practical strategies for separating simultaneous tones</li>
-        <li>Use your warmup training to identify cluster notes</li>
+        <li>Use your warmup training to identify the two tones</li>
         <li>Progress through difficulty levels with confidence</li>
       </ul>
     </div>
@@ -1666,7 +1668,7 @@ function getSubLesson4_2() {
       <ol>
         <li><strong>Strategy 1 — Hum the Lowest Note First:</strong>
           <ul>
-            <li>When a cluster plays, focus on the <strong>lowest tone</strong> — it's usually the easiest to isolate</li>
+            <li>When the two tones play, focus on the <strong>lowest tone</strong> — it's usually the easiest to isolate</li>
             <li>Hum or sing it to lock it in</li>
             <li>Once you've identified the bottom note, mentally "subtract" it and listen for what's left</li>
             <li>This is exactly what bass singers do in SATB — they find the lowest note and hold it</li>
@@ -1683,7 +1685,7 @@ function getSubLesson4_2() {
         <li><strong>Strategy 3 — Use Your Arpeggio Training:</strong>
           <ul>
             <li>You've been singing arpeggios in warmup: Do-Mi-Sol, Re-Fa-La, etc.</li>
-            <li>When you hear a cluster, ask: "Does this sound like one of my arpeggios?"</li>
+            <li>When you hear the two tones, ask: "Does this pair sound like part of one of my arpeggios?"</li>
             <li>If you hear Do and Sol together, that's the outer notes of the I chord arpeggio</li>
             <li>If you hear Re and La, that's the ii chord arpeggio pattern</li>
             <li>Your voice memory from warmup helps your ear decode what it hears</li>
@@ -1713,9 +1715,9 @@ function getSubLesson4_2() {
       <h4>What to Look For:</h4>
       <ul>
         <li>Your speed at identifying the lowest note improving with practice</li>
-        <li>Arpeggio patterns becoming recognizable in clusters</li>
-        <li>Interval recognition from Lesson 3 directly helping decode clusters</li>
-        <li>Increased confidence when moving from 2-note to 3-note clusters</li>
+        <li>Arpeggio patterns becoming recognizable in the two tones</li>
+        <li>Interval recognition from Lesson 3 directly helping decode the dyad</li>
+        <li>Increased confidence when moving from Easy to Medium or Hard, and shortening the Play length</li>
       </ul>
     </div>
 
@@ -1741,17 +1743,17 @@ function getSubLesson4_3() {
     <div class="learning-objectives">
       <h4>Learning Objectives:</h4>
       <ul>
-        <li>Understand that clusters and chords are the same thing</li>
+        <li>Understand that a two-note interval is the skeleton of a triad</li>
         <li>Recognize common triads when played simultaneously</li>
-        <li>Bridge cluster detection skills into chord quality awareness</li>
+        <li>Bridge two-note interval hearing into chord quality awareness</li>
       </ul>
     </div>
 
     <div class="app-instructions">
       <h4>The Connection:</h4>
-      <p>Here's the insight that ties everything together: <strong>a cluster of 3 simultaneous notes IS a chord</strong>.
-         When you hear Do-Mi-Sol played at the same time, that's not just "3 notes" — it's a <strong>major triad</strong>.
-         The cluster detection skill you've been building is actually the chord recognition skill.</p>
+      <p>Here's the insight that ties everything together: <strong>the two-note interval you name in Pitch Distinction is the skeleton of a triad</strong> — two of its three tones.
+         Do-Mi, for example, is the bottom of the Do-Mi-Sol triad; Do-Sol is its outer frame.
+         To hear the full three-note chord, move to the <strong>Chord Quality</strong> drill: use <strong>Test me</strong> to identify a chord's quality, or <strong>Explore</strong> to build and hold one.</p>
 
       <h4>Practice Recognizing Chord Shapes:</h4>
       <ol>
@@ -1791,10 +1793,10 @@ function getSubLesson4_3() {
     <div class="what-to-look-for">
       <h4>What to Look For:</h4>
       <ul>
-        <li>Clusters that "sound familiar" from your arpeggio practice</li>
+        <li>Two-note intervals that "sound familiar" from your arpeggio practice</li>
         <li>Major triads (I, IV, V) sound bright — minor triads (ii, iii, vi) sound darker</li>
-        <li>Your ability to name the chord (not just the individual notes) when hearing a cluster</li>
-        <li>Growing confidence that cluster detection and chord recognition are the same skill</li>
+        <li>Your ability to name the chord (not just the individual notes) when hearing a full chord in the Chord Quality drill</li>
+        <li>Growing confidence that naming two-note intervals prepares you for full chord recognition</li>
       </ul>
     </div>
 
@@ -2132,10 +2134,9 @@ function getSubLesson6_3() {
           <ul>
             <li>Go to the <strong>Ear</strong> room and open <strong>"Pitch Distinction"</strong></li>
             <li>Pick the <strong>Hard</strong> difficulty pill (in the drill's options fold)</li>
-            <li>Press the <strong>&#9654; play button</strong></li>
-            <li>This practices hearing individual voices in harmony</li>
-            <li>Try to identify each tone in the cluster</li>
-            <li>This skill helps with part independence</li>
+            <li>Press the <strong>&#9654; play button</strong> — it plays your note against <strong>one</strong> other note (a two-note harmonic interval)</li>
+            <li>Training your ear to hold one tone against a neighbor is exactly what you do when you keep your line against the part beside you</li>
+            <li>For hearing individual voices in the full four-part texture, keep practicing here in Sing in Parts with the mixer (mute and unmute parts)</li>
           </ul>
         </li>
         <li><strong>Observe Voice Leading Patterns:</strong>
@@ -2424,7 +2425,7 @@ function getSubLesson5_1() {
             <li>Press the <strong>&#9654; play button</strong> to hear a chord</li>
             <li><strong>Try to identify each tone</strong> in solfege, then <strong>tap the quality</strong> you hear (Major, Minor, etc.)</li>
             <li>The drill auto-reveals whether you were right — no separate reveal step</li>
-            <li>For more practice hearing individual tones stacked together, try <strong>"Pitch Distinction"</strong> in the Ear room</li>
+            <li>For more practice hearing the tones inside a chord, switch to <strong>"Explore"</strong>, hold the chord as a drone, and sing each of its three tones in turn</li>
           </ul>
         </li>
         <li><strong>Compare Chord Qualities:</strong>
@@ -2463,7 +2464,7 @@ function getSubLesson5_1() {
       <ul>
         <li>If you can't hear individual tones, use the Warm Up room's arpeggios to hear each chord tone one at a time</li>
         <li>If chords all sound the same, listen more carefully - they have different "feels"</li>
-        <li>If you can't identify tones in a cluster, practice with Pitch Distinction (Ear room) more</li>
+        <li>If you still can't separate a chord's tones, slow down: hold it in Explore mode and add one tone at a time with your voice</li>
         <li>If shapes are confusing, study them one at a time (just I chord first, then add others)</li>
       </ul>
     </div>
@@ -2566,11 +2567,11 @@ function getSubLesson5_2() {
         <li><strong>Practice with Warm Up Arpeggios:</strong>
           <ul>
             <li>Go to the <strong>Warm Up</strong> room</li>
-            <li>Check the <strong>"Arpeggios (↑)"</strong> and/or <strong>"Arpeggios (↓)"</strong> checkboxes</li>
-            <li>Uncheck other stanzas if you want to focus just on arpeggios</li>
+            <li>Tap the <strong>"Arpeggios"</strong> pattern pill (turn off "Major scale" and "Intervals")</li>
+            <li>Set ascending/descending in the <strong>"Tempo, direction &amp; clef"</strong> fold</li>
             <li>Press the <strong>&#9654; play button</strong></li>
             <li><strong>Watch the staff</strong> as the arpeggios play</li>
-            <li>You'll see I, IV, and V chord arpeggios play sequentially</li>
+            <li>The Arpeggios pattern arpeggiates each diatonic triad in turn — I (Do-Mi-Sol), ii (Re-Fa-La), iii (Mi-Sol-Ti), IV (Fa-La-Do), V (Sol-Ti-Re), vi (La-Do-Mi); focus on the bright major ones (I, IV, V)</li>
             <li>Each arpeggio shows the shape notes for that chord (Do-Mi-So for I, Fa-La-Do for IV, So-Ti-Re for V)</li>
             <li>This visual practice helps you see which shape notes belong to each chord in the progression</li>
             <li>Listen to how each chord feels different as the arpeggios play</li>
@@ -2697,8 +2698,8 @@ function getSubLesson5_3() {
               <ul>
                 <li>Pick <strong>"Fa (IV)"</strong> as the chord root</li>
                 <li>Pick <strong>"Minor (1-♭3-5)"</strong> as the chord quality</li>
-                <li><strong>Watch the staff</strong> - you'll see Fa, La♭, Do (La lowered to La♭)</li>
-                <li>Notice how the shape note for La changes (with an accidental)</li>
+                <li><strong>Watch the staff</strong> - you'll see Fa, Le, Do (La lowered to Le), so minor iv = Fa-Le-Do</li>
+                <li>Notice how the shape note for La changes (Le with an accidental)</li>
                 <li>Press <strong>"Start Drone"</strong>, listen to the quality - "darker" than Major IV</li>
                 <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
@@ -2707,8 +2708,8 @@ function getSubLesson5_3() {
               <ul>
                 <li>Pick <strong>"Sol (V)"</strong> as the chord root</li>
                 <li>Pick <strong>"Minor (1-♭3-5)"</strong> as the chord quality</li>
-                <li><strong>Watch the staff</strong> - you'll see So, Ti♭, Re (Ti lowered to Ti♭)</li>
-                <li>Notice how the shape note for Ti changes (with an accidental)</li>
+                <li><strong>Watch the staff</strong> - you'll see Sol, Te, Re (Ti lowered to Te), so minor v = Sol-Te-Re</li>
+                <li>Notice how the shape note for Ti changes (Te with an accidental)</li>
                 <li>Press <strong>"Start Drone"</strong>, listen to the quality - "darker" than Major V</li>
                 <li>Press <strong>"Stop Drone"</strong></li>
               </ul>
@@ -2728,7 +2729,7 @@ function getSubLesson5_3() {
         <li><strong>Practice with Warm Up Arpeggios:</strong>
           <ul>
             <li>Go to the <strong>Warm Up</strong> room</li>
-            <li>Check the <strong>"Arpeggios (↑)"</strong> and/or <strong>"Arpeggios (↓)"</strong> checkboxes</li>
+            <li>Tap the <strong>"Arpeggios"</strong> pattern pill (turn off "Major scale" and "Intervals"); set ascending/descending in the <strong>"Tempo, direction &amp; clef"</strong> fold</li>
             <li>Press the <strong>&#9654; play button</strong></li>
             <li><strong>Watch the staff</strong> as the arpeggios play</li>
             <li>Notice how Major chord arpeggios (I, IV, V) have different shape notes than minor chord arpeggios (ii, iii, vi)</li>
@@ -2773,7 +2774,7 @@ function getSubLesson5_3() {
       <h4>Troubleshooting:</h4>
       <ul>
         <li>If you can't hear the difference, play Major and minor back-to-back repeatedly</li>
-        <li>If the app doesn't have minor chord support, focus on understanding the concept theoretically</li>
+        <li>Toggle between Major and Minor on the same root to hear the third drop (Mi → Me)</li>
         <li>If you're confusing Major and minor, practice with just I and i first</li>
         <li>If accidentals are confusing, that's normal - focus on the sound quality difference</li>
       </ul>
@@ -2827,7 +2828,7 @@ function getSubLesson5_4() {
             <li><strong>Practice with Warm Up Arpeggios:</strong>
               <ul>
                 <li>Go to the <strong>Warm Up</strong> room</li>
-                <li>Check the <strong>"Arpeggios (↑)"</strong> checkbox</li>
+                <li>Tap the <strong>"Arpeggios"</strong> pattern pill (turn off "Major scale" and "Intervals"); set ascending in the <strong>"Tempo, direction &amp; clef"</strong> fold</li>
                 <li>Press the <strong>&#9654; play button</strong></li>
                 <li><strong>Watch the staff</strong> - arpeggios show root position chords (root is always the first note)</li>
                 <li>Notice how each arpeggio starts on the root (Do for I chord, Fa for IV chord, So for V chord)</li>
@@ -2874,11 +2875,9 @@ function getSubLesson5_4() {
           <ul>
             <li>Go to the <strong>Ear</strong> room and open <strong>"Pitch Distinction"</strong></li>
             <li>Pick the <strong>Hard</strong> or <strong>Expert</strong> difficulty pill (in the drill's options fold)</li>
-            <li>Press the <strong>&#9654; play button</strong> to hear the tones stacked together</li>
-            <li>This practices hearing complex harmony</li>
-            <li><strong>Try to identify each tone</strong> in the cluster</li>
-            <li><strong>Try to identify the chord</strong> (is it I? IV? V? Major? minor?)</li>
-            <li><strong>Tap the answer</strong> to auto-reveal whether you were right</li>
+            <li>Press the <strong>&#9654; play button</strong> — it plays <strong>two notes at once</strong> and you name the <strong>interval</strong> between them (no note stacks, no chord-ID here)</li>
+            <li>This trains hearing one note against another — the harmonic building block of every chord</li>
+            <li><strong>To practice identifying whole chords</strong>, use the <strong>Chord Quality</strong> drill's <strong>Test me</strong> mode instead (press <strong>&#9654;</strong>, then tap the quality you hear)</li>
           </ul>
         </li>
         <li><strong>Practice All Chord Types:</strong>
@@ -2902,6 +2901,7 @@ function getSubLesson5_4() {
                 <li>vii° chord (Ti root)</li>
               </ul>
             </li>
+            <li><strong>Important:</strong> in Explore, root and quality are chosen <em>independently</em>. Picking a root alone does not give you the diatonic chord — you must set the matching quality: <strong>Re + Minor = ii</strong>, <strong>Mi + Minor = iii</strong>, <strong>La + Minor = vi</strong>, <strong>Ti + Diminished = vii°</strong>, and so on</li>
             <li><strong>Watch the staff</strong> - chord tones update automatically when you change root, quality, or inversion</li>
             <li><strong>Listen to the quality</strong> of each chord - hold the drone to hear it sustained</li>
             <li><strong>Try different inversions</strong> - click Root, 1st, or 2nd to hear how the bass note changes the sound</li>
@@ -2967,7 +2967,7 @@ function renderLesson5() {
 
         <div class="warmup-connection">
           <strong>Warmup Connection: Arpeggios</strong>
-          The <strong>Arpeggios</strong> stanza directly trains chord hearing. Each arpeggio you sing is a chord played one note at a time.
+          The <strong>Arpeggios</strong> pattern directly trains chord hearing. Each arpeggio you sing is a chord played one note at a time.
           The I chord (Do-Mi-Sol) arpeggio you've been singing every warmup? That's the major triad.
           The ii chord (Re-Fa-La)? That's a minor triad.
           Your daily arpeggios have been teaching you chord quality all along.
