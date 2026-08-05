@@ -242,6 +242,7 @@ function updateMicLine() {
   getCurrentPitch();
   const hz = pitchState.hz || 0; // per-frame detection (RMS-gated)
   const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+
   if (hz <= 0 || pitchState.clarity < MIC_CLARITY_MIN) {
     // No clear pitch — silence, a note transition, or a noise burst. A single such frame is normal
     // even mid-note, so hold the last line rather than flashing off; only hide after MIC_HOLD_MS.
@@ -255,9 +256,10 @@ function updateMicLine() {
   const sungMidi = frequencyToMidi(hz, appState.tuning.a4);
   if (!Number.isFinite(sungMidi)) { micLineEl.style.display = 'none'; return; }
 
-  // Truthful: draw the note actually detected — no folding to the aimed part or voice range (that
-  // pinned a genuinely high/low voice to the wrong place). A median-of-3 rejects a lone octave-slip
-  // frame and a light EMA smooths; neither hides where the voice really is.
+  // Fully truthful: draw the exact note detected, at whatever octave it actually is. NO octave
+  // folding or continuity of any kind — jump to a different octave than the hymn and the line goes
+  // there immediately. A median-of-3 only rejects a lone one-frame outlier; the detector must get
+  // the octave right on its own (that's the real fix, not display-side correction).
   const denoised = pushMedian(sungMidi);
   micMidiEma = micMidiEma == null ? denoised : micMidiEma * (1 - MIC_EMA_ALPHA) + denoised * MIC_EMA_ALPHA;
 

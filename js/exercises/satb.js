@@ -36,12 +36,17 @@ function configureSATBPerformance() {
 // Leave full-screen and restore the inline engraved notation after playback ends/stops.
 function restoreSATBNotation() {
   appState.satb.currentTargetMidi = null; // no note is sounding once we leave the performance
+  currentTargetNote = null;
   exitPerformance();
   if (appState.satb.currentExercise) displaySATBExerciseOnStaff(appState.satb.currentExercise);
 }
 
 // Track active SATB oscillators
 let activeSATBOscillators = [];
+// The exact aim-part note object currently driving the crosshair target. Tracked by identity (not
+// midi) so back-to-back notes at the SAME pitch don't clear each other's target (which dropped the
+// green mid-phrase on repeated notes).
+let currentTargetNote = null;
 
 /**
  * Convert SATB exercise to stanza format for the player
@@ -125,9 +130,10 @@ export async function playSATBExercise() {
         return;
       }
       
-      // The aim part's current note drives the mic-line colour + octave fold (crosshair target).
+      // The aim part's current note drives the mic-line colour (crosshair target).
       if (note.part === appState.satb.aimPart) {
         appState.satb.currentTargetMidi = note.midi;
+        currentTargetNote = note;
       }
 
       // Play note with part-specific volume
@@ -155,9 +161,12 @@ export async function playSATBExercise() {
         }
       }
 
-      // Clear the target once this aim-part note ends (unless a newer one already replaced it).
-      if (note.part === appState.satb.aimPart && appState.satb.currentTargetMidi === note.midi) {
+      // Clear the target once THIS aim-part note ends — but only if a newer note hasn't taken over.
+      // Compare the note OBJECT, not its midi, so a repeated same-pitch note keeps the crosshair (and
+      // the green) unbroken instead of the ending note clearing its successor's identical target.
+      if (note.part === appState.satb.aimPart && currentTargetNote === note) {
         appState.satb.currentTargetMidi = null;
+        currentTargetNote = null;
       }
     });
     

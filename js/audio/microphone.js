@@ -11,7 +11,16 @@ export const microphone = {
 };
 
 export async function requestMicrophoneAccess() {
-  return await navigator.mediaDevices.getUserMedia({ audio: true });
+  // Disable the browser's voice DSP. Noise suppression / auto-gain / echo cancellation are tuned
+  // for SPEECH — they treat a sustained sung tone as background noise and mute it, so a held note
+  // drops to silence mid-phrase. We want the raw signal for pitch tracking. (Falls back to plain
+  // audio if a browser rejects the constraints.)
+  const raw = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+  try {
+    return await navigator.mediaDevices.getUserMedia({ audio: raw });
+  } catch (e) {
+    return await navigator.mediaDevices.getUserMedia({ audio: true });
+  }
 }
 
 export function createMicrophoneStream() {

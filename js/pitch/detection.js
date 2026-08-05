@@ -108,6 +108,13 @@ export function detectPitch(buffer, sampleRate) {
     tau = best;
   }
 
+  // 3b) Octave-down correction. A strong 2nd harmonic — common on low voices — makes the CMNDF dip
+  //     at HALF the true period first, so YIN reports an octave too high (the "low mi jumps octaves"
+  //     bug). If DOUBLE the period is a clearly deeper dip, that's the real fundamental. The strict
+  //     0.85 factor means a true fundamental (whose 2·P dip is ~equal, not deeper) is left untouched.
+  let octGuard = 0;
+  while (tau * 2 <= maxLag && cmnd[tau * 2] < cmnd[tau] * 0.85 && octGuard++ < 3) tau *= 2;
+
   // 4) Parabolic interpolation around τ for sub-sample precision.
   const x0 = tau > minLag ? cmnd[tau - 1] : cmnd[tau];
   const x2 = tau < maxLag ? cmnd[tau + 1] : cmnd[tau];
