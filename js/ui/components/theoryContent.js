@@ -277,7 +277,7 @@ function renderLesson4() {
   return `
     <section class="lesson" id="lesson-4" data-lesson="4">
       <div class="lesson-header" data-lesson-toggle="4">
-        <h2>Lesson 4: Cluster Detection</h2>
+        <h2>Lesson 4: Pitch Distinction</h2>
         <span class="lesson-toggle-icon">▼</span>
       </div>
       <div class="lesson-content" data-lesson-content="4">
@@ -1566,67 +1566,55 @@ function getSubLesson4_1() {
     <div class="app-instructions">
       <h4>Detailed App Instructions:</h4>
       <ol>
-        <li><strong>Configure Hidden Cluster Tab:</strong>
+        <li><strong>Open the Pitch Distinction drill:</strong>
           <ul>
-            <li>Click the <strong>"Hidden Cluster"</strong> tab</li>
-            <li>Find the difficulty buttons at the top</li>
-            <li>Click the <strong>"Easy"</strong> button (start here)</li>
-            <li>Find the <strong>"Constrain to scale notes (diatonic)"</strong> checkbox - make sure it's <strong>CHECKED</strong></li>
-            <li>Find the <strong>"Duration"</strong> slider - set it to <strong>3 seconds</strong> (or higher if you need more time)</li>
-            <li>The slider shows "Duration: [X] seconds" - adjust as needed</li>
-            <li>Find <strong>"Hide staff answers (until Reveal)"</strong> checkbox - make sure it's <strong>CHECKED</strong></li>
+            <li>Open the <strong>Ear</strong> room (bottom nav on mobile, left rail on desktop)</li>
+            <li>In the Ear sub-nav, choose <strong>Pitch Distinction</strong></li>
+            <li>The prompt reads: "Two notes sound together — tap the interval you hear"</li>
           </ul>
         </li>
-        <li><strong>Start with 2 Tones:</strong>
+        <li><strong>Set up the options fold:</strong>
           <ul>
-            <li>Click the <strong>"Play 2"</strong> button</li>
-            <li>You'll hear 2 notes playing simultaneously (at the same time)</li>
-            <li>They'll play for the duration you set (3+ seconds)</li>
-            <li><strong>Listen carefully</strong> - try to identify each individual tone</li>
-            <li>Hum or sing each tone you hear</li>
-            <li>Try to name them in solfege (e.g., "I hear Do and Mi")</li>
+            <li>Open the <strong>"Difficulty &amp; play length"</strong> options fold</li>
+            <li>Tap the <strong>Easy</strong> difficulty pill (start here)</li>
+            <li>Turn <strong>ON</strong> the <strong>"Scale notes only (diatonic)"</strong> toggle</li>
+            <li>Drag the <strong>Play length</strong> slider up to a longer setting (more time to listen) while you're learning</li>
           </ul>
         </li>
-        <li><strong>Reveal and Check:</strong>
+        <li><strong>Play and listen:</strong>
           <ul>
-            <li>After listening and trying to identify the tones, click <strong>"Reveal"</strong> button</li>
-            <li>The staff will show the 2 notes with their solfege labels</li>
-            <li>Check if you identified them correctly</li>
-            <li>The badge will show something like "Do, Mi" or "Re, So"</li>
+            <li>Press the round brass <strong>&#9654;</strong> play button</li>
+            <li>It plays exactly <strong>two notes at the same time</strong> for the play length you set</li>
+            <li><strong>Listen carefully</strong> — hum or sing each tone you hear</li>
+            <li>Focus on the <strong>interval</strong> between them: does it sound like a 3rd, a 5th, an octave?</li>
           </ul>
         </li>
-        <li><strong>Practice Systematically:</strong>
+        <li><strong>Tap your answer:</strong>
           <ul>
-            <li>Click <strong>"Play 2"</strong> again for a new cluster</li>
-            <li>Listen, identify, then reveal</li>
-            <li>Repeat 10 times</li>
-            <li>Track your score: aim for 10/10 correct</li>
+            <li>Answer buttons for the possible intervals appear below the staff</li>
+            <li>Tap the button for the interval you think you heard</li>
+            <li>It reveals right or wrong instantly and shows the two notes on the staff with their solfege labels</li>
+            <li>There is no separate Reveal button — tapping the answer is what reveals it</li>
           </ul>
         </li>
-        <li><strong>Move to Medium Difficulty:</strong>
+        <li><strong>Practice systematically:</strong>
           <ul>
-            <li>Once you can identify 2 tones consistently on Easy, click <strong>"Medium"</strong> difficulty button</li>
-            <li>Medium still uses 2 tones but they might be further apart in pitch</li>
-            <li>Practice with <strong>"Play 2"</strong> on Medium mode</li>
+            <li>Press <strong>&#9654;</strong> again for a new pair, listen, then tap your answer</li>
+            <li>Repeat about 10 times</li>
+            <li>Keep a mental score: aim for 10/10 correct</li>
+          </ul>
+        </li>
+        <li><strong>Move to Medium difficulty:</strong>
+          <ul>
+            <li>Once you're consistent on Easy, tap the <strong>Medium</strong> difficulty pill</li>
+            <li>Medium widens the range so the two notes may be further apart in pitch</li>
             <li>Aim for 10/10 correct on Medium</li>
           </ul>
         </li>
-        <li><strong>Try 3 Tones</strong> (when ready):
+        <li><strong>Tighten the play length for a challenge:</strong>
           <ul>
-            <li>After mastering 2 tones, try <strong>"Play 3"</strong> button</li>
-            <li>This plays 3 simultaneous notes - more challenging!</li>
-            <li>Start on <strong>"Easy"</strong> mode with 3 tones</li>
-            <li>Listen for each individual tone</li>
-            <li>Try to identify all 3 in solfege</li>
-            <li>Reveal to check</li>
-          </ul>
-        </li>
-        <li><strong>Use Duration Slider:</strong>
-          <ul>
-            <li>If 3 seconds isn't enough time, increase the <strong>"Duration"</strong> slider</li>
-            <li>Drag it to <strong>5 seconds</strong> or <strong>7 seconds</strong> if needed</li>
-            <li>More time = easier to identify tones</li>
-            <li>As you improve, decrease the duration for more challenge</li>
+            <li>If you want more time, drag the <strong>Play length</strong> slider up</li>
+            <li>As you improve, drag it <strong>down</strong> so you get a shorter listen — you have to grab the interval faster</li>
           </ul>
         </li>
       </ol>
@@ -1635,29 +1623,29 @@ function getSubLesson4_1() {
     <div class="what-to-look-for">
       <h4>What to Look For:</h4>
       <ul>
-        <li>Easy mode: Always includes Do + one other note, both diatonic (in the scale)</li>
-        <li>Medium mode: Includes Do + other notes, might go up or down from Do</li>
-        <li>When revealed, the staff shows all tones with their shape notes and solfege labels</li>
+        <li>Easy difficulty with "Scale notes only" on: both tones are diatonic (in the scale)</li>
+        <li>Medium difficulty: wider range between the two tones</li>
+        <li>After you tap, the staff shows both tones with their shape notes and solfege labels</li>
         <li>The tones are sorted from lowest to highest on the staff</li>
-        <li>Try to "pick out" each tone individually from the cluster</li>
+        <li>Try to "pick out" each tone individually, then name the interval between them</li>
       </ul>
     </div>
 
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
-        <li>If you can't hear individual tones, increase the Duration slider (more time)</li>
-        <li>If all tones sound the same, you might be hearing the chord as a whole - try to focus on one tone at a time</li>
-        <li>If you're only hearing one tone, listen more carefully - there are definitely 2 (or 3) tones</li>
-        <li>If Easy is too hard, that's okay - keep practicing, your ear will improve</li>
-        <li>Try humming along with one tone, then switch to the other tone(s)</li>
+        <li>If you can't hear the two tones separately, drag the Play length slider up for more time</li>
+        <li>If they blur into one sound, focus on the lowest tone first, then the higher one</li>
+        <li>If you keep hearing only one note, listen again — there are always two tones sounding together</li>
+        <li>If Easy is too hard, that's okay — keep practicing, your ear will improve</li>
+        <li>Try humming along with the lower tone, then switch to the upper tone</li>
       </ul>
     </div>
 
     <div class="benchmark">
-      <p><strong>Benchmark:</strong> 10/10 correct on Hidden Cluster Medium mode (2 tones)</p>
+      <p><strong>Benchmark:</strong> 10/10 correct on Pitch Distinction at Medium difficulty</p>
       <p><strong>Progression:</strong> Move to 4.2 when benchmark achieved</p>
-      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="cluster">Try it: Go to Hidden Cluster &rarr;</button></p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="cluster">Try it: Go to Pitch Distinction &rarr;</button></p>
     </div>
   `;
 }
@@ -1684,12 +1672,12 @@ function getSubLesson4_2() {
             <li>This is exactly what bass singers do in SATB — they find the lowest note and hold it</li>
           </ul>
         </li>
-        <li><strong>Strategy 2 — Use the Duration Slider:</strong>
+        <li><strong>Strategy 2 — Use the Play length Slider:</strong>
           <ul>
-            <li>Increase the <strong>Duration</strong> slider to 5-7 seconds when starting out</li>
-            <li>More time = more chances to focus on each individual note</li>
-            <li>On the first listen, find the lowest note. On the replay, find the highest. Then the middle.</li>
-            <li>As you improve, gradually reduce the duration for more challenge</li>
+            <li>In the <strong>"Difficulty &amp; play length"</strong> fold, drag the <strong>Play length</strong> slider up when starting out</li>
+            <li>More time = more chances to focus on each tone</li>
+            <li>On the first listen, find the lower note. Press <strong>&#9654;</strong> again and find the higher note.</li>
+            <li>As you improve, drag the Play length slider down for a shorter listen and more challenge</li>
           </ul>
         </li>
         <li><strong>Strategy 3 — Use Your Arpeggio Training:</strong>
@@ -1703,7 +1691,7 @@ function getSubLesson4_2() {
         </li>
         <li><strong>Strategy 4 — Identify the Interval Between Notes:</strong>
           <ul>
-            <li>In a 2-note cluster, identify the <strong>interval</strong> between the two notes</li>
+            <li>The two tones sound together — identify the <strong>interval</strong> between them (this is exactly what the drill asks you to tap)</li>
             <li>Use your Intervals from Do training: "This sounds like a 3rd" or "This sounds like a 5th"</li>
             <li>Once you know the interval and one of the notes, you can figure out the other</li>
             <li>For example: "The lower note sounds like Do, and the interval is a 3rd, so the upper note is Mi"</li>
@@ -1711,10 +1699,11 @@ function getSubLesson4_2() {
         </li>
         <li><strong>Progression Through Difficulties:</strong>
           <ul>
-            <li><strong>Easy:</strong> Always includes Do + one other diatonic note. Start here — you just need to identify what's paired with Do</li>
+            <li><strong>Easy:</strong> Often includes Do + one other diatonic note. Start here — you just need to identify what's paired with Do</li>
             <li><strong>Medium:</strong> Wider range, may not include Do. Use interval recognition to identify both notes</li>
             <li><strong>Hard:</strong> Chromatic notes possible. Listen for the "color" of non-scale notes</li>
-            <li>Master 2-note clusters on each difficulty before moving to 3-note clusters</li>
+            <li><strong>Expert:</strong> Fully chromatic. Tap the <strong>Expert</strong> difficulty pill only once Hard feels reliable</li>
+            <li>Rather than adding a third note, raise the difficulty pill and drag the Play length slider down to keep pushing yourself</li>
           </ul>
         </li>
       </ol>
@@ -1733,15 +1722,15 @@ function getSubLesson4_2() {
     <div class="troubleshooting">
       <h4>Troubleshooting:</h4>
       <ul>
-        <li>If all tones blur together, increase the duration and focus on just the lowest tone first</li>
-        <li>If you can hear 2 notes in a 3-note cluster but not the third, try singing Do-Mi-Sol to yourself and see if the cluster matches</li>
-        <li>If you're stuck on Easy, go back to the Warmup tab and sing Intervals from Do a few times, then try again</li>
-        <li>If Hard mode is overwhelming, stay on Medium until you're consistently getting 8/10+</li>
+        <li>If the two tones blur together, drag the Play length slider up and focus on just the lower tone first</li>
+        <li>If you can hear one note but not the other, try singing Do-Mi-Sol to yourself and see if either tone matches</li>
+        <li>If you're stuck on Easy, go back to the Warm Up room and sing Intervals from Do a few times, then try again</li>
+        <li>If Hard difficulty is overwhelming, stay on Medium until you're consistently getting 8/10+</li>
       </ul>
     </div>
 
     <div class="benchmark">
-      <p><strong>Benchmark:</strong> 8/10 correct on 2-note clusters at Medium difficulty, and 6/10 on 3-note clusters at Easy difficulty</p>
+      <p><strong>Benchmark:</strong> 8/10 correct at Medium difficulty, and 6/10 at Hard difficulty with a shorter Play length</p>
       <p><strong>Progression:</strong> Move to 4.3 when benchmark achieved</p>
     </div>
   `;
@@ -1764,29 +1753,30 @@ function getSubLesson4_3() {
          When you hear Do-Mi-Sol played at the same time, that's not just "3 notes" — it's a <strong>major triad</strong>.
          The cluster detection skill you've been building is actually the chord recognition skill.</p>
 
-      <h4>Practice Recognizing Chord Shapes in Clusters:</h4>
+      <h4>Practice Recognizing Chord Shapes:</h4>
       <ol>
-        <li><strong>Play 3-note clusters on Easy mode</strong> (Hidden Cluster tab)
+        <li><strong>Hear full triads in Chord Quality's Explore mode</strong>
           <ul>
-            <li>After revealing, look at the 3 notes — do they form a triad you know from warmup arpeggios?</li>
+            <li>In the <strong>Ear</strong> room, choose the <strong>Chord Quality</strong> drill and set its toggle to <strong>Explore</strong></li>
+            <li>Build a triad from the root + quality buttons and hold it as a drone — do the three notes form a shape you know from warmup arpeggios?</li>
             <li>Do-Mi-Sol = I chord (major). Re-Fa-La = ii chord (minor). Fa-La-Do = IV chord (major).</li>
-            <li>Start noticing: "That cluster was a I chord!" or "That was a ii chord!"</li>
+            <li>Start noticing: "That's a I chord!" or "That's a ii chord!"</li>
           </ul>
         </li>
-        <li><strong>Cross-train with Chord Quality tab:</strong>
+        <li><strong>Cross-train with the Chord Quality drill:</strong>
           <ul>
-            <li>Go to the <strong>Chord Quality</strong> tab</li>
-            <li>Click <strong>"Do (I)"</strong> then <strong>"Major (1-3-5)"</strong> to hear the I chord as a drone</li>
-            <li>Now go back to Hidden Cluster and play a 3-note cluster</li>
-            <li>Ask yourself: "Does this sound like that I chord I just heard?"</li>
-            <li>This cross-training connects your cluster hearing with chord identification</li>
+            <li>Use <strong>Explore</strong> mode to build and hold the <strong>I chord</strong> (Do major) as a drone to sing against</li>
+            <li>Then switch the toggle to <strong>Test me</strong>: press the <strong>&#9654;</strong> play button to hear a chord and tap its quality</li>
+            <li>Ask yourself: "Does this match the I chord I just held?"</li>
+            <li>Back in <strong>Pitch Distinction</strong>, notice how the two-note interval you tap is the skeleton of these triads</li>
+            <li>This cross-training connects your two-note hearing with full chord identification</li>
           </ul>
         </li>
         <li><strong>Use arpeggios as a "decoder ring":</strong>
           <ul>
-            <li>When you hear a cluster, quickly sing the arpeggio that might match</li>
-            <li>Hear a bright cluster with Do at the bottom? Sing "Do-Mi-Sol" — does it match?</li>
-            <li>Hear a darker cluster? Try "Re-Fa-La" or "La-Do-Mi" — minor triads</li>
+            <li>When you hear notes together, quickly sing the arpeggio that might match</li>
+            <li>Hear a bright chord with Do at the bottom? Sing "Do-Mi-Sol" — does it match?</li>
+            <li>Hear a darker one? Try "Re-Fa-La" or "La-Do-Mi" — minor triads</li>
             <li>Your warmup arpeggio training is literally the key to unlocking chord recognition</li>
           </ul>
         </li>
@@ -1795,7 +1785,7 @@ function getSubLesson4_3() {
       <h4>What This Means for What's Next:</h4>
       <p>In <strong>Lesson 5 (Chord Quality)</strong>, you'll learn to formally identify chord types (major, minor, diminished, etc.)
          and understand chord progressions. But the ear training foundation? You've already built it here and in your daily warmup.
-         The Chord Quality tab just gives you the vocabulary and formal framework for what your ear already knows.</p>
+         The Chord Quality drill just gives you the vocabulary and formal framework for what your ear already knows.</p>
     </div>
 
     <div class="what-to-look-for">
@@ -1812,15 +1802,15 @@ function getSubLesson4_3() {
       <h4>Troubleshooting:</h4>
       <ul>
         <li>If you can name individual notes but not the chord, review the arpeggio patterns: which scale degree triads are major vs. minor?</li>
-        <li>If clusters don't sound like "chords" yet, spend more time on the Chord Quality tab listening to drone chords, then come back</li>
+        <li>If notes together don't sound like "chords" yet, spend more time in the Chord Quality drill's Explore mode holding drone chords, then come back</li>
         <li>If you're confused about major vs. minor, just listen to the "brightness" — major is bright, minor is dark</li>
       </ul>
     </div>
 
     <div class="benchmark">
-      <p><strong>Benchmark:</strong> When playing 3-note clusters, correctly identify both the individual notes AND the chord type (major or minor) at least 6/10 times</p>
+      <p><strong>Benchmark:</strong> Correctly identify the two notes in Pitch Distinction AND, in Chord Quality's Test me mode, the chord type (major or minor) at least 6/10 times</p>
       <p><strong>Progression:</strong> Proceed to Lesson 5 when benchmark achieved</p>
-      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="cluster">Try it: Go to Hidden Cluster &rarr;</button></p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="cluster">Try it: Go to Pitch Distinction &rarr;</button></p>
     </div>
   `;
 }
