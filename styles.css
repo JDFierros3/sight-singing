@@ -1854,7 +1854,9 @@ body.onb-open { overflow: hidden; }
  * Settings sheet — houses the relocated tuning controls behind the gear.
  * Desktop: right-hand panel. Mobile: bottom sheet.
  * ===================================================================== */
-.settings-sheet { position: fixed; inset: 0; z-index: 200; }
+/* Above the theory sidebar (1001) and header (1000): Settings is a modal, so it must overlay the
+   theory drawer (both dock on the right) instead of being painted over by it. */
+.settings-sheet { position: fixed; inset: 0; z-index: 2000; }
 .settings-sheet[hidden] { display: none; }
 .settings-sheet .ss-backdrop { position: absolute; inset: 0; background: rgba(3, 5, 12, 0.55); }
 .settings-sheet .ss-card {
