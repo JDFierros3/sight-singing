@@ -400,7 +400,9 @@ function updateTabButtonState(tabName, isActive) {
 function updateTabPanelVisibility(tabName, isVisible) {
   const panel = getElementById(`panel-${tabName}`);
   if (panel) {
-    panel.style.display = isVisible ? 'block' : 'none';
+    // Clear the inline display when showing so the panel uses its CSS display (exercise panels are
+    // flex columns — an inline `block` here would override that and kill their vertical `gap`).
+    panel.style.display = isVisible ? '' : 'none';
   }
 }
 
