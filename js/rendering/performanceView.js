@@ -16,7 +16,6 @@ import { getElementById } from '../utils/dom.js';
 import { appState } from '../state/appState.js';
 import { pitchState, getCurrentPitch } from '../pitch/detection.js';
 import { frequencyToMidi } from '../utils/audioMath.js';
-import { getVoiceTuning } from '../session/profile.js';
 import { renderHymnNotation } from './notationView.js';
 
 /**
@@ -256,13 +255,13 @@ function updateMicLine() {
   const sungMidi = frequencyToMidi(hz, appState.tuning.a4);
   if (!Number.isFinite(sungMidi)) { micLineEl.style.display = 'none'; return; }
 
-  // Octave-stabilize against the singer's OWN recent line (not a fixed range) so a hymn that climbs
-  // out of the usual range is followed truthfully — only a lone octave glitch snaps back, and a
-  // sustained octave leap is released. A median-of-3 + light EMA then smooth without adding lag.
-  const target = cfg.getTargetMidi ? cfg.getTargetMidi() : null;
-  const stable = stabilizeOctave(sungMidi, target);
-  const denoised = pushMedian(stable);
+  // Truthful: draw the note actually detected — no folding to the aimed part or voice range (that
+  // pinned a genuinely high/low voice to the wrong place). A median-of-3 rejects a lone octave-slip
+  // frame and a light EMA smooths; neither hides where the voice really is.
+  const denoised = pushMedian(sungMidi);
   micMidiEma = micMidiEma == null ? denoised : micMidiEma * (1 - MIC_EMA_ALPHA) + denoised * MIC_EMA_ALPHA;
+
+  const target = cfg.getTargetMidi ? cfg.getTargetMidi() : null;
 
   const part = cfg.fitPart ? cfg.fitPart() : null;
   const y = pitchToYForPart(part, micMidiEma);
@@ -291,32 +290,6 @@ function pushMedian(midi) {
   micMidiHistory.push(midi);
   if (micMidiHistory.length > 3) micMidiHistory.shift();
   return [...micMidiHistory].sort((a, b) => a - b)[Math.floor(micMidiHistory.length / 2)];
-}
-
-// Keep the line on the octave the singer is actually on, by snapping the detected pitch to the
-// octave nearest a reference: the singer's own recent line while tracking, else a first-note prior
-// (the aimed note in SATB, else the voice-type range centre). Because we anchor to the RECENT LINE —
-// not a fixed range — stepwise motion out of the usual range is followed exactly (each small step
-// stays within the snap window); only a lone octave glitch or a persistent formant/subharmonic
-// octave error gets pulled back. That corrects the octave errors detection can't fully avoid,
-// without the old fixed-range fold that lied. (Trade-off: a rare true octave leap within one part
-// is held rather than followed — acceptable for hymns/warm-ups, which move stepwise.)
-function stabilizeOctave(rawMidi, target) {
-  let ref = micMidiEma;
-  if (ref == null) {
-    ref = Number.isFinite(target) ? target : rawMidi;
-    if (!Number.isFinite(target)) {
-      const r = getVoiceTuning()?.range;
-      if (Array.isArray(r) && r.length >= 2) ref = (r[0] + r[1]) / 2;
-    }
-  }
-  return nearestOctave(rawMidi, ref);
-}
-
-function nearestOctave(midi, ref) {
-  while (midi - ref > 6) midi -= 12;
-  while (ref - midi > 6) midi += 12;
-  return midi;
 }
 
 // Linear midi->y fit from just the chosen part's noteheads (one staff, no lyric-gap
