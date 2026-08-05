@@ -69,7 +69,7 @@ All solfege is relative to `appState.tuning.doMidi`. SATB exercises temporarily 
 - **One handler per export:** `js/ui/handlers/inputs.js` exports one named function per event handler; `main.js` destructures them all.
 - **DOM access:** All `getElementById` calls go through `js/utils/dom.js` wrapper (logs warnings on miss).
 - **No external dependencies at dev time:** CDN-loaded libraries (Tone.js, soundfont-player, @tonejs/midi, VexFlow) are imported at runtime. The one `devDependency` (`@iarna/toml`) is only for the OpenPsalm build script.
-- **Shape-note shapes:** Do=triangle, Re=diamond, Mi=right triangle, Fa=downward triangle, Sol=circle, La=square, Ti=left triangle (drawn in `js/rendering/shapes.js`).
+- **Shape-note shapes:** Do=triangle, Re=half-circle, Mi=diamond, Fa=flag (right triangle), Sol=oval, La=rectangle, Ti=ice-cream cone. Staff noteheads are drawn by `drawNoteHeadWithShape` in `js/rendering/shapes.js`; the matching DOM/flashcard icons are in `js/ui/components/shapeIcon.js` (kept in sync). (These superseded an older Aikin set — Re=diamond, Mi=right triangle, etc.)
 - **Staff rendering is diatonic:** Note positions use letter-name steps (not semitones), with key-aware enharmonic spelling via `js/utils/keySignature.js`.
 - **Dark theme:** CSS custom properties defined in `:root` of the root `styles.css` (`--bg: #0f1220`, `--panel: #171a2b`, etc.).
 
