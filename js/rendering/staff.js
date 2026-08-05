@@ -7,7 +7,7 @@ import { appState, getDoMidiForDisplay } from '../state/appState.js';
 import { buildScalePitches } from '../utils/musicTheory.js';
 import { frequencyToMidi, midiToFrequency, centsBetween } from '../utils/audioMath.js';
 import { pitchState } from '../pitch/detection.js';
-import { drawShapeBadge, drawRoundedRect, drawNoteHeadWithShape } from './shapes.js';
+import { drawRoundedRect, drawNoteHeadWithShape } from './shapes.js';
 import { getSolfegeForMidi } from '../utils/musicTheory.js';
 import { getDroneFrequencies } from '../state/appState.js';
 import { drawSharp, drawFlat, drawNatural, drawKeySignature, ensureBravuraLoaded } from './accidentals.js';
