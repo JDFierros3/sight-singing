@@ -88,6 +88,7 @@ async function initializeApplication() {
   setupCustomEvents();
   startRenderLoop();
   checkBrowserCompatibility();
+  document.documentElement.classList.remove('booting');   // shell is built — reveal (fades in)
 }
 
 function setupApplicationState() {
@@ -164,6 +165,14 @@ function wireUpEventHandlers() {
 
 function setupGlobalDelegation() {
   document.addEventListener('click', (e) => {
+    // Launch the Ear-Trainer Arcade (Interval Run) from a drill's "Play as a game" button.
+    const arcadeBtn = e.target.closest('[data-arcade]');
+    if (arcadeBtn) {
+      const DIFF_MAP = { easy: 'easy', medium: 'medium', hard: 'hard', extraHard: 'expert' };
+      const diff = DIFF_MAP[appState.exercise.intervalDifficulty] || 'easy';
+      import('./arcade/intervalRun.js').then(m => m.startIntervalRun(diff));
+      return;
+    }
     // Close the desktop theory sidebar (× button lives in the sidebar itself).
     if (e.target.closest('#theorySidebarClose')) {
       if (document.body.classList.contains('theory-sidebar-active')) switchToTab('theory');
@@ -583,4 +592,9 @@ function restartDrone() {
   startDroneWithFrequencies(frequencies, gain);
 }
 
-initializeApplication();
+// Fail-safe: never leave the page stuck invisible if init throws mid-build.
+initializeApplication().catch((err) => {
+  console.error('initializeApplication failed:', err);
+  document.documentElement.classList.remove('booting');
+});
+setTimeout(() => document.documentElement.classList.remove('booting'), 4000);

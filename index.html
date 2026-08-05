@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="booting">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shape‑Note Ear Trainer (Lite, Modular)</title>
+  <!-- Anti-FOUC gate: the raw markup is the old V1 layout; main.js rebuilds it into the new
+       shell. Keep the page hidden until that finishes, then fade in (class removed in main.js). -->
+  <style>
+    html.booting body { opacity: 0; }
+    body { opacity: 1; transition: opacity .2s ease; }
+  </style>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -182,7 +188,7 @@
 
         <!-- Everything a power user might tune; a new singer never opens this. -->
         <details class="advanced">
-          <summary>Advanced</summary>
+          <summary>Tempo, direction &amp; clef</summary>
           <div class="advanced-body">
             <div class="adv-field">
               <label for="warmupTempo">Tempo <span id="warmupTempoVal" class="mono">60</span> bpm</label>
@@ -215,7 +221,7 @@
         </div>
         <div id="clusterAnswers" class="answer-row" role="group" aria-label="Interval answers"></div>
         <details class="advanced">
-          <summary>Advanced</summary>
+          <summary>Difficulty &amp; play length</summary>
           <div class="advanced-body">
             <div class="adv-field">
               <span class="adv-label">Level</span>
@@ -245,8 +251,9 @@
           <span id="intervalBadge" class="sr-only" aria-live="polite">Press Play to start</span>
         </div>
         <div id="intervalAnswers" class="answer-row" role="group" aria-label="Interval answers"></div>
+        <div class="ex-arcade"><button class="arcade-launch" data-arcade="interval">🎮 Play as an arcade game</button></div>
         <details class="advanced">
-          <summary>Advanced</summary>
+          <summary>Difficulty &amp; interval range</summary>
           <div class="advanced-body">
             <div class="adv-field">
               <span class="adv-label">Level</span>
@@ -295,7 +302,7 @@
         </div>
 
         <details class="advanced">
-          <summary>Advanced</summary>
+          <summary>Card direction</summary>
           <div class="advanced-body">
             <div class="adv-field">
               <label for="flashcardMode">Mode</label>
@@ -342,7 +349,7 @@
         </div>
 
         <details class="advanced">
-          <summary>Advanced</summary>
+          <summary>Part, tempo, key &amp; mixer</summary>
           <div class="advanced-body">
             <div class="adv-field">
               <span class="adv-label">Aim for part</span>
