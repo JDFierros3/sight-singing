@@ -16,8 +16,8 @@ import { getElementById } from '../utils/dom.js';
 import { appState } from '../state/appState.js';
 import { pitchState, getCurrentPitch } from '../pitch/detection.js';
 import { frequencyToMidi } from '../utils/audioMath.js';
-import { renderHymnNotation } from './notationView.js';
 import { getVoiceTuning } from '../session/profile.js';
+import { renderHymnNotation } from './notationView.js';
 
 /**
  * @typedef {Object} PerfConfig
@@ -230,6 +230,7 @@ export function stopScroll() {
 // it's responsive without relying on the global hold-gated stableHz.
 const MIC_EMA_ALPHA = 0.55; // snappier follow so the line keeps up on fast passages
 const MIC_HOLD_MS = 850;    // keep the line up through detection dropouts (no strobing / vanishing)
+const MIC_CLARITY_MIN = 0.5; // below this YIN confidence (note transitions / noise) we hold, not draw
 let micMidiEma = null;
 let micMidiHistory = [];
 let micLastValidAt = 0;
@@ -242,9 +243,9 @@ function updateMicLine() {
   getCurrentPitch();
   const hz = pitchState.hz || 0; // per-frame detection (RMS-gated)
   const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-  if (hz <= 0) {
-    // A single-frame dropout is normal even on a sustained note — hold the last line rather
-    // than flashing off. Only actually hide after MIC_HOLD_MS of continuous silence.
+  if (hz <= 0 || pitchState.clarity < MIC_CLARITY_MIN) {
+    // No clear pitch — silence, a note transition, or a noise burst. A single such frame is normal
+    // even mid-note, so hold the last line rather than flashing off; only hide after MIC_HOLD_MS.
     if (micLastValidAt && (now - micLastValidAt) < MIC_HOLD_MS) return; // keep showing last position
     micLineEl.style.display = 'none';
     resetMicLine();
@@ -252,25 +253,15 @@ function updateMicLine() {
   }
   micLastValidAt = now;
 
-  let sungMidi = frequencyToMidi(hz, appState.tuning.a4);
+  const sungMidi = frequencyToMidi(hz, appState.tuning.a4);
   if (!Number.isFinite(sungMidi)) { micLineEl.style.display = 'none'; return; }
 
-  // Fold octave detection glitches toward the note being sung (pitch-class match). With a target
-  // (SATB), fold to it; free-singing (warm-up), fold toward what you were just singing so a stray
-  // octave jump snaps back instead of throwing the line.
+  // Octave-stabilize against the singer's OWN recent line (not a fixed range) so a hymn that climbs
+  // out of the usual range is followed truthfully — only a lone octave glitch snaps back, and a
+  // sustained octave leap is released. A median-of-3 + light EMA then smooth without adding lag.
   const target = cfg.getTargetMidi ? cfg.getTargetMidi() : null;
-  if (Number.isFinite(target)) {
-    // A concrete target (SATB): fold the octave to match the note you're aiming for.
-    sungMidi = foldToOctave(sungMidi, target);
-  } else {
-    // Free-singing (warm-up / between notes): fold toward what you were just singing, then into
-    // the voice type's comfortable range. Autocorrelation octave errors land a full octave off,
-    // and we KNOW roughly where this singer's notes live — so this is the most reliable guard.
-    if (micMidiEma != null) sungMidi = foldToOctave(sungMidi, micMidiEma);
-    sungMidi = foldIntoRange(sungMidi, getVoiceTuning().range);
-  }
-
-  const denoised = pushMedian(sungMidi);
+  const stable = stabilizeOctave(sungMidi, target);
+  const denoised = pushMedian(stable);
   micMidiEma = micMidiEma == null ? denoised : micMidiEma * (1 - MIC_EMA_ALPHA) + denoised * MIC_EMA_ALPHA;
 
   const part = cfg.fitPart ? cfg.fitPart() : null;
@@ -279,6 +270,7 @@ function updateMicLine() {
   micLineEl.style.top = `${y}px`;
   micLineEl.style.display = 'block';
 
+  // Colour vs the aimed note (SATB). Truthful: a genuinely octave-off voice reads red, as it should.
   if (Number.isFinite(target)) {
     // Green/yellow thresholds scale with the pitch tolerance, so maxing tolerance makes the
     // line forgiving (easy green) and tightening it demands precision.
@@ -301,22 +293,30 @@ function pushMedian(midi) {
   return [...micMidiHistory].sort((a, b) => a - b)[Math.floor(micMidiHistory.length / 2)];
 }
 
-function foldToOctave(midi, ref) {
+// Keep the line on the octave the singer is actually on, by snapping the detected pitch to the
+// octave nearest a reference: the singer's own recent line while tracking, else a first-note prior
+// (the aimed note in SATB, else the voice-type range centre). Because we anchor to the RECENT LINE —
+// not a fixed range — stepwise motion out of the usual range is followed exactly (each small step
+// stays within the snap window); only a lone octave glitch or a persistent formant/subharmonic
+// octave error gets pulled back. That corrects the octave errors detection can't fully avoid,
+// without the old fixed-range fold that lied. (Trade-off: a rare true octave leap within one part
+// is held rather than followed — acceptable for hymns/warm-ups, which move stepwise.)
+function stabilizeOctave(rawMidi, target) {
+  let ref = micMidiEma;
+  if (ref == null) {
+    ref = Number.isFinite(target) ? target : rawMidi;
+    if (!Number.isFinite(target)) {
+      const r = getVoiceTuning()?.range;
+      if (Array.isArray(r) && r.length >= 2) ref = (r[0] + r[1]) / 2;
+    }
+  }
+  return nearestOctave(rawMidi, ref);
+}
+
+function nearestOctave(midi, ref) {
   while (midi - ref > 6) midi -= 12;
   while (ref - midi > 6) midi += 12;
   return midi;
-}
-
-// Shift `midi` by whole octaves until it sits inside the singer's range (with a little headroom).
-// Corrects both octave-up and octave-down detection errors — we know where this voice lives.
-function foldIntoRange(midi, range) {
-  if (!Number.isFinite(midi) || !Array.isArray(range) || range.length < 2) return midi;
-  const lo = range[0] - 2, hi = range[1] + 2;
-  let m = midi, guard = 0;
-  while (m < lo && guard++ < 8) m += 12;
-  guard = 0;
-  while (m > hi && guard++ < 8) m -= 12;
-  return m;
 }
 
 // Linear midi->y fit from just the chosen part's noteheads (one staff, no lyric-gap

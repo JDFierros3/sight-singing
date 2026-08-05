@@ -708,9 +708,10 @@ function drawActiveNoteDot(ctx, x, y) {
 }
 
 function drawMicrophoneDot(noteMapper, dimensions) {
-  // Always draw mic feedback from the raw pitch (so the singer sees sharp/flat movement),
-  // and keep it as a single line (no separate “stable/established” overlay).
-  const rawHz = pitchState.hz || 0;
+  // Always draw mic feedback from the raw pitch (so the singer sees sharp/flat movement), as a
+  // single line. Low-clarity frames (note transitions / noise) read as no-pitch so the line holds
+  // rather than jumping to garbage.
+  const rawHz = (pitchState.clarity || 0) >= 0.5 ? (pitchState.hz || 0) : 0;
 
   updatePitchDisplay(rawHz);
 

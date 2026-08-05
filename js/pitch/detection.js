@@ -10,6 +10,7 @@ import { appState } from '../state/appState.js';
 export const pitchState = {
   buffer: new Float32Array(2048),
   hz: 0,
+  clarity: 0,        // YIN confidence 0..1 (1 = perfectly periodic); gate the line on this
   stableHz: 0,
   smoothedHz: 0,
   _candidateHz: 0,
@@ -41,46 +42,81 @@ export function calculateRMS(buffer) {
   return Math.sqrt(sum / buffer.length);
 }
 
-// Pitch detection only needs to cover sung/played fundamentals. Decimating the buffer
-// before the O(n^2) autocorrelation, and bounding the lag search to this range, cuts the
-// cost ~25x (the whole point — the full 2048-sample version cost ~18ms/call and ran every
-// frame, which froze weaker phones). Parabolic peak refinement keeps sub-sample precision.
-const DECIMATE = 4;      // 44.1kHz -> ~11kHz working rate; Nyquist still far above the voice
+// Pitch detection only needs to cover sung/played fundamentals. Decimating the buffer before the
+// O(n·maxLag) difference function, and bounding the lag search, keeps the cost ~0.7ms/call.
+const DECIMATE = 2;      // 44.1kHz -> ~22kHz working rate; keeps precision up high, still cheap
 const MIN_HZ = 65;       // below a bass low C
 const MAX_HZ = 1200;     // above a soprano high
 
-export function detectPitchWithAutocorrelation(buffer, sampleRate) {
-  if (!buffer || buffer.length === 0) {
-    return -1;
-  }
+// YIN (de Cheveigné & Kawahara 2002). Chosen over raw autocorrelation because a formant sitting
+// near the 2nd harmonic — extremely common on low voices — makes autocorrelation report an octave
+// HIGH almost every time, whereas YIN's cumulative-mean-normalized difference + absolute-threshold
+// "first dip" locks onto the true fundamental. Returns { hz, clarity }; clarity (1 − d′) gates the
+// line so ambiguous frames (note transitions, noise bursts) hold instead of drawing garbage.
+const YIN_THRESHOLD = 0.12;
+
+export function detectPitch(buffer, sampleRate) {
+  if (!buffer || buffer.length === 0) return { hz: -1, clarity: 0 };
 
   const rms = calculateRMS(buffer);
-  if (rms < 0.003) { // low silence gate so quieter/decaying sustained notes don't drop the line
-    return -1;
-  }
+  if (rms < 0.003) return { hz: -1, clarity: 0 }; // silence gate (keeps quiet/decaying notes)
 
   const work = decimateBuffer(buffer, DECIMATE);
   const rate = sampleRate / DECIMATE;
-  if (work.length < 64) {
-    return -1;
-  }
-
+  const n = work.length;
+  const maxLag = Math.min(n - 1, Math.ceil(rate / MIN_HZ));
   const minLag = Math.max(2, Math.floor(rate / MAX_HZ));
-  const maxLag = Math.min(work.length - 1, Math.ceil(rate / MIN_HZ));
+  if (n < 64 || maxLag <= minLag + 2) return { hz: -1, clarity: 0 };
 
-  const autocorrelation = computeAutocorrelation(work, maxLag);
-  const peakIndex = findAutocorrelationPeak(autocorrelation, minLag);
-
-  if (peakIndex <= 0) {
-    return -1;
+  // 1) Squared-difference function d(τ).
+  const d = new Float32Array(maxLag + 1);
+  for (let tau = 1; tau <= maxLag; tau++) {
+    let sum = 0;
+    const end = n - tau;
+    for (let j = 0; j < end; j++) {
+      const diff = work[j] - work[j + tau];
+      sum += diff * diff;
+    }
+    d[tau] = sum;
   }
 
-  const period = refinePeakPosition(autocorrelation, peakIndex);
-  if (period <= 0) {
-    return -1;
+  // 2) Cumulative mean normalized difference d′(τ).
+  const cmnd = new Float32Array(maxLag + 1);
+  cmnd[0] = 1;
+  let running = 0;
+  for (let tau = 1; tau <= maxLag; tau++) {
+    running += d[tau];
+    cmnd[tau] = running > 0 ? (d[tau] * tau / running) : 1;
   }
 
-  return rate / period;
+  // 3) Absolute threshold: the FIRST τ that dips below the threshold (then descend to its local
+  //    min). Taking the first dip — not the global min — is what prevents octave-down slips.
+  let tau = -1;
+  for (let t = minLag; t <= maxLag; t++) {
+    if (cmnd[t] < YIN_THRESHOLD) {
+      while (t + 1 <= maxLag && cmnd[t + 1] < cmnd[t]) t++;
+      tau = t;
+      break;
+    }
+  }
+  if (tau === -1) {
+    // Nothing cleared the threshold — fall back to the global minimum, but reject if it's shallow
+    // (unvoiced / noise), so we hold rather than draw a wrong line.
+    let best = minLag, bestVal = cmnd[minLag];
+    for (let t = minLag + 1; t <= maxLag; t++) if (cmnd[t] < bestVal) { bestVal = cmnd[t]; best = t; }
+    if (bestVal > 0.55) return { hz: -1, clarity: 0 };
+    tau = best;
+  }
+
+  // 4) Parabolic interpolation around τ for sub-sample precision.
+  const x0 = tau > minLag ? cmnd[tau - 1] : cmnd[tau];
+  const x2 = tau < maxLag ? cmnd[tau + 1] : cmnd[tau];
+  const denom = x0 - 2 * cmnd[tau] + x2;
+  const betterTau = denom !== 0 ? tau + 0.5 * (x0 - x2) / denom : tau;
+
+  const hz = rate / betterTau;
+  if (hz < MIN_HZ || hz > MAX_HZ) return { hz: -1, clarity: 0 };
+  return { hz, clarity: Math.max(0, Math.min(1, 1 - cmnd[tau])) };
 }
 
 // Average-and-downsample by `factor` (the averaging is a cheap anti-alias pre-filter).
@@ -95,52 +131,6 @@ function decimateBuffer(buffer, factor) {
     out[i] = sum / factor;
   }
   return out;
-}
-
-export function findAutocorrelationPeak(acArray, minLag = 0) {
-  // Skip the descending slope from the minimum lag so we lock onto the first true peak.
-  let skipIndex = Math.max(0, minLag);
-  while (skipIndex < acArray.length - 1 && acArray[skipIndex] > acArray[skipIndex + 1]) {
-    skipIndex++;
-  }
-
-  // Reference height = the tallest peak over the valid range.
-  let globalMax = -Infinity;
-  for (let i = skipIndex; i < acArray.length; i++) {
-    if (acArray[i] > globalMax) globalMax = acArray[i];
-  }
-  if (globalMax <= 0) return -1;
-
-  // Octave-error guard: the human voice is harmonic-rich, so the sub-harmonic peak (an octave
-  // DOWN, at ~2× the true period) is often marginally taller than the fundamental. Picking the
-  // GLOBAL max there reports an octave low. Instead take the FIRST local-maximum peak that
-  // clears most of the reference height — i.e. the shortest period / true fundamental.
-  const threshold = 0.9 * globalMax;
-  for (let i = skipIndex + 1; i < acArray.length - 1; i++) {
-    if (acArray[i] >= threshold && acArray[i] >= acArray[i - 1] && acArray[i] > acArray[i + 1]) {
-      return i;
-    }
-  }
-
-  // Fallback: no peak cleared the threshold — return the global-max position.
-  let maxPosition = skipIndex;
-  let maxValue = -Infinity;
-  for (let i = skipIndex; i < acArray.length; i++) {
-    if (acArray[i] > maxValue) { maxValue = acArray[i]; maxPosition = i; }
-  }
-  return maxPosition;
-}
-
-export function refinePeakPosition(acArray, peakIndex) {
-  const x1 = acArray[peakIndex - 1] || 0;
-  const x2 = acArray[peakIndex];
-  const x3 = acArray[peakIndex + 1] || 0;
-  
-  const a = (x1 + x3 - 2 * x2) / 2;
-  const b = (x3 - x1) / 2;
-  const shift = a ? -b / (2 * a) : 0;
-  
-  return peakIndex + shift;
 }
 
 // Detection runs at ~30 Hz, not once per animation frame. Pitch doesn't change meaningfully
@@ -169,13 +159,14 @@ export function getCurrentPitch() {
     return 0;
   }
   
-  const detectedHz = detectPitchWithAutocorrelation(buffer, ctx.sampleRate);
-  pitchState.hz = detectedHz > 0 ? detectedHz : 0;
+  const { hz, clarity } = detectPitch(buffer, ctx.sampleRate);
+  pitchState.hz = hz > 0 ? hz : 0;
+  pitchState.clarity = pitchState.hz ? clarity : 0;
 
   // Tolerance-driven smoothing: higher tolerance = heavier averaging (more stable UI line).
   updateSmoothedPitch(pitchState.hz);
   updateStablePitch(pitchState.hz);
-  
+
   return pitchState.hz;
 }
 
@@ -245,23 +236,5 @@ function updateStablePitch(rawHz) {
 
 function isMicrophoneReady() {
   return microphone.analyser !== null;
-}
-
-function computeAutocorrelation(buffer, maxLag) {
-  const length = buffer.length;
-  // Only compute lags up to maxLag (the longest period we care about) — the dominant cost.
-  const limit = Math.min((maxLag ?? length - 1) + 1, length);
-  const autocorrelation = new Float32Array(limit);
-
-  for (let i = 0; i < limit; i++) {
-    let sum = 0;
-    const end = length - i;
-    for (let j = 0; j < end; j++) {
-      sum += buffer[j] * buffer[j + i];
-    }
-    autocorrelation[i] = sum;
-  }
-
-  return autocorrelation;
 }
 
