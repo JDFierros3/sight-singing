@@ -462,8 +462,8 @@ function setPartMix(mode) {
 
 export function applyPartMix() {
   const seg = getElementById('satbPartMix');
-  const active = seg?.querySelector('.seg-btn.on')?.dataset.mix || 'quiet';
-  const mix = PART_MIX[active] || PART_MIX.quiet;
+  const active = seg?.querySelector('.seg-btn.on')?.dataset.mix || 'normal';
+  const mix = PART_MIX[active] || PART_MIX.normal;
   const aim = appState.satb.aimPart;
   ['S', 'A', 'T', 'B'].forEach(p => {
     appState.satb.partVolumes[p] = (p === aim) ? mix.self : mix.others;

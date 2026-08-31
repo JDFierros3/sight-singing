@@ -1953,7 +1953,10 @@ body.onb-open { overflow: hidden; }
    --xl = local line/border colour (no global token exists yet).
    ========================================================================= */
 .panel.exercise { --xl: #2a2f48; --brass: #e6b968; --brass-ink: #241a06;
-  max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  /* width:100% is load-bearing: without it, margin:0 auto disables the flex stretch and the panel
+     sizes to its widest content (the engraved notation) up to max-width, ignoring a narrow phone
+     viewport — cutting the right side off. width:100% fills the container (capped at 860, centred). */
+  width: 100%; max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 
 /* Screen-reader-only (the aria-live badge the sequence player still writes to). */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

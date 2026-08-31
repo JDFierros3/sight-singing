@@ -119,9 +119,9 @@ function renderRange() {
     <h2 class="onb-h">Your comfortable Do</h2>
     <p class="onb-sub">From ${label} we set your starting note. Nudge it if it sits too high or low.</p>
     <div class="onb-do">
-      <button class="onb-step-btn" data-oct="-12" aria-label="Octave down">–</button>
+      <button class="onb-step-btn" data-semi="-1" aria-label="Down a half step">–</button>
       <div class="onb-do-note"><span class="onb-do-name">${noteName(doMidi)}</span><small>Do</small></div>
-      <button class="onb-step-btn" data-oct="12" aria-label="Octave up">+</button>
+      <button class="onb-step-btn" data-semi="1" aria-label="Up a half step">+</button>
     </div>
     <button class="onb-secondary" data-hear>▶ Hear Do</button>
     <button class="onb-primary" data-go="3">Continue →</button>`;
@@ -130,10 +130,10 @@ function renderRange() {
 function wireRange(ov) {
   const applyTentativeDo = () => { appState.tuning.doMidi = draft.doMidi ?? VOICE_PROFILES[draft.voice].doMidi; };
   applyTentativeDo();
-  ov.querySelectorAll('[data-oct]').forEach(btn =>
+  ov.querySelectorAll('[data-semi]').forEach(btn =>
     btn.addEventListener('click', () => {
       const base = draft.doMidi ?? VOICE_PROFILES[draft.voice].doMidi;
-      const next = Math.max(36, Math.min(84, base + Number(btn.dataset.oct)));
+      const next = Math.max(36, Math.min(84, base + Number(btn.dataset.semi)));
       draft.doMidi = next;
       const nameEl = ov.querySelector('.onb-do-name');
       if (nameEl) nameEl.textContent = noteName(next);
