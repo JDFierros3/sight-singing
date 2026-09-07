@@ -72,6 +72,7 @@ const {
   handleMidiFileSelect = () => {},
   handleIntervalDifficultyPreset = () => {},
   handleClusterDifficultyPreset = () => {},
+  handleChordQualityDifficultyPreset = () => {},
   handleFlashcardNextClick = () => {},
   handleFlashcardPrevClick = () => {},
   handleFlashcardFlipClick = () => {},
@@ -503,6 +504,9 @@ function setupExerciseControls() {
   if (appState.exercise.clusterDifficulty === 'easy') {
     handleClusterDifficultyPreset('easy');
   }
+  if (appState.exercise.chordQualityDifficulty === 'easy') {
+    handleChordQualityDifficultyPreset('easy');
+  }
   getElementById('btnWarmup').onclick = handleWarmupClick;
   getElementById('warmupTempo').addEventListener('input', handleWarmupTempoChange);
 
@@ -529,6 +533,8 @@ function setupDifficultyButtons() {
         handleIntervalDifficultyPreset(difficulty);
       } else if (exerciseType === 'cluster') {
         handleClusterDifficultyPreset(difficulty);
+      } else if (exerciseType === 'chord-quality') {
+        handleChordQualityDifficultyPreset(difficulty);
       }
     });
   });

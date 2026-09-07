@@ -132,6 +132,21 @@
             <span id="chordResult" class="ex-result mono" aria-live="polite">Press play to start</span>
           </div>
           <div id="chordAnswers" class="answer-row" role="group" aria-label="Chord quality answers"></div>
+          <details class="advanced">
+            <summary>Difficulty</summary>
+            <div class="advanced-body">
+              <div class="adv-field">
+                <span class="adv-label">Level</span>
+                <div class="pill-row" role="group" aria-label="Chord quality difficulty">
+                  <button class="difficulty-btn active" data-difficulty="easy" data-exercise="chord-quality" title="Major vs minor">Easy</button>
+                  <button class="difficulty-btn" data-difficulty="medium" data-exercise="chord-quality" title="All four triads">Medium</button>
+                  <button class="difficulty-btn" data-difficulty="hard" data-exercise="chord-quality" title="Triads + common sevenths">Hard</button>
+                  <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="chord-quality" title="Every quality">Expert</button>
+                </div>
+                <div class="difficulty-desc muted-note" id="chordQualityDifficultyDesc">Major vs minor</div>
+              </div>
+            </div>
+          </details>
         </div>
 
         <!-- EXPLORE: free-play chord builder + drone -->

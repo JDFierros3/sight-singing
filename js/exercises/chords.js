@@ -63,17 +63,46 @@ function getTriadForDegree(degreeSemi) {
 /* "Test me" plays a triad and you tap its quality; "Explore" (the drone builder)
    stays available via the mode toggle. */
 
-const QUALITY_INTERVALS = { maj: [0, 4, 7], min: [0, 3, 7], dim: [0, 3, 6], aug: [0, 4, 8] };
-const QUALITY_LABEL = { maj: 'Major', min: 'Minor', dim: 'Diminished', aug: 'Augmented' };
-const QUALITY_SET = ['maj', 'min', 'dim', 'aug'];
+const QUALITY_INTERVALS = {
+  maj: [0, 4, 7], min: [0, 3, 7], dim: [0, 3, 6], aug: [0, 4, 8],
+  sus4: [0, 5, 7], sus2: [0, 2, 7],
+  dom7: [0, 4, 7, 10], maj7: [0, 4, 7, 11], min7: [0, 3, 7, 10], m7b5: [0, 3, 6, 10], dim7: [0, 3, 6, 9],
+};
+const QUALITY_LABEL = {
+  maj: 'Major', min: 'Minor', dim: 'Diminished', aug: 'Augmented',
+  sus4: 'Sus4', sus2: 'Sus2',
+  dom7: 'Dom 7', maj7: 'Major 7', min7: 'Minor 7', m7b5: 'Half-dim 7', dim7: 'Dim 7',
+};
+
+// Progressive difficulty (mirrors the Interval/Pitch drills): more qualities as you climb, and
+// Expert = every quality above. The generator + answer buttons both read the active set, so the
+// choices never include a quality that can't be the answer.
+export const QUALITY_DIFFICULTY = {
+  easy:      ['maj', 'min'],
+  medium:    ['maj', 'min', 'dim', 'aug'],
+  hard:      ['maj', 'min', 'dim', 'aug', 'dom7', 'min7', 'maj7'],
+  extraHard: ['maj', 'min', 'dim', 'aug', 'sus4', 'sus2', 'dom7', 'maj7', 'min7', 'm7b5', 'dim7'],
+};
+export const QUALITY_DIFFICULTY_DESC = {
+  easy: 'Major vs minor',
+  medium: 'All four triads',
+  hard: 'Triads + common sevenths',
+  extraHard: 'Every quality — triads, sus & sevenths',
+};
+
+function activeQualitySet() {
+  return QUALITY_DIFFICULTY[appState.exercise.chordQualityDifficulty] || QUALITY_DIFFICULTY.easy;
+}
+
 const ROOT_DEGREES = [0, 2, 4, 5, 7, 9];   // Do Re Mi Fa Sol La — keep the root in-key
 
 let currentTestChord = null;
 
 // Play a random triad (in-key root + random quality) all at once; identify the quality.
 export function playChordExercise() {
+  const set = activeQualitySet();
   const rootDeg = ROOT_DEGREES[randomInRange(0, ROOT_DEGREES.length - 1)];
-  const quality = QUALITY_SET[randomInRange(0, QUALITY_SET.length - 1)];
+  const quality = set[randomInRange(0, set.length - 1)];
   const rootMidi = appState.tuning.doMidi + rootDeg;
   const midis = QUALITY_INTERVALS[quality].map(s => rootMidi + s);
   currentTestChord = { quality, midis };
@@ -93,7 +122,7 @@ export function renderChordAnswers() {
   const row = getElementById('chordAnswers');
   if (!row) return;
   row.innerHTML = '';
-  QUALITY_SET.forEach(q => {
+  activeQualitySet().forEach(q => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ans';

@@ -16,7 +16,7 @@ import { buildIndividualVolumeControls } from '../builders/volumeControls.js';
 import { runWarmupSequence, stopWarmupSequence, displayWarmupStaff } from '../../exercises/warmup.js';
 import { setTempo } from '../../rendering/scrollingStaff.js';
 import { playHiddenCluster, revealClusterNotes, renderClusterAnswers, playClusterExercise } from '../../exercises/cluster.js';
-import { playChordExercise } from '../../exercises/chords.js';
+import { playChordExercise, renderChordAnswers, QUALITY_DIFFICULTY_DESC } from '../../exercises/chords.js';
 import { playIntervalExercise, revealIntervalSolution, renderIntervalAnswers } from '../../exercises/intervals.js';
 import { playSATBExercise, stopSATBExercise, pauseSATBExercise, resumeSATBExercise, handlePartSelection, getAllSATBExercises, displaySATBExerciseOnStaff, loadMidiExercise, setSatbTranspose } from '../../exercises/satb.js';
 import * as transport from '../components/transport.js';
@@ -683,6 +683,15 @@ export function handleClusterDifficultyPreset(difficulty) {
   // Rebuild the count options (level max may change).
   renderClusterAnswers();
   transport.stopAllPlayback?.();
+}
+
+export function handleChordQualityDifficultyPreset(difficulty) {
+  if (!QUALITY_DIFFICULTY_DESC[difficulty]) return;
+  appState.exercise.chordQualityDifficulty = difficulty;
+  updateDifficultyButtonStates('chord-quality', difficulty);
+  const descEl = getElementById('chordQualityDifficultyDesc');
+  if (descEl) descEl.textContent = QUALITY_DIFFICULTY_DESC[difficulty];
+  renderChordAnswers(); // the answer buttons now reflect this level's quality set
 }
 
 function updateDifficultyButtonStates(exerciseType, activeDifficulty) {
