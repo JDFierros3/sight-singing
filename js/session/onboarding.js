@@ -9,6 +9,7 @@
 
 import { VOICE_PROFILES, loadProfile, saveProfile, applyProfile, makeProfile } from './profile.js';
 import { startCalibration } from './calibration.js';
+import { refreshProfileMenu } from './profileMenu.js';
 import { switchToTab } from '../ui/components/tabs.js';
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -130,6 +131,7 @@ function finish() {
   const profile = makeProfile(draft);
   saveProfile(profile);
   applyProfile(profile);
+  refreshProfileMenu();   // reflect the chosen part on the header profile button
   closeOverlay();
   // Friction-free: land on Home. The singer starts a guided session from there when ready.
   switchToTab('home');

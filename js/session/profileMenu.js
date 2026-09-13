@@ -45,6 +45,11 @@ function currentProfile() {
   return loadProfile() || { voice: 'alto', doMidi: VOICE_PROFILES.alto.doMidi, focus: { ear: true, theory: true, hymns: true, sight: false }, shapesKnown: false, length: 20 };
 }
 
+// Re-sync the header button label with the saved profile (call after onboarding saves it).
+export function refreshProfileMenu() {
+  refreshButton();
+}
+
 function refreshButton() {
   const btn = getElementById('btnProfile');
   if (!btn) return;
