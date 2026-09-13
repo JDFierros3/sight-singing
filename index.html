@@ -133,21 +133,16 @@
             <span id="chordResult" class="ex-result mono" aria-live="polite">Press play to start</span>
           </div>
           <div id="chordAnswers" class="answer-row" role="group" aria-label="Chord quality answers"></div>
-          <details class="advanced">
-            <summary>Difficulty</summary>
-            <div class="advanced-body">
-              <div class="adv-field">
-                <span class="adv-label">Level</span>
-                <div class="pill-row" role="group" aria-label="Chord quality difficulty">
-                  <button class="difficulty-btn active" data-difficulty="easy" data-exercise="chord-quality" title="Major vs minor">Easy</button>
-                  <button class="difficulty-btn" data-difficulty="medium" data-exercise="chord-quality" title="All four triads">Medium</button>
-                  <button class="difficulty-btn" data-difficulty="hard" data-exercise="chord-quality" title="Triads + common sevenths">Hard</button>
-                  <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="chord-quality" title="Every quality">Expert</button>
-                </div>
-                <div class="difficulty-desc muted-note" id="chordQualityDifficultyDesc">Major vs minor</div>
-              </div>
+          <div class="difficulty-bar">
+            <span class="adv-label">Level</span>
+            <div class="pill-row" role="group" aria-label="Chord quality difficulty">
+              <button class="difficulty-btn active" data-difficulty="easy" data-exercise="chord-quality" title="Major vs minor">Easy</button>
+              <button class="difficulty-btn" data-difficulty="medium" data-exercise="chord-quality" title="All four triads">Medium</button>
+              <button class="difficulty-btn" data-difficulty="hard" data-exercise="chord-quality" title="Triads + common sevenths">Hard</button>
+              <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="chord-quality" title="Every quality">Expert</button>
             </div>
-          </details>
+            <div class="difficulty-desc" id="chordQualityDifficultyDesc">Major vs minor</div>
+          </div>
         </div>
 
         <!-- EXPLORE: free-play chord builder + drone -->
@@ -189,21 +184,16 @@
           <span id="chordIdResult" class="ex-result mono" aria-live="polite">Press play to start</span>
         </div>
         <div id="chordIdAnswers" class="answer-row" role="group" aria-label="Chord ID answers"></div>
-        <details class="advanced">
-          <summary>Difficulty</summary>
-          <div class="advanced-body">
-            <div class="adv-field">
-              <span class="adv-label">Level</span>
-              <div class="pill-row" role="group" aria-label="Chord ID difficulty">
-                <button class="difficulty-btn active" data-difficulty="easy" data-exercise="chord-id" title="Primary triads — I, IV, V">Easy</button>
-                <button class="difficulty-btn" data-difficulty="medium" data-exercise="chord-id" title="All seven diatonic triads">Medium</button>
-                <button class="difficulty-btn" data-difficulty="hard" data-exercise="chord-id" title="Triads + the dominant seventh (V7)">Hard</button>
-                <button class="difficulty-btn" data-difficulty="expert" data-exercise="chord-id" title="Triads + sevenths (V7, ii7, vii°7)">Expert</button>
-              </div>
-              <div class="difficulty-desc muted-note" id="chordIdDifficultyDesc">Primary triads — I, IV, V</div>
-            </div>
+        <div class="difficulty-bar">
+          <span class="adv-label">Level</span>
+          <div class="pill-row" role="group" aria-label="Chord ID difficulty">
+            <button class="difficulty-btn active" data-difficulty="easy" data-exercise="chord-id" title="Primary triads — I, IV, V">Easy</button>
+            <button class="difficulty-btn" data-difficulty="medium" data-exercise="chord-id" title="All seven diatonic triads">Medium</button>
+            <button class="difficulty-btn" data-difficulty="hard" data-exercise="chord-id" title="Triads + the dominant seventh (V7)">Hard</button>
+            <button class="difficulty-btn" data-difficulty="expert" data-exercise="chord-id" title="Triads + sevenths (V7, ii7, vii°7)">Expert</button>
           </div>
-        </details>
+          <div class="difficulty-desc" id="chordIdDifficultyDesc">Primary triads — I, IV, V</div>
+        </div>
         <p class="theory-link"><button class="link-btn" data-open-theory="5">Lessons &rarr; Lesson 5: Chord Quality &amp; Harmony</button></p>
       </section>
 
@@ -262,19 +252,19 @@
           <span id="hiddenBadge" class="sr-only" aria-live="polite">Press Play to start</span>
         </div>
         <div id="clusterAnswers" class="answer-row" role="group" aria-label="Interval answers"></div>
+        <div class="difficulty-bar">
+          <span class="adv-label">Level</span>
+          <div class="pill-row" role="group" aria-label="Cluster difficulty">
+            <button class="difficulty-btn active" data-difficulty="easy" data-exercise="cluster" title="Diatonic notes within one octave">Easy</button>
+            <button class="difficulty-btn" data-difficulty="medium" data-exercise="cluster" title="Diatonic notes across two octaves">Medium</button>
+            <button class="difficulty-btn" data-difficulty="hard" data-exercise="cluster" title="Diatonic notes across full range">Hard</button>
+            <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="cluster" title="Chromatic notes across full range">Expert</button>
+          </div>
+          <div class="difficulty-desc" id="clusterDifficultyDesc">Diatonic notes within one octave</div>
+        </div>
         <details class="advanced">
-          <summary>Difficulty &amp; play length</summary>
+          <summary>Play length &amp; options</summary>
           <div class="advanced-body">
-            <div class="adv-field">
-              <span class="adv-label">Level</span>
-              <div class="pill-row" role="group" aria-label="Cluster difficulty">
-                <button class="difficulty-btn active" data-difficulty="easy" data-exercise="cluster" title="Diatonic notes within one octave">Easy</button>
-                <button class="difficulty-btn" data-difficulty="medium" data-exercise="cluster" title="Diatonic notes across two octaves">Medium</button>
-                <button class="difficulty-btn" data-difficulty="hard" data-exercise="cluster" title="Diatonic notes across full range">Hard</button>
-                <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="cluster" title="Chromatic notes across full range">Expert</button>
-              </div>
-              <div class="difficulty-desc muted-note" id="clusterDifficultyDesc">Diatonic notes within one octave</div>
-            </div>
             <div class="adv-field">
               <label for="clusterThinkTime">Play length <span id="clusterThinkTimeValue" class="mono">3</span> s</label>
               <input id="clusterThinkTime" type="range" min="1" max="10" value="3" step="1" aria-label="Cluster playback duration in seconds" />
@@ -294,19 +284,19 @@
         </div>
         <div id="intervalAnswers" class="answer-row" role="group" aria-label="Interval answers"></div>
         <div class="ex-arcade"><button class="arcade-launch" data-arcade="interval">🎮 Play as an arcade game</button></div>
+        <div class="difficulty-bar">
+          <span class="adv-label">Level</span>
+          <div class="pill-row" role="group" aria-label="Interval difficulty">
+            <button class="difficulty-btn active" data-difficulty="easy" data-exercise="interval" title="Ascending intervals from Do, diatonic only">Easy</button>
+            <button class="difficulty-btn" data-difficulty="medium" data-exercise="interval" title="Intervals from Do (up or down), diatonic only">Medium</button>
+            <button class="difficulty-btn" data-difficulty="hard" data-exercise="interval" title="Intervals from any note, diatonic only">Hard</button>
+            <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="interval" title="Any intervals, chromatic allowed">Expert</button>
+          </div>
+          <div class="difficulty-desc" id="intervalDifficultyDesc">Ascending intervals from Do, diatonic only</div>
+        </div>
         <details class="advanced">
-          <summary>Difficulty &amp; interval range</summary>
+          <summary>Interval range &amp; options</summary>
           <div class="advanced-body">
-            <div class="adv-field">
-              <span class="adv-label">Level</span>
-              <div class="pill-row" role="group" aria-label="Interval difficulty">
-                <button class="difficulty-btn active" data-difficulty="easy" data-exercise="interval" title="Ascending intervals from Do, diatonic only">Easy</button>
-                <button class="difficulty-btn" data-difficulty="medium" data-exercise="interval" title="Intervals from Do (up or down), diatonic only">Medium</button>
-                <button class="difficulty-btn" data-difficulty="hard" data-exercise="interval" title="Intervals from any note, diatonic only">Hard</button>
-                <button class="difficulty-btn" data-difficulty="extraHard" data-exercise="interval" title="Any intervals, chromatic allowed">Expert</button>
-              </div>
-              <div class="difficulty-desc muted-note" id="intervalDifficultyDesc">Ascending intervals from Do, diatonic only</div>
-            </div>
             <div class="adv-field">
               <label for="intervalDir">Direction</label>
               <select id="intervalDir" aria-label="Interval direction">
