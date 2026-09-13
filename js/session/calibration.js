@@ -74,13 +74,12 @@ export async function startCalibration({ part, doMidi, onDone, onCancel }) {
   calPass = 1;
   document.body.classList.add('cal-active');   // hides the red perf Stop (our controls own the exit)
 
-  await ensureAudioContext();
-  micOk = await enableMic();
-
-  // Bring up the full-screen staff with the mic line LIVE (before any tune plays) so we can prove
-  // the pitch line works — the mic-check gate asks them to hum and confirm they see it move.
+  micOk = false;
+  // Bring the full-screen staff up FIRST so the mic-permission prompt overlays it (not Home — no
+  // more flash), then start the mic from the mic-check button (a real user gesture, the same
+  // startMicrophone path the header Mic button uses) and confirm the pitch line before playing.
   enterSurface();
-  showMicCheck();
+  showMicCheck('start');
 }
 
 function clefForPart(part) {
@@ -327,33 +326,49 @@ function updateControlsHint() {
     : 'Just hum the tune.';
 }
 
-// Mic-check gate: before anything plays, prove the pitch line works — they hum, see it move,
-// then start. Handles the mic-denied case with a retry / continue path.
-function showMicCheck() {
+// Mic-check gate. Three steps: (start) turn the mic on from a button click — the same
+// startMicrophone path the header Mic button uses, so the permission prompt fires from a real
+// user gesture over the full-screen staff; (confirm) hum and confirm the pitch line moves;
+// (error) allow retry or continue by ear. Only after this does the tune play.
+function showMicCheck(step) {
   let el = getElementById('calMicCheck');
   if (!el) { el = document.createElement('div'); el.id = 'calMicCheck'; el.className = 'cal-modal'; document.body.appendChild(el); }
-  el.innerHTML = micOk ? `
-    <div class="cal-modal-card">
-      <h3>Let's hear you</h3>
-      <p>Hum any note out loud. You should see a <b>coloured line</b> appear on the staff and move
-         up and down with your voice. Once you see it, you're ready.</p>
-      <div class="cal-modal-btns">
-        <button class="cal-btn cal-go" data-mc="go">I can see my line →</button>
-      </div>
-    </div>` : `
-    <div class="cal-modal-card">
-      <h3>Turn on your microphone</h3>
-      <p>We couldn't hear your mic. Allow microphone access so you can see your pitch as you hum —
-         or continue and tune by ear.</p>
-      <div class="cal-modal-btns">
-        <button class="cal-btn cal-go" data-mc="retry">Try the mic again</button>
-        <button class="cal-btn" data-mc="skip">Continue without it</button>
-      </div>
-    </div>`;
+
+  if (step === 'confirm') {
+    el.innerHTML = `
+      <div class="cal-modal-card">
+        <h3>Hum a note</h3>
+        <p>Your mic is on. Hum any note and watch the <b>coloured line</b> on the staff move with
+           your voice. When you can see it, you're ready.</p>
+        <div class="cal-modal-btns"><button class="cal-btn cal-go" data-mc="go">I can see my line →</button></div>
+      </div>`;
+  } else if (step === 'error') {
+    el.innerHTML = `
+      <div class="cal-modal-card">
+        <h3>Couldn't turn on the mic</h3>
+        <p>Allow microphone access to see your pitch as you hum — or continue and tune by ear.</p>
+        <div class="cal-modal-btns">
+          <button class="cal-btn cal-go" data-mc="on">Try again</button>
+          <button class="cal-btn" data-mc="skip">Continue without it</button>
+        </div>
+      </div>`;
+  } else { // start
+    el.innerHTML = `
+      <div class="cal-modal-card">
+        <h3>Let's hear you hum</h3>
+        <p>Turn your microphone on, then hum a note — a <b>coloured line</b> will appear on the staff
+           and follow your voice.</p>
+        <div class="cal-modal-btns"><button class="cal-btn cal-go" data-mc="on">Turn on my microphone</button></div>
+      </div>`;
+  }
   el.hidden = false;
+
+  el.querySelector('[data-mc="on"]')?.addEventListener('click', async () => {
+    micOk = await enableMic();          // startMicrophone from a real click (reliable gesture)
+    showMicCheck(micOk ? 'confirm' : 'error');
+  });
   el.querySelector('[data-mc="go"]')?.addEventListener('click', () => { el.hidden = true; beginFirstPass(); });
   el.querySelector('[data-mc="skip"]')?.addEventListener('click', () => { el.hidden = true; beginFirstPass(); });
-  el.querySelector('[data-mc="retry"]')?.addEventListener('click', async () => { micOk = await enableMic(); showMicCheck(); });
 }
 
 // The verse-1 → verse-2 hand-off. Explains, in plain language, that the other voices join and
