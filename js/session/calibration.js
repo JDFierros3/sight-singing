@@ -223,7 +223,7 @@ function buildCalExercise(harmony) {
     S.push({ midi, startTime: t, duration: e.b, part: 'S' });
     lyricsByNote.push(e.w);
     if (harmony) {
-      const v = chordTonesBelow(chordRootFor(e.o), midi, doMidi);
+      const v = voiceSATB(chordRootFor(e.o), midi, doMidi);
       A.push({ midi: v.a, startTime: t, duration: e.b, part: 'A' });
       T.push({ midi: v.t, startTime: t, duration: e.b, part: 'T' });
       B.push({ midi: v.b, startTime: t, duration: e.b, part: 'B' });
@@ -247,15 +247,26 @@ function chordRootFor(off) {
   return 0;
 }
 
-// The three chord tones (major triad on `rootOff`) stacked DOWNWARD from just under the melody —
-// gives a clean, non-crossing A/T/B under the Soprano.
-function chordTonesBelow(rootOff, ceilMidi, doMidi) {
+// A spread SATB voicing for one melody note. Bass sits on the chord ROOT well below the melody
+// (real root motion — it does NOT shadow the tune); alto and tenor are spread through the middle
+// rather than clumped just under the soprano. Major triad on `rootOff` (Mary uses only I and V).
+function voiceSATB(rootOff, melodyMidi, doMidi) {
   const pcs = [rootOff, rootOff + 4, rootOff + 7].map(o => (((doMidi + o) % 12) + 12) % 12);
-  const below = (ceil) => {
-    for (let m = ceil - 1; m > ceil - 14; m--) if (pcs.includes(((m % 12) + 12) % 12)) return m;
-    return ceil - 12;
+  const rootPc = (((doMidi + rootOff) % 12) + 12) % 12;
+  // Nearest MIDI to `target` whose pitch class is in `set`.
+  const nearestPc = (target, set) => {
+    for (let d = 0; d <= 13; d++) {
+      if (set.includes((((target + d) % 12) + 12) % 12)) return target + d;
+      if (set.includes((((target - d) % 12) + 12) % 12)) return target - d;
+    }
+    return target;
   };
-  const a = below(ceilMidi), t = below(a), b = below(t);
+  const b = nearestPc(melodyMidi - 17, [rootPc]);   // root, ~a tenth+ below the melody
+  let a = nearestPc(melodyMidi - 5, pcs);            // alto ~a fourth below the soprano
+  if (a >= melodyMidi) a -= 12;
+  let t = nearestPc(melodyMidi - 11, pcs);           // tenor ~a seventh below the soprano
+  if (t >= a) t = nearestPc(a - 4, pcs);             // keep a gap under the alto (no clump)
+  if (t <= b) t = nearestPc(b + 5, pcs);             // and clear of the bass
   return { a, t, b };
 }
 
