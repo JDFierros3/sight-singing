@@ -270,7 +270,9 @@ export function renderHymnNotation(exercise, container, options = {}) {
           const sn = new VF.StaveNote({ keys: [key], duration: dur, clef, stem_direction: stemDir });
           if (accidental) sn.addModifier(new VF.Accidental(accidental));
           if (dots) VF.Dot.buildAndAttach([sn], { all: true });
-          const dimmed = aimPart && part !== aimPart;
+          // Only dim on the multi-part grand staff. On a single line (warmup, calibration verse 1)
+          // there's nothing to dim — every note is the one the singer reads.
+          const dimmed = aimPart && grand && part !== aimPart;
           const headColor = dimmed ? dimColor(color) : color;   // fade the parts they're not singing
           try { sn.setKeyStyle(0, { fillStyle: headColor, strokeStyle: headColor }); } catch (e) {} // solfege-coloured shape head
           if (dimmed) { try { sn.setStyle({ fillStyle: 'rgba(160,172,205,.4)', strokeStyle: 'rgba(160,172,205,.4)' }); } catch (e) {} }
