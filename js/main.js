@@ -73,6 +73,8 @@ const {
   handleIntervalDifficultyPreset = () => {},
   handleClusterDifficultyPreset = () => {},
   handleChordQualityDifficultyPreset = () => {},
+  handlePlayChordId = () => {},
+  handleChordIdDifficultyPreset = () => {},
   handleFlashcardNextClick = () => {},
   handleFlashcardPrevClick = () => {},
   handleFlashcardFlipClick = () => {},
@@ -416,6 +418,7 @@ function setupExerciseControls() {
   bindClick('revealHidden', handleRevealHiddenClick);
   bindClick('playCluster', handlePlayClusterClick);
   bindClick('playChord', handlePlayChordClick);
+  bindClick('playChordId', handlePlayChordId);
   bindClick('playInterval', handlePlayIntervalClick);
   bindClick('showInterval', handleShowIntervalClick);
 
@@ -507,6 +510,9 @@ function setupExerciseControls() {
   if (appState.exercise.chordQualityDifficulty === 'easy') {
     handleChordQualityDifficultyPreset('easy');
   }
+  if (appState.exercise.chordIdDifficulty === 'easy') {
+    handleChordIdDifficultyPreset('easy');
+  }
   getElementById('btnWarmup').onclick = handleWarmupClick;
   getElementById('warmupTempo').addEventListener('input', handleWarmupTempoChange);
 
@@ -535,6 +541,8 @@ function setupDifficultyButtons() {
         handleClusterDifficultyPreset(difficulty);
       } else if (exerciseType === 'chord-quality') {
         handleChordQualityDifficultyPreset(difficulty);
+      } else if (exerciseType === 'chord-id') {
+        handleChordIdDifficultyPreset(difficulty);
       }
     });
   });

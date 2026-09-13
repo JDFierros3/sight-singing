@@ -112,6 +112,11 @@ export function renderStaff() {
     if (appState.exercise.currentTab === 'chord-quality') {
       drawChordQualityNotes(noteMapper, dimensions);
     }
+
+    // Chord ID: stack the four SATB voices as one chord (always visible — you ID by sight)
+    if (appState.exercise.currentTab === 'chord-id') {
+      drawChordIdNotes(noteMapper, dimensions);
+    }
   }
 }
 
@@ -691,6 +696,36 @@ function drawActiveNotes(noteMapper) {
     }
   });
   
+  ctx.restore();
+}
+
+// Stack the Chord ID voices vertically at one x (a hymn-style chord) with shape noteheads.
+function drawChordIdNotes(noteMapper, dimensions) {
+  if (!ctx) return;
+  const midis = appState.exercise.display?.midis;
+  if (!midis || midis.length === 0) return;
+
+  const x = getStaffStartX() + 70;
+  const tonicPc = appState.tuning.doMidi % 12;
+  const keyInfo = getKeySignature(tonicPc, 'major');
+
+  ctx.save();
+  midis.forEach((midi) => {
+    const y = noteMapper(midi);
+    if (!Number.isFinite(y)) return;
+    drawLedgerLines(ctx, y, dimensions);
+
+    if (appState.display.showAccidentalsAndKey) {
+      const accidental = getAccidentalForNote(midi, tonicPc, 'major', keyInfo);
+      if (accidental === 'sharp') drawSharp(ctx, x - 16, y - 2, 14);
+      else if (accidental === 'flat') drawFlat(ctx, x - 16, y - 2, 14);
+      else if (accidental === 'natural') drawNatural(ctx, x - 16, y - 2, 14);
+    }
+
+    const solfege = getSolfegeForMidi(midi, appState.tuning.doMidi);
+    if (solfege) drawNoteHeadWithShape(ctx, x, y, solfege, 8);
+    else drawActiveNoteDot(ctx, x, y);
+  });
   ctx.restore();
 }
 

@@ -64,6 +64,7 @@ function initializeExercise() {
     intervalDifficulty: 'easy',
     clusterDifficulty: 'easy',
     chordQualityDifficulty: 'easy',
+    chordIdDifficulty: 'easy',
     warmupRunning: false,
     hideAnswers: {
       intervals: true,

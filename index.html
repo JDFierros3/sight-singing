@@ -104,6 +104,7 @@
             <button class="tab" data-tab="intervals" role="tab" aria-selected="false" aria-controls="panel-intervals">Interval Training</button>
             <button class="tab" data-tab="cluster" role="tab" aria-selected="false" aria-controls="panel-cluster">Pitch Distinction</button>
             <button class="tab" data-tab="chord-quality" role="tab" aria-selected="false" aria-controls="panel-chord-quality">Chord Quality</button>
+            <button class="tab" data-tab="chord-id" role="tab" aria-selected="false" aria-controls="panel-chord-id">Chord ID</button>
             <button class="tab" data-tab="satb" role="tab" aria-selected="false" aria-controls="panel-satb">Sing in Parts</button>
             <button class="tab" data-tab="theory" role="tab" aria-selected="false" aria-controls="panel-theory">Music Theory</button>
           </nav>
@@ -178,6 +179,32 @@
           </div>
           <p class="theory-link"><button class="link-btn" data-open-theory="5">Lessons &rarr; Lesson 5: Chord Quality &amp; Harmony</button></p>
         </div>
+      </section>
+
+      <!-- CHORD ID: see a 4-part hymn chord, name its function (I, ii … V7) -->
+      <section id="panel-chord-id" class="panel exercise" role="tabpanel" aria-labelledby="tab-chord-id" style="display:none">
+        <div class="ex-prompt">See the 4-part chord, then tap its function in the key (the shape recipe, e.g. Sol-Ti-Re = V).<button class="link-btn learn-link" data-open-theory="5">How do I read chords?</button></div>
+        <div class="xport">
+          <button id="playChordId" class="xport-play" type="button" aria-label="New chord">▶</button>
+          <span id="chordIdResult" class="ex-result mono" aria-live="polite">Press play to start</span>
+        </div>
+        <div id="chordIdAnswers" class="answer-row" role="group" aria-label="Chord ID answers"></div>
+        <details class="advanced">
+          <summary>Difficulty</summary>
+          <div class="advanced-body">
+            <div class="adv-field">
+              <span class="adv-label">Level</span>
+              <div class="pill-row" role="group" aria-label="Chord ID difficulty">
+                <button class="difficulty-btn active" data-difficulty="easy" data-exercise="chord-id" title="Primary triads — I, IV, V">Easy</button>
+                <button class="difficulty-btn" data-difficulty="medium" data-exercise="chord-id" title="All seven diatonic triads">Medium</button>
+                <button class="difficulty-btn" data-difficulty="hard" data-exercise="chord-id" title="Triads + the dominant seventh (V7)">Hard</button>
+                <button class="difficulty-btn" data-difficulty="expert" data-exercise="chord-id" title="Triads + sevenths (V7, ii7, vii°7)">Expert</button>
+              </div>
+              <div class="difficulty-desc muted-note" id="chordIdDifficultyDesc">Primary triads — I, IV, V</div>
+            </div>
+          </div>
+        </details>
+        <p class="theory-link"><button class="link-btn" data-open-theory="5">Lessons &rarr; Lesson 5: Chord Quality &amp; Harmony</button></p>
       </section>
 
       <section id="panel-warmup" class="panel exercise" role="tabpanel" aria-labelledby="tab-warmup" style="display:none">

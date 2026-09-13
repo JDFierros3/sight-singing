@@ -2950,7 +2950,85 @@ function getSubLesson5_4() {
 
     <div class="benchmark">
       <p><strong>Benchmark:</strong> Successfully sing a complete SATB piece with accurate pitch and rhythm, identifying chord progressions as you sing (you can name at least 3-4 chord progressions during the piece, e.g., "That was I → IV → V → I")</p>
-      <p><strong>Progression:</strong> Proceed to Lesson 6 when benchmark achieved</p>
+      <p><strong>Progression:</strong> Move to 5.5 when benchmark achieved</p>
+    </div>
+  `;
+}
+
+function getSubLesson5_5() {
+  return `
+    <div class="learning-objectives">
+      <h4>Learning Objectives:</h4>
+      <ul>
+        <li>Read a real 4-part (SATB) hymn chord and name its <strong>function</strong> by its shape recipe</li>
+        <li>Learn the diatonic <strong>seventh chords</strong> that show up in hymns: V7, ii7, and vii°7</li>
+        <li>Trust the recipe: the same set of shapes is the same function in every key</li>
+        <li>Use the <strong>Chord ID</strong> drill (Learn room) to practice at four difficulty levels</li>
+      </ul>
+    </div>
+
+    <div class="app-instructions">
+      <h4>Naming a chord by its shapes:</h4>
+      <ol>
+        <li><strong>Find the recipe, not the bass.</strong> A chord's function is the set of shapes it is built from, in any order or octave:
+          <ul>
+            <li><strong>I</strong> = Do-Mi-Sol &nbsp; <strong>ii</strong> = Re-Fa-La &nbsp; <strong>iii</strong> = Mi-Sol-Ti</li>
+            <li><strong>IV</strong> = Fa-La-Do &nbsp; <strong>V</strong> = Sol-Ti-Re &nbsp; <strong>vi</strong> = La-Do-Mi &nbsp; <strong>vii°</strong> = Ti-Re-Fa</li>
+            <li>No matter the key, a chord whose shapes are <strong>Sol-Ti-Re is always a V</strong>. The shapes carry the function.</li>
+          </ul>
+        </li>
+        <li><strong>Seventh chords add one more shape</strong> — a stack of four instead of three. The three you meet most in hymns:
+          <ul>
+            <li><strong>V7</strong> = Sol-Ti-Re-<strong>Fa</strong> (the dominant seventh — the Fa on top wants to fall to Mi)</li>
+            <li><strong>ii7</strong> = Re-Fa-La-<strong>Do</strong> (a minor seventh — common walking into V)</li>
+            <li><strong>vii°7</strong> = Ti-Re-Fa-<strong>La</strong> (the leading-tone seventh — tense, pulls home to I)</li>
+          </ul>
+          To name a four-shape chord, spot the triad inside it first, then notice the extra shape is a seventh above the root.
+        </li>
+        <li><strong>The bass note doesn't change the function.</strong> Hymns are mostly root position — the bass usually sings the root — but now and then the bass sings a different chord tone. Either way, list the shapes across all four voices and name the function; you never have to name an "inversion" here.</li>
+      </ol>
+
+      <h4>Playing the Chord ID drill:</h4>
+      <ol>
+        <li>Open the <strong>Learn</strong> room and choose <strong>Chord ID</strong>.</li>
+        <li>Press <strong>&#9654;</strong> (New Chord). A real hymn voicing appears on the grand staff with its shape notes, and plays once.</li>
+        <li><strong>Read the shapes</strong> across all four voices, match them to a recipe above, and <strong>tap the function</strong>.</li>
+        <li>The drill reveals the answer with the recipe and the shapes you saw — no separate reveal step.</li>
+        <li><strong>Difficulty</strong> (in the Advanced drawer) — each level adds to the last:
+          <ul>
+            <li><strong>Easy</strong> — the three primary triads (I, IV, V)</li>
+            <li><strong>Medium</strong> — all seven diatonic triads</li>
+            <li><strong>Hard</strong> — triads plus the dominant seventh (V7), the seventh you meet most</li>
+            <li><strong>Expert</strong> — adds the other hymn sevenths (ii7, vii°7)</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="what-to-look-for">
+      <h4>What to Look For:</h4>
+      <ul>
+        <li>The <strong>set of shapes</strong> (the recipe), read across all four voices — not the lowest note</li>
+        <li>Three shapes = a triad; four distinct shapes = a seventh chord</li>
+        <li>Sol-Ti-Re-Fa is a V7; Re-Fa-La-Do is a ii7; Ti-Re-Fa-La is a vii°7</li>
+        <li>The same recipe is the same function in every key</li>
+      </ul>
+    </div>
+
+    <div class="troubleshooting">
+      <h4>Troubleshooting:</h4>
+      <ul>
+        <li>If the bass note is throwing you off, ignore it at first — list the shapes you see, then find the matching recipe</li>
+        <li>If four shapes look confusing, find the triad inside first (three of the four), then the extra shape names the seventh</li>
+        <li>If you keep missing one chord, drop back a difficulty and drill just the triads until the shapes are automatic</li>
+        <li>Remember I, IV, and V make up the great majority of hymn chords — get those instant first</li>
+      </ul>
+    </div>
+
+    <div class="benchmark">
+      <p><strong>Benchmark:</strong> On Medium, name the function of 8/10 real hymn chords correctly. On Expert, tell a triad from its seventh (e.g. V vs. V7) 8/10 times.</p>
+      <p><strong>Progression:</strong> Proceed to Lesson 6 when benchmark achieved.</p>
+      <p style="margin-top:8px"><button class="link-btn" data-tab-switch="chord-id">Try it: Go to Chord ID &rarr;</button></p>
     </div>
   `;
 }
@@ -2977,6 +3055,7 @@ function renderLesson5() {
         ${renderSubLesson('5.2', 'Chord Progressions (I, IV, V)', getSubLesson5_2())}
         ${renderSubLesson('5.3', 'Minor Chords and Other Qualities', getSubLesson5_3())}
         ${renderSubLesson('5.4', 'Inversions and Advanced Harmony', getSubLesson5_4())}
+        ${renderSubLesson('5.5', 'Reading Chords: the Chord ID Drill (+ sevenths)', getSubLesson5_5())}
       </div>
     </section>
   `;

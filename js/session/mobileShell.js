@@ -13,8 +13,8 @@ const ROOMS = [
   { id: 'ear',   icon: '◎', label: 'Ear',   tabs: ['intervals', 'cluster', 'chord-quality'],
     subLabels: { intervals: 'Intervals', cluster: 'Pitch Distinction', 'chord-quality': 'Chord Quality' } },
   { id: 'sing',  icon: '✦', label: 'Sing',  tabs: ['satb'] },
-  { id: 'learn', icon: '◈', label: 'Learn', tabs: ['flashcards', 'theory'],
-    subLabels: { flashcards: 'Flashcards', theory: 'Lessons' } }
+  { id: 'learn', icon: '◈', label: 'Learn', tabs: ['flashcards', 'chord-id', 'theory'],
+    subLabels: { flashcards: 'Flashcards', 'chord-id': 'Chord ID', theory: 'Lessons' } }
 ];
 
 const tabToRoom = {};

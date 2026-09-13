@@ -10,11 +10,12 @@ import { initializeFlashcards } from '../../exercises/flashcards.js';
 import { renderIntervalAnswers } from '../../exercises/intervals.js';
 import { renderClusterAnswers } from '../../exercises/cluster.js';
 import { renderChordAnswers, initChordMode } from '../../exercises/chords.js';
+import { renderChordIdAnswers } from '../../exercises/chordId.js';
 import { stopAllPlayback } from '../components/transport.js';
 import { renderStaff } from '../../rendering/staff.js';
 import { renderTheoryContent, saveExpandedLessons } from './theoryContent.js';
 
-const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'satb', 'theory'];
+const TAB_NAMES = ['home', 'flashcards', 'warmup', 'intervals', 'cluster', 'chord-quality', 'chord-id', 'satb', 'theory'];
 
 /** Does this build have that tab? Lets callers route to a tab without assuming it exists. */
 export function hasTab(tabName) {
@@ -274,8 +275,8 @@ export function switchToTab(tabName) {
   // Update "Show Accidentals & Key" setting based on tab
   const showAccidentalsCheckbox = getElementById('showAccidentalsAndKey');
   if (showAccidentalsCheckbox) {
-    if (appState.exercise.currentTab === 'satb' || appState.exercise.currentTab === 'chord-quality') {
-      // Enable by default for SATB and Chord Quality tabs (real notation)
+    if (appState.exercise.currentTab === 'satb' || appState.exercise.currentTab === 'chord-quality' || appState.exercise.currentTab === 'chord-id') {
+      // Enable by default for SATB, Chord Quality, and Chord ID tabs (real notation)
       updateDisplaySetting('showAccidentalsAndKey', true);
       showAccidentalsCheckbox.checked = true;
     } else {
@@ -323,6 +324,7 @@ export function switchToTab(tabName) {
   if (tabName === 'intervals') setTimeout(() => renderIntervalAnswers(), 10);
   if (tabName === 'cluster') setTimeout(() => renderClusterAnswers(), 10);
   if (tabName === 'chord-quality') setTimeout(() => { initChordMode(); renderChordAnswers(); }, 10);
+  if (tabName === 'chord-id') setTimeout(() => renderChordIdAnswers(), 10);
 
   // Handle theory content rendering (reuse isLargeScreen from above)
   if (isLargeScreen && document.body.classList.contains('theory-sidebar-active')) {

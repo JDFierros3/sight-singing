@@ -4,7 +4,8 @@
   "description": "Shape-note / solfège ear trainer for singers",
   "license": "MIT",
   "scripts": {
-    "build-openpsalm-library": "node scripts/build-openpsalm-library.js"
+    "build-openpsalm-library": "node scripts/build-openpsalm-library.js",
+    "build-chord-voicings": "node scripts/extract-chord-voicings.mjs"
   },
   "devDependencies": {
     "@iarna/toml": "^2.2.5"

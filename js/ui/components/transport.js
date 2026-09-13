@@ -12,6 +12,7 @@ import { playHiddenCluster } from '../../exercises/cluster.js';
 import { playIntervalExercise } from '../../exercises/intervals.js';
 import { playSATBExercise, stopSATBExercise } from '../../exercises/satb.js';
 import { nextFlashcard } from '../../exercises/flashcards.js';
+import { playChordId } from '../../exercises/chordId.js';
 import { beepDo } from '../../audio/doPitch.js';
 
 function getTab() {
@@ -102,6 +103,14 @@ export function getPrimaryActionForCurrentTab() {
     };
   }
 
+  if (tab === 'chord-id') {
+    return {
+      playLabel: 'New Chord',
+      stopLabel: 'Stop',
+      canStop: false
+    };
+  }
+
   return {
     playLabel: 'Play Do',
     stopLabel: 'Stop',
@@ -151,6 +160,11 @@ export async function handleGlobalPlay() {
 
   if (tab === 'flashcards') {
     nextFlashcard();
+    return;
+  }
+
+  if (tab === 'chord-id') {
+    playChordId();
     return;
   }
 

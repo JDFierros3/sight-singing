@@ -17,6 +17,7 @@ import { runWarmupSequence, stopWarmupSequence, displayWarmupStaff } from '../..
 import { setTempo } from '../../rendering/scrollingStaff.js';
 import { playHiddenCluster, revealClusterNotes, renderClusterAnswers, playClusterExercise } from '../../exercises/cluster.js';
 import { playChordExercise, renderChordAnswers, QUALITY_DIFFICULTY_DESC } from '../../exercises/chords.js';
+import { playChordId, renderChordIdAnswers, CHORD_ID_DIFFICULTY_DESC } from '../../exercises/chordId.js';
 import { playIntervalExercise, revealIntervalSolution, renderIntervalAnswers } from '../../exercises/intervals.js';
 import { playSATBExercise, stopSATBExercise, pauseSATBExercise, resumeSATBExercise, handlePartSelection, getAllSATBExercises, displaySATBExerciseOnStaff, loadMidiExercise, setSatbTranspose } from '../../exercises/satb.js';
 import * as transport from '../components/transport.js';
@@ -692,6 +693,19 @@ export function handleChordQualityDifficultyPreset(difficulty) {
   const descEl = getElementById('chordQualityDifficultyDesc');
   if (descEl) descEl.textContent = QUALITY_DIFFICULTY_DESC[difficulty];
   renderChordAnswers(); // the answer buttons now reflect this level's quality set
+}
+
+export function handlePlayChordId() {
+  playChordId();
+}
+
+export function handleChordIdDifficultyPreset(difficulty) {
+  if (!CHORD_ID_DIFFICULTY_DESC[difficulty]) return;
+  appState.exercise.chordIdDifficulty = difficulty;
+  updateDifficultyButtonStates('chord-id', difficulty);
+  const descEl = getElementById('chordIdDifficultyDesc');
+  if (descEl) descEl.textContent = CHORD_ID_DIFFICULTY_DESC[difficulty];
+  renderChordIdAnswers(); // the answer buttons now reflect this level's function set
 }
 
 function updateDifficultyButtonStates(exerciseType, activeDifficulty) {
