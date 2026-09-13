@@ -35,13 +35,14 @@ function getWarmupClef() {
 
 // Point the shared performance surface at the Warmup tab (container + clock + state).
 function configureWarmupPerformance() {
-  const part = getVoiceTuning().part;
   configureWarmupPerformance._clef = getWarmupClef();
   configurePerformance({
     container: getElementById('warmupVisual'),
     getTime: () => (appState.staff.currentTime || 0) * ((appState.staff.tempo || 60) / 60),
-    getTargetMidi: () => null,
-    fitPart: () => part,
+    // Colour the mic line green/yellow/red against the note currently sounding, and map it to the
+    // S line (warmup notes all live on S), like the SATB/hymn exercises.
+    getTargetMidi: () => currentWarmupTargetMidi,
+    fitPart: () => 'S',
     isPlaying: () => appState.exercise.warmupRunning,
     onExit: () => stopWarmupSequence(),
     // Clef is in the variant so toggling it in Advanced busts the render cache.
@@ -52,6 +53,8 @@ function configureWarmupPerformance() {
 
 // Track active warmup oscillators so we can stop them
 let activeWarmupOscillators = [];
+// The note currently sounding — drives the mic-line colour (green when the singer is on it).
+let currentWarmupTargetMidi = null;
 
 /* ------------------------------------------- engraved solfege reference --- */
 
@@ -242,7 +245,9 @@ export async function runWarmupSequence(selectedStanzaIndices = null) {
       if (!isValidSequence(seqId) || !appState.exercise.warmupRunning) {
         return;
       }
-      
+
+      currentWarmupTargetMidi = note.midi;   // the note now sounding — mic line greens against it
+
       const gain = appState.drone.gain;
       
       // Try to use instrument if available
@@ -315,6 +320,7 @@ export async function runWarmupSequence(selectedStanzaIndices = null) {
 function finishWarmup(status) {
   if (!appState.exercise.warmupRunning && status === 'done') return;
   appState.exercise.warmupRunning = false;
+  currentWarmupTargetMidi = null;
   updateWarmupButton(false);
   stopAllWarmupOscillators();
   stopAllDroneOscillators();
