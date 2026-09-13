@@ -396,8 +396,10 @@ function finishCalibration() {
   stanzaSequencePlayer.stopSequence();
   stopAllOsc();
   exitPerformance();
+  // Remove the body-level calibration staff entirely (not just hide it) so it can never overlay
+  // another full-screen exercise later. ensureCalContainer() recreates it next time.
   const el = getElementById('calibrationVisual');
-  if (el) el.hidden = true;
+  if (el) el.remove();
   hideControls();
   document.body.classList.remove('cal-active');
   const finalDo = appState.tuning.doMidi;

@@ -1597,6 +1597,11 @@ body[data-active-tab="warmup"] .staffPanel {
   z-index: 5;
 }
 
+/* A hidden perf-surface must STAY hidden even in performance mode — otherwise a body-level
+   surface (e.g. the onboarding calibration staff) gets forced visible by the rule below and
+   overlays every other full-screen exercise. */
+.perf-surface[hidden] { display: none !important; }
+
 /* Full-screen performance mode: the notation expands over everything and scrolls;
    the setup controls simply scroll off behind it. */
 body.perf-performing .perf-surface {
