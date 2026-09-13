@@ -1717,6 +1717,13 @@ body.cal-active .perf-exit-btn { display: none !important; }
 .cal-modal-card p { margin: 0 0 18px; font-size: 14px; line-height: 1.45; color: #c1c6dd; }
 .cal-modal-card b { color: #eef1fb; }
 .cal-modal-btns { display: flex; flex-direction: column; gap: 10px; }
+
+/* Mic health indicator: green = truly live, red = meant-to-be-on but not working. */
+#btnMicToggle.mic-live { background: #153426 !important; border-color: #245c40 !important; color: #7fe0a6 !important; }
+#btnMicToggle.mic-bad { background: #3a2226 !important; border-color: #5b2f34 !important; color: #f0b4b4 !important; }
+.micChip.mic-bad { color: #f0b4b4; }
+.micChip.mic-live { color: #cdd5f0; }
+.micChip.mic-hearing #micHz { color: #7fe0a6; font-weight: 700; }
 .cal-controls .cal-title { font-size: 15px; font-weight: 700; }
 .cal-controls .cal-sub { font-size: 12px; color: #98a0bd; }
 .cal-controls .cal-sub b { color: #eef1fb; }

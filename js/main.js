@@ -6,7 +6,7 @@ import { buildNoteSelectionMenus } from './ui/builders/menus.js';
 import { buildChordRootButtons, buildChordQualityButtons, buildChordInversionButtons } from './ui/builders/chordButtons.js';
 import { initializeTabSystem, switchToTab } from './ui/components/tabs.js';
 import { renderStaff } from './rendering/staff.js';
-import { getCurrentPitch } from './pitch/detection.js';
+import { getCurrentPitch, pitchState } from './pitch/detection.js';
 import { appState, updateTuningSetting } from './state/appState.js';
 import { CHORDS, DEGREE_SEMITONES } from './config/constants.js';
 import { getElementById } from './utils/dom.js';
@@ -14,9 +14,9 @@ import { getRomanNumeral } from './utils/musicTheory.js';
 import * as inputs from './ui/handlers/inputs.js';
 import { initializeSATBControls } from './exercises/satb.js';
 import { handleGlobalKeyPress } from './ui/handlers/keyboard.js';
-import { startMicrophone, stopMicrophone } from './audio/microphone.js';
+import { startMicrophone, stopMicrophone, isMicrophoneActive } from './audio/microphone.js';
 import { startDroneWithFrequencies } from './audio/drone.js';
-import { ensureAudioContext } from './audio/context.js';
+import { ensureAudioContext, getAudioContext } from './audio/context.js';
 import { getDroneFrequencies } from './state/appState.js';
 import { initializeStaffPanning } from './rendering/staffPanning.js';
 import { buildHomepage } from './ui/builders/homepage.js';
@@ -568,9 +568,27 @@ function handleToggleMicEvent() {
   }
 }
 
+// Colour the header Mic button + Hz chip by the mic's REAL health, so a stuck mic is obvious:
+// green = live (analyser connected AND context running), red = meant-to-be-on but not working,
+// neutral = off. The Hz text also greens while a pitch is actually being heard.
+function updateMicIndicators() {
+  const btn = getElementById('btnMicToggle');
+  const chip = document.querySelector('.micChip');
+  const live = isMicrophoneActive() && getAudioContext()?.state === 'running';
+  const bad = !!window.__micOn && !live;
+  const hearing = live && (pitchState.hz > 0) && (pitchState.clarity >= 0.5);
+  if (btn) { btn.classList.toggle('mic-live', live); btn.classList.toggle('mic-bad', bad); }
+  if (chip) {
+    chip.classList.toggle('mic-live', live);
+    chip.classList.toggle('mic-bad', bad);
+    chip.classList.toggle('mic-hearing', hearing);
+  }
+}
+
 function startRenderLoop() {
   function tick() {
     getCurrentPitch();
+    updateMicIndicators();
     // On the SATB + Warmup tabs the shared canvas is hidden (the VexFlow SVG is the staff),
     // so a full canvas redraw every frame is pure waste — those tabs drive their own notation.
     const tab = appState.exercise.currentTab;
