@@ -44,10 +44,20 @@ export function startIntervalRun(level = 'easy') {
     frogWorld: 0, currentS: 0, worldX: 0, speed: lvl.startSpeed,
     score: 0, combo: 0, best: loadBest(level), lives: 3,
     correctNth: null, candidates: [], landed: [{ s: 0, world: 0, solf: 'Do' }],
-    awaiting: false, over: false, lastT: 0, rafId: null, splashUntil: 0
+    awaiting: false, over: false, started: false, lastT: 0, rafId: null, splashUntil: 0
   };
   buildDom();
+  // Show the rules first (once ever, or whenever the ? button is tapped); play begins on close.
+  if (!helpSeen()) { markHelpSeen(); showHelp(); }
+  else beginPlay();
+}
+
+// Start the audio + round + loop. Deferred until the How-to-play modal is dismissed.
+function beginPlay() {
+  if (!G || G.started) return;
+  G.started = true;
   ensureAudioContext().then(() => {
+    if (!G) return;
     G.worldX = G.frogWorld - laneWidth() * 0.42;   // park the first Do ~42% from the left
     startRound();
     G.lastT = performance.now();
@@ -120,8 +130,7 @@ function startRound() {
   // Signed scale index: ascending Do→(nth-1) above, descending Do→(nth-1) below.
   G.candidates = steps.map(nth => ({ nth, s: G.dir * (nth - 1), world: cw }));
   render();
-  renderAnswers();
-  setPrompt(G.dir < 0 ? 'From Do — the note is lower' : 'From Do — jump to the note you heard');
+  setPrompt(G.dir < 0 ? 'From Do — tap the lower note you heard' : 'From Do — tap the note you heard on the staff');
   const targetMidi = scaleIndexToMidi(G.dir * (G.correctNth - 1), G.doMidi);
   playTonesForDuration([G.doMidi], 0.55, 'Do');
   setTimeout(() => { if (G && !G.over && G.awaiting) playTonesForDuration([targetMidi], 0.6, 'target'); }, 640);
@@ -295,6 +304,21 @@ const ARCADE_CSS = `
 .ar-ans small { display: block; margin-top: 3px; font-weight: 500; font-size: 10.5px; color: #98a0bd; }
 .ar-ans.good { background: #153426; color: #7fe0a6; border-color: #245c40; }
 .ar-ans.bad { background: #3a2226; color: #f0b4b4; border-color: #5b2f34; }
+/* Shape-note answer buttons: the glyph the singer clicks (mirrors the staff shapes). */
+.ar-ans-shape { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 72px; padding: 10px 16px; }
+.ar-ans-shape svg { width: 30px; height: 27px; fill: currentColor; display: block; }
+.ar-ans-shape small { margin: 0; font-weight: 600; font-size: 11px; color: #cdd5f0; }
+/* How-to-play */
+.ar-help { background: #1e2237; border: 1px solid #2a2f48; color: #98a0bd; border-radius: 8px; padding: 5px 12px; cursor: pointer; }
+.ar-help:hover { color: #eef1fb; }
+.ar-help-modal { position: absolute; inset: 0; z-index: 11; display: flex; align-items: center; justify-content: center;
+  background: rgba(9,11,20,.86); backdrop-filter: blur(2px); padding: 20px; }
+.ar-help-modal[hidden] { display: none; }
+.ar-help-card { max-width: 420px; background: #171a2b; border: 1px solid #2a2f48; border-radius: 16px; padding: 22px 24px; }
+.ar-help-card h3 { margin: 0 0 14px; font-size: 20px; }
+.ar-help-list { margin: 0 0 18px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;
+  font-size: 14px; color: #c1c6dd; line-height: 1.35; }
+.ar-help-list b { color: #eef1fb; }
 .ar-over { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(9,11,20,.85); backdrop-filter: blur(2px); }
 .ar-over[hidden] { display: none; }  /* the [hidden] attr alone loses to the display rule above */
 .ar-over .ar-splash { font-family: "Iowan Old Style", Georgia, serif; font-size: 34px; }
@@ -320,6 +344,7 @@ function buildDom() {
       <span class="ar-hearts" id="arHearts"></span>
       <span class="ar-spacer"></span>
       <span class="ar-stat">${G.level.label}</span>
+      <button class="ar-help" id="arHelp" title="How to play">? How to play</button>
       <button class="ar-exit" id="arExit">Exit</button>
     </div>
     <div class="ar-field" id="arField">
@@ -333,12 +358,49 @@ function buildDom() {
       <div class="ar-frog" id="arFrog">🐸</div>
       <div class="ar-prompt" id="arPrompt"></div>
     </div>
-    <div class="ar-answers" id="arAnswers"></div>
     <div class="ar-over" id="arOver" hidden></div>`;
   document.body.appendChild(root);
   G.root = root;
   root.querySelector('#arExit').addEventListener('click', stopIntervalRun);
+  root.querySelector('#arHelp').addEventListener('click', showHelp);
   updateHud();
+}
+
+/* --------------------------------------------------------------- how-to ---- */
+
+const HELP_KEY = 'solfege.v1.arcadeHelp';
+function helpSeen() { try { return localStorage.getItem(HELP_KEY) === '1'; } catch (e) { return false; } }
+function markHelpSeen() { try { localStorage.setItem(HELP_KEY, '1'); } catch (e) { /* ignore */ } }
+
+// Show the rules. Pauses the loop while open; play begins (first time) or resumes on close.
+function showHelp() {
+  if (!G) return;
+  if (G.started && !G.over && G.rafId) { cancelAnimationFrame(G.rafId); G.rafId = null; }
+  let el = G.root.querySelector('#arHelpModal');
+  if (!el) { el = document.createElement('div'); el.id = 'arHelpModal'; el.className = 'ar-help-modal'; G.root.appendChild(el); }
+  el.innerHTML = `
+    <div class="ar-help-card">
+      <h3>How to play</h3>
+      <ul class="ar-help-list">
+        <li>You'll hear <b>Do</b>, then another note.</li>
+        <li>The staff shows the choices as <b>shape-notes</b> stacked above Do.</li>
+        <li>Tap the <b>shape-note you heard</b> right on the staff to hop onto it.</li>
+        <li>Right → hop forward and score. Wrong → splash.</li>
+        <li>Answer before your note drifts off the <b>left edge</b>.</li>
+        <li><b>3 lives.</b> Chain correct answers for a combo bonus.</li>
+      </ul>
+      <button class="ar-again" id="arHelpClose">${G.started ? 'Resume' : "Let's play →"}</button>
+    </div>`;
+  el.hidden = false;
+  el.querySelector('#arHelpClose').addEventListener('click', closeHelp);
+}
+
+function closeHelp() {
+  if (!G) return;
+  const el = G.root.querySelector('#arHelpModal');
+  if (el) el.hidden = true;
+  if (!G.started) { beginPlay(); return; }
+  if (!G.over) { G.lastT = performance.now(); G.rafId = requestAnimationFrame(loop); }
 }
 
 function laneWidth() { return G.root.querySelector('#arField').clientWidth || 900; }
@@ -442,18 +504,6 @@ function applyScroll() {
     frog.style.left = `${Math.round(frogScreenX())}px`;
     frog.style.top = `${Math.round(yForIndex(G.currentS) - 15)}px`;   // stand on the note glyph
   }
-}
-
-function renderAnswers() {
-  const row = G.root.querySelector('#arAnswers');
-  row.innerHTML = '';
-  G.candidates.forEach(c => {
-    const b = document.createElement('button');
-    b.className = 'ar-ans';
-    b.textContent = NTH_LABEL[c.nth];    // interval size only — no giveaway
-    b.addEventListener('click', () => answer(c.nth));
-    row.appendChild(b);
-  });
 }
 
 function setPrompt(t) { const el = G?.root.querySelector('#arPrompt'); if (el) el.textContent = t; }

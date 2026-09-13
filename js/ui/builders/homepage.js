@@ -40,7 +40,6 @@ export function buildHomepage() {
   const streak = streakCount();
   const saved = hasActiveSession() ? loadSession() : null;
   const resumeStep = saved ? saved.steps[Math.min(saved.index, saved.steps.length - 1)] : null;
-  const hasProfile = !!loadProfile();
 
   host.innerHTML = `
     <div class="home-launch">
@@ -66,7 +65,6 @@ export function buildHomepage() {
 
       <div class="hl-actions">
         <button class="hl-primary" id="hlStart">${saved ? 'Start a new session' : "Start today's session"}</button>
-        <button class="hl-ghost" id="hlSetup">${hasProfile ? 'Change voice / setup' : 'Set up my voice'}</button>
       </div>
 
       <div class="home-solfege-section">
@@ -88,8 +86,6 @@ export function buildHomepage() {
     if (profile) startSession(profile);
     else startOnboarding();
   });
-  host.querySelector('#hlSetup')?.addEventListener('click', () => startOnboarding());
-
   watchHome();
 }
 

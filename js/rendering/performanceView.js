@@ -69,6 +69,8 @@ export function showNotation(exercise, force = false) {
       width,
       fitHeight,
       scale: performing ? undefined : zoom,
+      // Full-screen only: dim the parts the singer isn't singing (their aim part stays vivid).
+      aimPart: performing && cfg.fitPart ? cfg.fitPart() : null,
       ...(cfg.renderOptions || {})
     });
     timeToX = layout ? buildTimeToX(layout) : null;

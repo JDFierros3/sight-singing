@@ -89,6 +89,13 @@ function midiToVexKey(midi, tonicPc, mode) {
   };
 }
 
+// Fade a #rrggbb shape colour to a translucent version for non-aim voices in full-screen.
+function dimColor(hex) {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '');
+  if (!m) return 'rgba(160,172,205,.4)';
+  return `rgba(${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)},.4)`;
+}
+
 /**
  * Render the exercise as engraved notation into `container`.
  * Returns a layout map: { partPositions: {S:[{x,y,midi,startTime}], ...}, width, height }
@@ -103,6 +110,8 @@ export function renderHymnNotation(exercise, container, options = {}) {
   const grand = options.staffMode !== 'single';
   const labelSource = options.labelSource || 'hymn'; // 'hymn' | 'solfege' | 'none'
   const PARTS_ACTIVE = grand ? ['S', 'A', 'T', 'B'] : ['S'];
+  // In full-screen the singer's own line stays vivid; the parts they're NOT singing dim back.
+  const aimPart = options.aimPart || null;
   const systemHeight = grand ? SYSTEM_HEIGHT : SINGLE_HEIGHT;
 
   // Native zoom. In full-screen we scale to FIT the system into the available height
@@ -261,7 +270,10 @@ export function renderHymnNotation(exercise, container, options = {}) {
           const sn = new VF.StaveNote({ keys: [key], duration: dur, clef, stem_direction: stemDir });
           if (accidental) sn.addModifier(new VF.Accidental(accidental));
           if (dots) VF.Dot.buildAndAttach([sn], { all: true });
-          try { sn.setKeyStyle(0, { fillStyle: color, strokeStyle: color }); } catch (e) {} // solfege-coloured shape head
+          const dimmed = aimPart && part !== aimPart;
+          const headColor = dimmed ? dimColor(color) : color;   // fade the parts they're not singing
+          try { sn.setKeyStyle(0, { fillStyle: headColor, strokeStyle: headColor }); } catch (e) {} // solfege-coloured shape head
+          if (dimmed) { try { sn.setStyle({ fillStyle: 'rgba(160,172,205,.4)', strokeStyle: 'rgba(160,172,205,.4)' }); } catch (e) {} }
           if (n.fermata && !fermataTimes[clef].has(timeKey(n.start))) {
             fermataTimes[clef].add(timeKey(n.start));
             // Point the hold away from the middle of the grand staff: upright above the

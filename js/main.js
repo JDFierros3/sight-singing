@@ -29,6 +29,7 @@ import { maybeStartOnboarding } from './session/onboarding.js';
 import { initSessionBar } from './session/sessionBar.js';
 import { initMobileShell } from './session/mobileShell.js';
 import { initSettingsSheet } from './session/settingsSheet.js';
+import { initProfileMenu } from './session/profileMenu.js';
 // Tests are imported when needed
 // import './tests/tests.js';
 
@@ -137,6 +138,7 @@ async function buildUserInterface() {
   initSessionBar();
   initMobileShell();
   initSettingsSheet();
+  initProfileMenu();
   buildHomepage();
 
   // Land the singer on their song (the engraved SATB staff) when they arrived via an

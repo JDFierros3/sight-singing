@@ -141,6 +141,12 @@ export function exitSession() {
   document.dispatchEvent(new CustomEvent('session:changed'));
 }
 
+/** End the focused session and return Home. Keeps the snapshot so Home can still resume it. */
+export function endSessionToHome() {
+  exitSession();          // drops the session (removes body.session-active) but keeps the snapshot
+  switchToTab('home');
+}
+
 function completeSession() {
   current = null;
   try { localStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ }

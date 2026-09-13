@@ -1681,6 +1681,66 @@ body.perf-performing .perf-playhead {
   100% { transform: scale(1); opacity: 0.92; }
 }
 
+/* First-run calibration: tune-by-ear controls floating over the full-screen sing-along. */
+.cal-controls {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  top: max(16px, env(safe-area-inset-top));
+  z-index: 3010; width: min(440px, calc(100vw - 24px));
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 14px 16px; border-radius: 16px;
+  background: rgba(23, 26, 43, 0.92); border: 1px solid #2a2f48;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color: #eef1fb; text-align: center;
+}
+.cal-controls[hidden] { display: none; }
+/* During calibration our own controls own the exit — hide the generic full-screen Stop. */
+body.cal-active .perf-exit-btn { display: none !important; }
+.cal-controls .cal-title { font-size: 15px; font-weight: 700; }
+.cal-controls .cal-sub { font-size: 12px; color: #98a0bd; }
+.cal-controls .cal-sub b { color: #eef1fb; }
+.cal-controls .cal-row { display: flex; gap: 8px; width: 100%; }
+.cal-controls .cal-btn {
+  flex: 1; cursor: pointer; border-radius: 999px; padding: 11px 12px; min-height: 44px;
+  font-size: 14px; font-weight: 600; background: #1e2237; color: #eef1fb; border: 1px solid #2a2f48;
+}
+.cal-controls .cal-btn:hover { background: #262b45; }
+.cal-controls .cal-go {
+  width: 100%; background: #e6b968; color: #241a06; border-color: transparent; font-weight: 800;
+}
+.cal-controls .cal-mic-off { font-size: 11px; color: #eab308; }
+
+/* Minimal profile button + popover (voice/part + Do), next to the settings gear. */
+.rowCompact { position: relative; }
+#btnProfile { display: inline-flex; align-items: center; gap: 6px; }
+#btnProfile .pm-ico { flex: 0 0 auto; opacity: .85; }
+.pm-pop {
+  position: absolute; right: 8px; top: 100%; margin-top: 6px; z-index: 2100;
+  width: min(280px, calc(100vw - 24px));
+  background: #171a2b; border: 1px solid #2a2f48; border-radius: 14px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5); padding: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color: #eef1fb;
+}
+.pm-pop[hidden] { display: none; }
+.pm-pop .pm-title { font-size: 12px; color: #98a0bd; font-weight: 600; }
+.pm-pop .pm-parts { display: flex; gap: 6px; }
+.pm-pop .pm-part {
+  flex: 1; cursor: pointer; border-radius: 9px; padding: 8px 4px; font-size: 13px; font-weight: 600;
+  background: #1e2237; color: #eef1fb; border: 1px solid #2a2f48;
+}
+.pm-pop .pm-part.on { background: #e6b968; color: #241a06; border-color: transparent; }
+.pm-pop .pm-do { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.pm-pop .pm-do b { min-width: 40px; text-align: center; }
+.pm-pop .pm-nudge, .pm-pop .pm-hear {
+  cursor: pointer; width: 34px; height: 34px; border-radius: 9px;
+  background: #1e2237; color: #eef1fb; border: 1px solid #2a2f48; font-size: 15px;
+}
+.pm-pop .pm-retune {
+  cursor: pointer; border-radius: 999px; padding: 10px; font-size: 13px; font-weight: 700;
+  background: #e6b968; color: #241a06; border: none;
+}
+
 /* Brass accent for the single primary action (global Play), per the design system.
    The one button that should always pop above the rest of the chrome. */
 #btnGlobalPlay:not(:disabled) {
@@ -1778,10 +1838,18 @@ body.onb-open { overflow: hidden; }
 }
 .session-bar .sb-btn.ghost { background: transparent; color: #98a0bd; }
 .session-bar .sb-btn.brass { background: #e6b968; color: #241a06; border-color: transparent; font-weight: 800; }
+.session-bar .sb-btn.end { color: #98a0bd; background: transparent; border-color: transparent; }
+.session-bar .sb-btn.end:hover { color: #eef1fb; }
 .session-bar .sb-btn:disabled { opacity: .4; cursor: default; }
-@media (max-width: 480px) {
-  .session-bar .sb-btn[data-act="exit"] { order: 5; } /* push Free-play to wrap under on narrow screens */
-}
+
+/* Focused session mode: hide every room-navigation surface so only the current step (the
+   exercise panel) + the session bar remain. Header (mic/settings) stays available. */
+body.session-active .mobile-nav,
+body.session-active .desktop-rail,
+body.session-active .room-subnav,
+body.session-active .tabs,
+body.session-active .tabSelectBlock { display: none !important; }
+body.session-active { padding-left: 0 !important; }
 
 /* ===================================================================== *
  * Mobile App Shell — bottom nav (5 rooms) + per-room sub-nav.

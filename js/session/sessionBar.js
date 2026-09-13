@@ -4,7 +4,8 @@
  * It never hides the tab beneath it; the singer can also just wander via the normal tabs.
  */
 
-import { getProgress, getCurrentStep, nextStep, prevStep, skipStep, exitSession, isSessionActive } from './session.js';
+import { getProgress, getCurrentStep, nextStep, prevStep, skipStep, endSessionToHome, isSessionActive } from './session.js';
+import { switchToTab } from '../ui/components/tabs.js';
 
 const STATS_KEY = 'solfege.v1.stats';
 
@@ -47,16 +48,16 @@ function render() {
     <div class="sb-dots">${dots}</div>
     <div class="sb-label">Step ${prog.index + 1} of ${prog.total}<small>${escapeHtml(step.label)}</small></div>
     <div class="sb-actions">
-      <button class="sb-btn" data-act="exit" title="Leave the session and explore freely">Free play</button>
       <button class="sb-btn ghost" data-act="back" ${prog.index === 0 ? 'disabled' : ''}>‹ Back</button>
       <button class="sb-btn ghost" data-act="skip">Skip</button>
       <button class="sb-btn brass" data-act="next">${atEnd ? 'Finish ✓' : 'Next ›'}</button>
+      <button class="sb-btn end" data-act="end" title="End the session and return Home">End</button>
     </div>`;
 
   bar.querySelector('[data-act="back"]').onclick = prevStep;
   bar.querySelector('[data-act="skip"]').onclick = skipStep;
   bar.querySelector('[data-act="next"]').onclick = nextStep;
-  bar.querySelector('[data-act="exit"]').onclick = exitSession;
+  bar.querySelector('[data-act="end"]').onclick = endSessionToHome;
 }
 
 function onComplete() {
@@ -71,6 +72,7 @@ function onComplete() {
   bar.querySelector('[data-act="close"]').onclick = () => {
     bar.hidden = true;
     document.body.classList.remove('session-active');
+    switchToTab('home');
   };
 }
 

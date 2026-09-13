@@ -4,6 +4,7 @@
 
 import { getElementById, setTextContent } from '../utils/dom.js';
 import { ensureAudioContext } from '../audio/context.js';
+import { soundDoReference } from '../audio/doPitch.js';
 import { stopAllDroneOscillators } from '../audio/drone.js';
 import { stopOscillator } from '../audio/oscillator.js';
 import { stopInstrumentNote } from '../audio/instruments.js';
@@ -81,6 +82,14 @@ function convertSATBToStanza(exercise) {
 /**
  * Play SATB exercise
  */
+// The hymn's Do (its key tonic, including any transpose) placed in the octave nearest the
+// singer's configured Do — so the reference tone sits in a comfortable register.
+function hymnDoReferenceMidi() {
+  const tonicPc = (((appState.staff.keyTonic || 0) + (appState.satb.transposeSemis || 0)) % 12 + 12) % 12;
+  const anchor = appState.tuning.doMidi;
+  return tonicPc + 12 * Math.round((anchor - tonicPc) / 12);
+}
+
 export async function playSATBExercise() {
   await ensureAudioContext();
   
@@ -117,6 +126,10 @@ export async function playSATBExercise() {
   // Full-screen engraved play-along: expand the staff and scroll it under the playhead.
   configureSATBPerformance();
   enterPerformance(exercise);
+
+  // Always sound the hymn's Do first (in the singer's register), so they have the tonic.
+  await soundDoReference(hymnDoReferenceMidi());
+  if (!appState.satb.isPlaying) return;   // bailed during the tone
   startScroll();
 
   // Convert to stanza format
