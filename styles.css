@@ -1696,6 +1696,22 @@ body.perf-performing .perf-playhead {
 .cal-controls[hidden] { display: none; }
 /* During calibration our own controls own the exit — hide the generic full-screen Stop. */
 body.cal-active .perf-exit-btn { display: none !important; }
+
+/* Verse 1 → verse 2 hand-off modal (explains the other voices joining + the range move). */
+.cal-modal {
+  position: fixed; inset: 0; z-index: 3020; display: flex; align-items: center; justify-content: center;
+  background: rgba(9, 11, 20, 0.86); backdrop-filter: blur(2px); padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+.cal-modal[hidden] { display: none; }
+.cal-modal-card {
+  max-width: 440px; background: #171a2b; border: 1px solid #2a2f48; border-radius: 16px;
+  padding: 22px 24px; color: #eef1fb; box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+}
+.cal-modal-card h3 { margin: 0 0 12px; font-size: 20px; }
+.cal-modal-card p { margin: 0 0 18px; font-size: 14px; line-height: 1.45; color: #c1c6dd; }
+.cal-modal-card b { color: #eef1fb; }
+.cal-modal-btns { display: flex; flex-direction: column; gap: 10px; }
 .cal-controls .cal-title { font-size: 15px; font-weight: 700; }
 .cal-controls .cal-sub { font-size: 12px; color: #98a0bd; }
 .cal-controls .cal-sub b { color: #eef1fb; }

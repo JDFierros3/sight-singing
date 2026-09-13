@@ -1,10 +1,11 @@
 /**
  * First-run pitch calibration — the WOW moment.
  *
- * After the singer picks a part we drop them straight into the full-screen sing-along (the
- * same surface the hymn room uses), mic live, singing "You Are My Sunshine" with a colored
- * pitch line tracking their voice. They set their movable-Do by ear: "too high / too low"
- * shifts Do a half step and replays. "This is my key ✓" saves that Do.
+ * After the singer picks a part we drop them straight into the full-screen hum-along (the same
+ * surface the hymn room uses), mic live, humming our own simple setting of "Mary Had a Little
+ * Lamb" (public domain) with a coloured pitch line tracking their voice. They find a comfortable
+ * pitch by ear ("too high / too low" nudges everything a half step). Verse 1 is the tune alone;
+ * verse 2 adds the other voices and invites them to hum THEIR part.
  *
  * Reuses the shared performance surface (performanceView.js) and the warmup-style movable-Do
  * melody builder (notes are just appState.tuning.doMidi + offset).
@@ -19,38 +20,41 @@ import { scheduleNotes, waitWithValidation } from '../player/noteScheduler.js';
 import { isValidSequence } from '../player/sequenceManager.js';
 import { isUsingSoundfont, playInstrumentNote, stopInstrumentNote } from '../audio/instruments.js';
 import { createOscillator, startOscillator, stopOscillator, connectOscillatorToDestination } from '../audio/oscillator.js';
-import { configurePerformance, enterPerformance, exitPerformance, startScroll, withLeadIn } from '../rendering/performanceView.js';
+import { configurePerformance, enterPerformance, exitPerformance, startScroll, stopScroll, withLeadIn } from '../rendering/performanceView.js';
 import { startMicrophone } from '../audio/microphone.js';
 import { soundDoReference } from '../audio/doPitch.js';
 import { spellMidiInKey } from '../utils/keySignature.js';
 import { VOICE_PROFILES } from './profile.js';
 
-// "You Are My Sunshine" — the full A-section verse (sheet measures 1–15), movable Do.
+// "Mary Had a Little Lamb" — our own simple movable-Do setting (the tune is public domain).
 // Each note is { o: semitone offset from Do, b: beats, w: lyric syllable }; 'r' is a breath.
-// NOTE: melody transcribed by eye from the user's sheet — verify by ear and tweak offsets.
-const SUNSHINE = [
-  // You are my sun-shine, my on-ly sun-shine
-  { o: 0, b: 1, w: 'You' }, { o: 0, b: 1, w: 'are' }, { o: 0, b: 1, w: 'my' }, { o: 4, b: 1, w: 'sun' }, { o: 4, b: 2, w: 'shine' }, 'r',
-  { o: 4, b: 1, w: 'my' }, { o: 2, b: 1, w: 'on' }, { o: 0, b: 1, w: 'ly' }, { o: 2, b: 1, w: 'sun' }, { o: 4, b: 2, w: 'shine' }, 'r',
-  // You make me hap-py when skies are gray
-  { o: 0, b: 1, w: 'You' }, { o: 4, b: 1, w: 'make' }, { o: 7, b: 1, w: 'me' }, { o: 7, b: 1, w: 'hap' }, { o: 9, b: 2, w: 'py' }, 'r',
-  { o: 7, b: 1, w: 'when' }, { o: 4, b: 1, w: 'skies' }, { o: 2, b: 1, w: 'are' }, { o: 0, b: 2, w: 'gray' }, 'r',
-  // You'll ne-ver know, dear, how much I love you
-  { o: 0, b: 1, w: "You'll" }, { o: 4, b: 1, w: 'ne' }, { o: 7, b: 1, w: 'ver' }, { o: 7, b: 2, w: 'know' }, { o: 4, b: 2, w: 'dear' }, 'r',
-  { o: 0, b: 1, w: 'how' }, { o: 2, b: 1, w: 'much' }, { o: 4, b: 1, w: 'I' }, { o: 2, b: 1, w: 'love' }, { o: 0, b: 2, w: 'you' }, 'r',
-  // Please don't take my sun-shine a-way
-  { o: 0, b: 1, w: 'Please' }, { o: 4, b: 1, w: "don't" }, { o: 7, b: 1, w: 'take' }, { o: 7, b: 1, w: 'my' }, { o: 4, b: 1, w: 'sun' }, { o: 2, b: 1, w: 'shine' }, { o: 2, b: 1, w: 'a' }, { o: 0, b: 2, w: 'way' },
+// Range Do–Sol — tight and easy to hum. The Re (2) notes pull toward V, the rest sit on I,
+// so the auto-harmony in verse 2 comes out as a clean I / V setting.
+const MARY = [
+  // Mary had a little lamb
+  { o: 4, b: 1, w: 'Ma' }, { o: 2, b: 1, w: 'ry' }, { o: 0, b: 1, w: 'had' }, { o: 2, b: 1, w: 'a' }, { o: 4, b: 1, w: 'lit' }, { o: 4, b: 1, w: 'tle' }, { o: 4, b: 2, w: 'lamb' }, 'r',
+  // little lamb, little lamb
+  { o: 2, b: 1, w: 'lit' }, { o: 2, b: 1, w: 'tle' }, { o: 2, b: 2, w: 'lamb' }, { o: 4, b: 1, w: 'lit' }, { o: 7, b: 1, w: 'tle' }, { o: 7, b: 2, w: 'lamb' }, 'r',
+  // Mary had a little lamb (no breath here — flows straight into the last line as a pickup)
+  { o: 4, b: 1, w: 'Ma' }, { o: 2, b: 1, w: 'ry' }, { o: 0, b: 1, w: 'had' }, { o: 2, b: 1, w: 'a' }, { o: 4, b: 1, w: 'lit' }, { o: 4, b: 1, w: 'tle' }, { o: 4, b: 2, w: 'lamb' },
+  // (pickup) its fleece was white as snow — Do "its" leads to the downbeat, resolving Re→Do on "snow"
+  { o: 0, b: 1, w: 'its' }, { o: 2, b: 1, w: 'fleece' }, { o: 2, b: 1, w: 'was' }, { o: 4, b: 1, w: 'white' }, { o: 2, b: 1, w: 'as' }, { o: 0, b: 2, w: 'snow' },
 ];
-const CAL_TEMPO = 108;  // gentle sing-along pace
+const CAL_TEMPO = 100;  // gentle hum-along pace
 
-const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const noteName = (m) => NOTE_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
 const clampDo = (m) => Math.max(36, Math.min(84, m));
+const PART_LABEL = { S: 'Soprano', A: 'Alto', T: 'Tenor', B: 'Bass' };
+// The comfortable range for a part (mirrors PART_RANGES via the voice profiles).
+function rangeForPart(part) {
+  const v = Object.values(VOICE_PROFILES).find(p => p.part === part);
+  return v ? v.range : [55, 74];
+}
 
 let calPart = 'S';
 let calClef = 'treble';
 let calPlaying = false;
 let calPass = 1;            // pass 1 = melody solo; pass 2 = full SATB, their part amplified
+let calExercise = null;     // the currently-engraved exercise (surface set up before audio plays)
 let currentCalNote = null;
 let micOk = false;
 let onDoneCb = null;
@@ -73,8 +77,10 @@ export async function startCalibration({ part, doMidi, onDone, onCancel }) {
   await ensureAudioContext();
   micOk = await enableMic();
 
-  showControls();
-  await playPass();
+  // Bring up the full-screen staff with the mic line LIVE (before any tune plays) so we can prove
+  // the pitch line works — the mic-check gate asks them to hum and confirm they see it move.
+  enterSurface();
+  showMicCheck();
 }
 
 function clefForPart(part) {
@@ -117,11 +123,12 @@ function ensureCalContainer() {
 // green/yellow/red against the note currently sounding.
 function configureCalPerformance() {
   const harmony = calPass === 2;
+  const aim = harmony ? calPart : 'S';   // verse 1: sing the tune; verse 2: sing YOUR part
   configurePerformance({
     container: ensureCalContainer(),
     getTime: () => (appState.staff.currentTime || 0) * ((appState.staff.tempo || 60) / 60),
     getTargetMidi: () => currentCalNote,
-    fitPart: () => 'S',
+    fitPart: () => aim,
     isPlaying: () => calPlaying,
     onExit: () => finishCalibration(),
     variant: () => `${appState.tuning.doMidi}|${calPass}|${calClef}`,
@@ -129,41 +136,80 @@ function configureCalPerformance() {
   });
 }
 
-async function playPass() {
-  stanzaSequencePlayer.stopSequence();            // cancel any in-flight pass
-  await ensureAudioContext();
+// Engrave the current pass full-screen and start the scroll loop — this makes the mic line go
+// LIVE even before any audio plays (so the mic-check can prove it works). No sequence yet.
+function enterSurface() {
   const harmony = calPass === 2;
-  const exercise = withLeadIn(buildCalExercise(harmony), 1);
+  // Verse 2: build the SATB setting, then octave-shift it so the singer's part sits comfortably.
+  const base = buildCalExercise(harmony);
+  calExercise = withLeadIn(harmony ? transposeToPartRange(base, calPart) : base, 1);
   appState.staff.tempo = CAL_TEMPO;
-  appState.staff.keyTonic = exercise.midiKeyMidi;
+  appState.staff.currentTime = 0;
+  appState.staff.keyTonic = calExercise.midiKeyMidi;
   appState.staff.keyMode = 'major';
 
   configureCalPerformance();
   ensureCalContainer().hidden = false;
-  enterPerformance(exercise);                     // full-screen (adds body.perf-performing)
-
-  // Sound the singer's Do at the very start of pass 1; pass 2 flows straight on.
-  if (calPass === 1) { await soundDoReference(appState.tuning.doMidi); if (!calPlaying) return; }
-
-  startScroll();
+  enterPerformance(calExercise);                  // full-screen (adds body.perf-performing)
+  stopScroll();                                   // avoid stacking loops on replay
+  startScroll();                                  // mic line updates each frame, tune static at start
   updateControlsHint();
+}
 
+// Play the audio for the current pass over the already-engraved surface.
+async function runSequence() {
+  stanzaSequencePlayer.stopSequence();
+  const harmony = calPass === 2;
+  const aim = harmony ? calPart : 'S';
   const notes = harmony
-    ? ['S', 'A', 'T', 'B'].flatMap(p => exercise.parts[p]).sort((a, b) => a.startTime - b.startTime)
-    : exercise.parts.S;
-  const stanza = { label: exercise.label, duration: exercise.duration, notes };
+    ? ['S', 'A', 'T', 'B'].flatMap(p => calExercise.parts[p]).sort((a, b) => a.startTime - b.startTime)
+    : calExercise.parts.S;
+  const stanza = { label: calExercise.label, duration: calExercise.duration, notes };
   const thisPass = calPass;
   await stanzaSequencePlayer.startSequence([stanza], {
     tempo: appState.staff.tempo,
     baseGain: appState.drone.gain,
-    audioSetup: makeAudioSetup(harmony),
-    // Verse 1 → automatically flow into the harmonized verse 2 (unless they quit / retune).
-    onComplete: () => { if (calPlaying && thisPass === 1) { calPass = 2; playPass(); } }
+    audioSetup: makeAudioSetup(aim, harmony),
+    // After the tune (verse 1), invite them to break into their own part (verse 2) via a modal.
+    onComplete: () => { if (calPlaying && thisPass === 1) showTransition(); }
   });
 }
 
-// Restart the sing-along from verse 1 (after a Do change or Replay).
+// First run after the mic-check: reveal the controls, sound the tonic, then play verse 1.
+async function beginFirstPass() {
+  showControls();
+  await soundDoReference(appState.tuning.doMidi);
+  if (!calPlaying) return;
+  await runSequence();
+}
+
+// Replay / retune / verse 2: re-engrave and (verse 1 only) re-sound the tonic, then play.
+async function playPass() {
+  await ensureAudioContext();
+  enterSurface();
+  if (calPass === 1) { await soundDoReference(appState.tuning.doMidi); if (!calPlaying) return; }
+  await runSequence();
+}
+
+// Restart the hum-along from verse 1 (after a pitch change or Replay).
 function playFromTop() { calPass = 1; playPass(); }
+function startVerse2() { calPass = 2; playPass(); }
+
+// Octave-shift the whole SATB setting so the singer's part is centred in its comfortable range.
+function transposeToPartRange(exercise, part) {
+  const notes = exercise.parts[part] || [];
+  if (!notes.length) return exercise;
+  const mids = notes.map(n => n.midi).sort((a, b) => a - b);
+  const median = mids[Math.floor(mids.length / 2)];
+  const [lo, hi] = rangeForPart(part);
+  const center = (lo + hi) / 2;
+  let shift = 0;
+  while (median + shift < center - 6) shift += 12;
+  while (median + shift > center + 6) shift -= 12;
+  if (!shift) return exercise;
+  const bump = arr => arr.map(n => ({ ...n, midi: n.midi + shift }));
+  return { ...exercise, parts: { S: bump(exercise.parts.S), A: bump(exercise.parts.A), T: bump(exercise.parts.T), B: bump(exercise.parts.B) } };
+}
 
 // Build the exercise. Pass 1: melody only (part S). Pass 2: add a consonant SATB harmony
 // (each melody note gets a I/IV/V triad voiced below it). Lyrics ride the melody.
@@ -172,7 +218,7 @@ function buildCalExercise(harmony) {
   const tonicPc = ((doMidi % 12) + 12) % 12;
   const S = [], A = [], T = [], B = [], lyricsByNote = [];
   let t = 0;
-  for (const e of SUNSHINE) {
+  for (const e of MARY) {
     if (e === 'r') { t += 1; continue; }
     const midi = doMidi + e.o;
     S.push({ midi, startTime: t, duration: e.b, part: 'S' });
@@ -186,7 +232,7 @@ function buildCalExercise(harmony) {
     t += e.b;
   }
   return {
-    id: harmony ? 'cal-v2' : 'cal-v1', label: 'You Are My Sunshine', duration: t,
+    id: harmony ? 'cal-v2' : 'cal-v1', label: 'Mary Had a Little Lamb', duration: t,
     midiKeyMidi: tonicPc, midiKeyMode: 'major', timeSigNum: 4, timeSigDen: 4,
     parts: { S, A, T, B }, lyricsByNote
   };
@@ -216,23 +262,25 @@ function chordTonesBelow(rootOff, ceilMidi, doMidi) {
 
 // Schedule a pass. Melody (Soprano) drives the colour line and is AMPLIFIED in verse 2; the
 // harmony voices sing softer underneath.
-function makeAudioSetup(harmony) {
+function makeAudioSetup(aim, harmony) {
   return async (scaledStanza, sequenceId) => {
     scheduleNotes(scaledStanza.notes, sequenceId, async (note, seqId) => {
       if (!isValidSequence(seqId) || !calPlaying) return;
       const base = appState.drone.gain || 0.25;
-      const isMelody = note.part === 'S';
-      if (isMelody) currentCalNote = note.midi;    // colour line follows the tune
-      const gain = isMelody ? Math.min(0.6, base * (harmony ? 1.35 : 1)) : base * 0.4;
+      const isAim = note.part === aim;             // the part the singer is singing this verse
+      if (isAim) currentCalNote = note.midi;       // colour line follows the singer's part
+      const gain = isAim ? Math.min(0.6, base * (harmony ? 1.4 : 1)) : base * 0.4;
 
       if (isUsingSoundfont()) {
-        const n = playInstrumentNote(note.midi, note.duration, gain);
-        if (n) {
-          activeOsc.push(n);
-          await waitWithValidation(note.duration * 1000, seqId, () => calPlaying);
-          const i = activeOsc.indexOf(n); if (i > -1) activeOsc.splice(i, 1);
-          return;
-        }
+        try {
+          const n = playInstrumentNote(note.midi, note.duration, gain);
+          if (n) {
+            activeOsc.push(n);
+            await waitWithValidation(note.duration * 1000, seqId, () => calPlaying);
+            const i = activeOsc.indexOf(n); if (i > -1) activeOsc.splice(i, 1);
+            return;
+          }
+        } catch (e) { /* sample not loaded — fall back to the oscillator below */ }
       }
       const osc = makeOsc(midiToFrequency(note.midi, appState.tuning.a4), gain);
       if (osc) {
@@ -258,38 +306,89 @@ function showControls() {
     document.body.appendChild(el);
   }
   el.innerHTML = `
-    <div class="cal-title">Sing along — is this comfortable?</div>
-    <div class="cal-sub">Do = <b id="calDoName">${noteName(appState.tuning.doMidi)}</b> · <span id="calPassHint">Verse 1 — just your part</span></div>
+    <div class="cal-title">Hum along — does this feel comfortable?</div>
+    <div class="cal-sub" id="calPassHint">Just hum the tune.</div>
     <div class="cal-row">
       <button class="cal-btn" data-cal="low">Too low ↓</button>
       <button class="cal-btn" data-cal="replay">↺ Replay</button>
       <button class="cal-btn" data-cal="high">Too high ↑</button>
     </div>
-    <button class="cal-btn cal-go" data-cal="ok">This is my key ✓</button>
-    ${micOk ? '' : '<div class="cal-mic-off">Mic is off — you can still tune by ear.</div>'}`;
+    <button class="cal-btn cal-go" data-cal="ok">This feels comfortable ✓</button>
+    ${micOk ? '' : '<div class="cal-mic-off">Turn on your mic to see your pitch as you hum.</div>'}`;
   el.hidden = false;
   el.querySelectorAll('[data-cal]').forEach(b => { b.onclick = () => onCal(b.dataset.cal); });
 }
 
 function updateControlsHint() {
   const el = getElementById('calPassHint');
-  if (el) el.textContent = calPass === 2 ? 'Verse 2 — full harmony, your part loudest' : 'Verse 1 — just your part';
+  if (!el) return;
+  el.textContent = calPass === 2
+    ? `Hum the bright ${PART_LABEL[calPart] || 'your'} line`
+    : 'Just hum the tune.';
+}
+
+// Mic-check gate: before anything plays, prove the pitch line works — they hum, see it move,
+// then start. Handles the mic-denied case with a retry / continue path.
+function showMicCheck() {
+  let el = getElementById('calMicCheck');
+  if (!el) { el = document.createElement('div'); el.id = 'calMicCheck'; el.className = 'cal-modal'; document.body.appendChild(el); }
+  el.innerHTML = micOk ? `
+    <div class="cal-modal-card">
+      <h3>Let's hear you</h3>
+      <p>Hum any note out loud. You should see a <b>coloured line</b> appear on the staff and move
+         up and down with your voice. Once you see it, you're ready.</p>
+      <div class="cal-modal-btns">
+        <button class="cal-btn cal-go" data-mc="go">I can see my line →</button>
+      </div>
+    </div>` : `
+    <div class="cal-modal-card">
+      <h3>Turn on your microphone</h3>
+      <p>We couldn't hear your mic. Allow microphone access so you can see your pitch as you hum —
+         or continue and tune by ear.</p>
+      <div class="cal-modal-btns">
+        <button class="cal-btn cal-go" data-mc="retry">Try the mic again</button>
+        <button class="cal-btn" data-mc="skip">Continue without it</button>
+      </div>
+    </div>`;
+  el.hidden = false;
+  el.querySelector('[data-mc="go"]')?.addEventListener('click', () => { el.hidden = true; beginFirstPass(); });
+  el.querySelector('[data-mc="skip"]')?.addEventListener('click', () => { el.hidden = true; beginFirstPass(); });
+  el.querySelector('[data-mc="retry"]')?.addEventListener('click', async () => { micOk = await enableMic(); showMicCheck(); });
+}
+
+// The verse-1 → verse-2 hand-off. Explains, in plain language, that the other voices join and
+// that we moved their part into a comfortable range.
+function showTransition() {
+  let el = getElementById('calTransition');
+  if (!el) { el = document.createElement('div'); el.id = 'calTransition'; el.className = 'cal-modal'; document.body.appendChild(el); }
+  const part = PART_LABEL[calPart] || 'your part';
+  el.innerHTML = `
+    <div class="cal-modal-card">
+      <h3>Lovely — now hum with the group</h3>
+      <p>That was the tune. This time the other voices come in around you. Follow the
+         <b>bright ${part}</b> line and hum along — we've moved it to sit nicely for your voice, so
+         it may sound a little higher or lower than before. The greener your line, the more in tune you are.</p>
+      <div class="cal-modal-btns">
+        <button class="cal-btn cal-go" data-t="go">Hum the ${part} line →</button>
+        <button class="cal-btn" data-t="done">I'm all set</button>
+      </div>
+    </div>`;
+  el.hidden = false;
+  el.querySelector('[data-t="go"]').onclick = () => { el.hidden = true; startVerse2(); };
+  el.querySelector('[data-t="done"]').onclick = () => { el.hidden = true; finishCalibration(); };
 }
 
 function onCal(action) {
   if (action === 'ok') { finishCalibration(); return; }
   if (action === 'replay') { playFromTop(); return; }
-  // "Too high" → the song sits too high → lower Do; "Too low" → raise Do. Restart from verse 1.
+  // "Too high" → nudge everything a half step lower; "Too low" → higher. Restart from verse 1.
   const delta = action === 'high' ? -1 : 1;
   appState.tuning.doMidi = clampDo(appState.tuning.doMidi + delta);
-  const nameEl = getElementById('calDoName');
-  if (nameEl) nameEl.textContent = noteName(appState.tuning.doMidi);
   playFromTop();
 }
 
 function hideControls() {
-  const el = getElementById('calControls');
-  if (el) el.hidden = true;
+  ['calControls', 'calTransition', 'calMicCheck'].forEach(id => { const el = getElementById(id); if (el) el.hidden = true; });
 }
 
 function finishCalibration() {

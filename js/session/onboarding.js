@@ -95,7 +95,7 @@ function renderPart() {
     <div class="onb-step">Pick your part</div>
     <h2 class="onb-h">Which part do you sing?</h2>
     <div class="onb-voices onb-voices-parts">${opts}</div>
-    <p class="onb-hint">We'll drop you into a quick sing-along to set your key by ear.</p>
+    <p class="onb-hint">Next you'll do a quick hum-along to find a pitch that feels comfy.</p>
     <button class="onb-primary" data-part-go>Start singing →</button>`;
 }
 
