@@ -1724,6 +1724,28 @@ body.cal-active .perf-exit-btn { display: none !important; }
 .micChip.mic-bad { color: #f0b4b4; }
 .micChip.mic-live { color: #cdd5f0; }
 .micChip.mic-hearing #micHz { color: #7fe0a6; font-weight: 700; }
+
+/* Per-screen "How to" modal (auto-pops first visit; reopen via the header "?"). */
+#btnHowto { min-width: 34px; font-weight: 700; }
+.howto-modal {
+  position: fixed; inset: 0; z-index: 1900; display: flex; align-items: center; justify-content: center;
+  background: rgba(9, 11, 20, 0.7); backdrop-filter: blur(2px); padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+.howto-modal[hidden] { display: none; }
+.howto-card {
+  max-width: 460px; width: 100%; max-height: 84vh; overflow-y: auto;
+  background: #171a2b; border: 1px solid #2a2f48; border-radius: 16px; padding: 22px 24px;
+  color: #eef1fb; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+.howto-card h3 { margin: 0 0 6px; font-size: 21px; }
+.howto-card .howto-blurb { margin: 0 0 14px; font-size: 14px; color: #c1c6dd; line-height: 1.45; }
+.howto-card h4 { margin: 14px 0 6px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #98a0bd; }
+.howto-card ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #dbe1f4; line-height: 1.4; }
+.howto-card b { color: #eef1fb; }
+.howto-card .howto-builds { margin: 16px 0 0; font-size: 13.5px; color: #c1c6dd; }
+.howto-btns { margin-top: 18px; display: flex; justify-content: flex-end; }
+.howto-go { cursor: pointer; border-radius: 999px; padding: 10px 22px; font-size: 14px; font-weight: 800; background: #e6b968; color: #241a06; border: none; }
 .cal-controls .cal-title { font-size: 15px; font-weight: 700; }
 .cal-controls .cal-sub { font-size: 12px; color: #98a0bd; }
 .cal-controls .cal-sub b { color: #eef1fb; }
