@@ -386,13 +386,30 @@ export function renderHymnNotation(exercise, container, options = {}) {
     const syllables = lyricsForNotes(exercise);
     if (syllables.length) {
       ctx.save();
-      ctx.setFont('Georgia, serif', 11, '');
       ctx.setFillStyle('#dbe4ff');
       ctx.setStrokeStyle('#dbe4ff');
+      // Collect the syllable-bearing notes with their x. Each syllable is CENTERED under its note
+      // and SHRUNK (only where cramped) to fit the gap to its neighbours, so long words like
+      // "fleece"/"snow" over closely-spaced notes never overlap — in Mary or any hymn.
+      const items = [];
       partPositions.S.forEach((p, i) => {
         const syl = (syllables[i] || '').replace(/--/g, '');
-        if (!syl) return;
-        try { ctx.fillText(syl, p.x - 3, lyricsY); } catch (e) {}
+        if (syl) items.push({ x: p.x, syl });
+      });
+      const BASE = 11, MIN = 7.5, PAD = 6, CHAR = 0.6; // CHAR ≈ Georgia width per char (of font size)
+      const widthAt = (syl, fs) => syl.length * fs * CHAR;
+      items.forEach((it, k) => {
+        const gapL = k > 0 ? it.x - items[k - 1].x : Infinity;
+        const gapR = k < items.length - 1 ? items[k + 1].x - it.x : Infinity;
+        const slot = Math.min(gapL, gapR);                 // room before we'd touch a neighbour
+        let fs = BASE;
+        const maxW = Math.max(0, slot - PAD);
+        if (Number.isFinite(maxW) && widthAt(it.syl, BASE) > maxW) {
+          fs = Math.max(MIN, BASE * maxW / widthAt(it.syl, BASE));
+        }
+        const w = widthAt(it.syl, fs);
+        ctx.setFont('Georgia, serif', fs, '');
+        try { ctx.fillText(it.syl, it.x - w / 2, lyricsY); } catch (e) {}   // centered under the note
       });
       ctx.restore();
     }
