@@ -1660,6 +1660,23 @@ body.perf-performing .perf-playhead {
   display: none;
 }
 
+/* Full-screen transport: ◀ back a measure · ⏸ pause/resume · ▶ forward a measure. Sits just
+   above the Stop button; hidden during calibration, which has its own controls. */
+.perf-transport {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(max(18px, env(safe-area-inset-bottom, 0px)) + 64px);
+  z-index: 3010; display: none; gap: 12px; align-items: center;
+}
+.perf-tbtn {
+  width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
+  background: #1e2237; color: #eef1fb; border: 1px solid #3a4266;
+  font-size: 17px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+.perf-tbtn:hover { background: #262b45; }
+.perf-tbtn-main { width: 56px; height: 56px; font-size: 20px; background: #e6b968; color: #241a06; border-color: transparent; font-weight: 800; }
+body.cal-active .perf-transport { display: none !important; }
+
 /* Full-screen "3 · 2 · 1 · Sing!" count-in. pointer-events:none so the Stop button
    underneath stays tappable if someone wants to bail during the count. */
 .perf-countdown {

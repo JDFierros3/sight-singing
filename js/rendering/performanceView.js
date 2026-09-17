@@ -17,6 +17,8 @@ import { appState } from '../state/appState.js';
 import { pitchState, getCurrentPitch } from '../pitch/detection.js';
 import { frequencyToMidi } from '../utils/audioMath.js';
 import { renderHymnNotation } from './notationView.js';
+import { stanzaSequencePlayer } from '../player/sequencePlayer.js';
+import { pauseScrollingAnimation } from './scrollingStaff.js';
 
 /**
  * @typedef {Object} PerfConfig
@@ -96,12 +98,14 @@ export function enterPerformance(exercise) {
   document.body.classList.add('perf-performing');
   showNotation(exercise || notatedExercise, true);
   ensureExitButton(true);
+  ensureTransport(true);
   positionAtStart();
 }
 
 export function exitPerformance() {
   stopScroll();
   ensureExitButton(false);
+  ensureTransport(false);
   if (isPerforming()) {
     document.body.classList.remove('perf-performing');
     showNotation(notatedExercise, true);
@@ -201,22 +205,36 @@ export function withLeadIn(exercise, measures = 1) {
 // The playhead is pinned ~30% from the left; the STAFF slides under it via a GPU transform
 // (translate3d) rather than scrollLeft — scrolling a several-thousand-px SVG every frame
 // forces layout/re-raster and is the main source of mobile choppiness.
+// Paint one frame: slide the staff so the current time sits under the pinned playhead.
+function paintFrame() {
+  if (!cfg || !cfg.container) return;
+  const x = timeToX ? timeToX(cfg.getTime()) : 0;
+  const screenX = cfg.container.clientWidth * 0.3;
+  if (wrapEl) wrapEl.style.transform = `translate3d(${Math.round(screenX - x)}px,0,0)`;
+  if (playheadEl) {
+    playheadEl.style.left = `${Math.round(screenX)}px`;
+    playheadEl.style.height = `${layout?.height || 210}px`;
+  }
+  updateMicLine();
+}
+
 export function startScroll() {
   if (!cfg || !cfg.container || !layout) return;
   if (!timeToX) timeToX = buildTimeToX(layout);
   const frame = () => {
     if (!cfg.isPlaying()) { rafId = null; return; }
-    const x = timeToX ? timeToX(cfg.getTime()) : 0;
-    const screenX = cfg.container.clientWidth * 0.3;
-    if (wrapEl) wrapEl.style.transform = `translate3d(${Math.round(screenX - x)}px,0,0)`;
-    if (playheadEl) {
-      playheadEl.style.left = `${Math.round(screenX)}px`;
-      playheadEl.style.height = `${layout?.height || 210}px`;
-    }
-    updateMicLine();
+    paintFrame();
     rafId = requestAnimationFrame(frame);
   };
   rafId = requestAnimationFrame(frame);
+}
+
+// Freeze the staff at a real-seconds offset (used when seeking while paused — no audio).
+function positionStaffAt(realOffset) {
+  if (!cfg) return;
+  appState.staff.currentTime = Math.max(0, realOffset);
+  if (!timeToX && layout) timeToX = buildTimeToX(layout);
+  paintFrame();
 }
 
 export function stopScroll() {
@@ -335,6 +353,68 @@ function ensureExitButton(show) {
     document.body.appendChild(btn);
   }
   if (btn) btn.style.display = show ? 'block' : 'none';
+}
+
+/* ------------------------------------------------------------- transport --- */
+// Pause / resume and step a measure back / forward — works in every full-screen use because they
+// all drive the shared sequence player. Seek = replay from an offset (see sequencePlayer).
+
+let perfPaused = false;
+
+function ensureTransport(show) {
+  let bar = getElementById('perfTransport');
+  if (!bar && show) {
+    bar = document.createElement('div');
+    bar.id = 'perfTransport';
+    bar.className = 'perf-transport';
+    bar.innerHTML =
+      '<button class="perf-tbtn" id="perfBack" aria-label="Back a measure" title="Back a measure">◀</button>' +
+      '<button class="perf-tbtn perf-tbtn-main" id="perfPlayPause" aria-label="Pause" title="Pause / resume">⏸</button>' +
+      '<button class="perf-tbtn" id="perfFwd" aria-label="Forward a measure" title="Forward a measure">▶</button>';
+    document.body.appendChild(bar);
+    getElementById('perfBack').onclick = () => seekPerf(-1);
+    getElementById('perfPlayPause').onclick = togglePlayPause;
+    getElementById('perfFwd').onclick = () => seekPerf(1);
+  }
+  if (bar) bar.style.display = show ? 'flex' : 'none';
+  if (show) { perfPaused = false; updateTransportUI(); }
+}
+
+function updateTransportUI() {
+  const btn = getElementById('perfPlayPause');
+  if (btn) {
+    btn.textContent = perfPaused ? '▶' : '⏸';
+    btn.setAttribute('aria-label', perfPaused ? 'Resume' : 'Pause');
+  }
+}
+
+function togglePlayPause() {
+  if (perfPaused) resumePerf(); else pausePerf();
+}
+
+function pausePerf() {
+  perfPaused = true;
+  stanzaSequencePlayer.haltKeepPosition();   // stop audio + pending notes, keep the playhead
+  pauseScrollingAnimation();                 // freeze the scroll clock
+  paintFrame();                              // pin the frozen frame exactly
+  updateTransportUI();
+}
+
+function resumePerf() {
+  perfPaused = false;
+  updateTransportUI();
+  stanzaSequencePlayer.replayFrom(appState.staff.currentTime || 0);  // audio + clock from here
+}
+
+// dir = -1 (back a measure) or +1 (forward). While paused we only reposition the staff; while
+// playing we jump and keep going.
+function seekPerf(dir) {
+  const measure = stanzaSequencePlayer.getMeasureSeconds();
+  const total = stanzaSequencePlayer.getTotalDuration();
+  const cap = Number.isFinite(total) ? total - 0.05 : Infinity;
+  const target = Math.max(0, Math.min(cap, (appState.staff.currentTime || 0) + dir * measure));
+  if (perfPaused) positionStaffAt(target);
+  else stanzaSequencePlayer.replayFrom(target);
 }
 
 /* ----------------------------------------------------------- count-in ---- */

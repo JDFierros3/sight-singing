@@ -39,8 +39,10 @@ class StanzaSequencePlayer {
     this.currentSequenceId = createSequence();
     const thisSequenceId = this.currentSequenceId;
     this.options = options;
+    this.currentStanzas = stanzas;   // kept so transport (pause/seek) can replay from an offset
     this.isRunning = true;
     this.isPaused = false;
+    this._suppressTeardown = false;  // a fresh run always tears down normally when it ends
 
     // Clear any existing timeouts
     clearTimeouts(this.currentSequenceId);
@@ -56,7 +58,7 @@ class StanzaSequencePlayer {
     if (!appState.staff.satbPreviewMode) {
       appState.staff.notes = [];
     }
-    appState.staff.currentTime = 0;
+    appState.staff.currentTime = options.startOffset || 0;   // transport: resume/seek from here
     appState.staff.playheadX = 0;
     appState.staff.startTime = null;
 
@@ -149,10 +151,12 @@ class StanzaSequencePlayer {
           break;
         }
 
-        // Brief pause to let user see the notes
-        const pauseValid = await waitWithValidation(1000, thisSequenceId, () => this.isRunning);
-        if (!pauseValid) {
-          break;
+        // Brief pause to let the user see the notes (skipped on a transport resume/seek so it's snappy)
+        if (!options.startOffset) {
+          const pauseValid = await waitWithValidation(1000, thisSequenceId, () => this.isRunning);
+          if (!pauseValid) {
+            break;
+          }
         }
 
         // Check again after wait
@@ -165,16 +169,32 @@ class StanzaSequencePlayer {
           options.displaySetup(stanza, i, thisSequenceId);
         }
 
+        // Transport: on the first stanza honour a startOffset (resume/seek). Keep only the scaled
+        // notes at/after the offset, shifted to start from it, and park the scroll clock there so
+        // audio and the playhead pick up from the same point.
+        const startOffset = (i === 0 && options.startOffset) ? options.startOffset : 0;
+        let playStanza = scaledStanza;
+        if (startOffset > 0) {
+          const notes = scaledStanza.notes.map(n => {
+            const end = n.startTime + n.duration;
+            if (end <= startOffset) return null;
+            return { ...n, startTime: Math.max(0, n.startTime - startOffset), duration: n.duration - Math.max(0, startOffset - n.startTime) };
+          }).filter(Boolean);
+          const dur = (scaledStanza.duration !== undefined) ? Math.max(0, scaledStanza.duration - startOffset) : undefined;
+          playStanza = { ...scaledStanza, notes, duration: dur };
+          appState.staff.currentTime = startOffset;
+        }
+
         // Start scrolling animation
         startScrollingAnimation();
 
         // Play audio for this stanza
         if (options.audioSetup) {
           // Custom audio setup (for warmups, hymns, etc.)
-          await options.audioSetup(scaledStanza, thisSequenceId);
+          await options.audioSetup(playStanza, thisSequenceId);
         } else {
           // Default: schedule all notes
-          await scheduleNotes(scaledStanza.notes, thisSequenceId, async (note, seqId) => {
+          await scheduleNotes(playStanza.notes, thisSequenceId, async (note, seqId) => {
             if (isValidSequence(seqId) && this.isRunning) {
               await playNote(note, seqId, options.baseGain || 0.15, options.partVolumes || {});
             }
@@ -182,15 +202,13 @@ class StanzaSequencePlayer {
         }
 
         // Wait for stanza to complete
-        // Use scaledStanza.duration if provided (already scaled), otherwise calculate from last note
+        // Use playStanza.duration if provided (already scaled), otherwise calculate from last note
         let totalDuration;
-        if (scaledStanza.duration !== undefined) {
-          // Stanza has explicit duration (already scaled by scaleStanzaForTempo)
-          totalDuration = scaledStanza.duration * 1000;
+        if (playStanza.duration !== undefined) {
+          totalDuration = playStanza.duration * 1000;
         } else {
-          // Calculate from last note
-          const lastNote = scaledStanza.notes[scaledStanza.notes.length - 1];
-          totalDuration = (lastNote.startTime + lastNote.duration) * 1000;
+          const lastNote = playStanza.notes[playStanza.notes.length - 1];
+          totalDuration = lastNote ? (lastNote.startTime + lastNote.duration) * 1000 : 0;
         }
         
         // Wait for the stanza duration to complete
@@ -228,8 +246,9 @@ class StanzaSequencePlayer {
     } catch (error) {
       console.error('Error in sequence playback:', error);
     } finally {
-      // Only clean up if this is still the current sequence
-      if (thisSequenceId === this.currentSequenceId) {
+      // Only clean up if this is still the current sequence AND we're not mid-transport (a
+      // pause/seek halts the loop deliberately and keeps the position — no reset/teardown).
+      if (thisSequenceId === this.currentSequenceId && !this._suppressTeardown) {
         this.isRunning = false;
         this.isPaused = false;
         
@@ -257,11 +276,14 @@ class StanzaSequencePlayer {
    * Stop the current sequence
    */
   stopSequence() {
-    if (!this.isRunning) {
+    // Also handle a paused/halted transport state (isRunning is false while paused).
+    if (!this.isRunning && !this.isPaused && this.currentSequenceId === null) {
       return;
     }
 
     this.isRunning = false;
+    this.isPaused = false;
+    this._suppressTeardown = false;
     invalidateSequence();
     
     if (this.currentSequenceId !== null) {
@@ -326,6 +348,48 @@ class StanzaSequencePlayer {
    */
   isSequenceRunning() {
     return this.isRunning;
+  }
+
+  /* ---- Transport (pause / resume / seek) — used by the full-screen renderer ---- */
+
+  // Halt audio + timers + the play loop WITHOUT the usual teardown, so the playhead position
+  // (appState.staff.currentTime) is preserved for a resume or seek.
+  haltKeepPosition() {
+    this._suppressTeardown = true;
+    this.isRunning = false;
+    invalidateSequence();
+    if (this.currentSequenceId !== null) {
+      clearTimeouts(this.currentSequenceId);
+      clearBadgeTimeouts(this.currentSequenceId);
+      stopAllNotes(this.currentSequenceId);
+    }
+  }
+
+  // Re-start playback (audio + scroll clock) from a real-seconds offset, reusing the stored
+  // stanzas + options. The scroll clock and note scheduling both key off this same offset.
+  async replayFrom(realOffset) {
+    if (!this.currentStanzas) return;
+    const stanzas = this.currentStanzas;
+    const options = this.options || {};
+    this.haltKeepPosition();
+    await new Promise(resolve => setTimeout(resolve, 0)); // let the halted loop's finally run (suppressed)
+    this._suppressTeardown = false;
+    await this.startSequence(stanzas, { ...options, startOffset: Math.max(0, realOffset || 0) });
+  }
+
+  // Total real (tempo-scaled) playback length in seconds, for clamping seeks.
+  getTotalDuration() {
+    const s = this.currentStanzas && this.currentStanzas[0];
+    if (!s || s.duration === undefined) return Infinity;
+    const tempo = (this.options && this.options.tempo) || appState.staff.tempo || 60;
+    return s.duration * (60 / tempo);
+  }
+
+  // One measure in real seconds (assumes 4 beats; good for 4/4 warmup/calibration and most hymns).
+  getMeasureSeconds() {
+    const tempo = (this.options && this.options.tempo) || appState.staff.tempo || 60;
+    const beats = (this.options && this.options.beatsPerMeasure) || 4;
+    return beats * (60 / tempo);
   }
 
   /**
