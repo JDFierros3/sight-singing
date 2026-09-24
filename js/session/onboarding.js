@@ -42,8 +42,7 @@ export function maybeStartOnboarding() {
 
 export function startOnboarding() {
   draft = { voice: 'alto', doMidi: null, focus: { ear: true, theory: true, hymns: true, sight: false }, shapesKnown: false, length: 20 };
-  document.body.classList.add('onb-open');
-  ensureOverlay().hidden = false;
+  showOverlay();
   setStep(0);
 }
 
@@ -53,14 +52,30 @@ function ensureOverlay() {
     ov = document.createElement('div');
     ov.id = 'onboarding';
     ov.className = 'onb';
+    // Persistent b-roll background (fading hymn-scroll clips) + a stage the steps render into.
+    ov.innerHTML =
+      '<div class="onb-broll" aria-hidden="true">' +
+        '<video class="onb-vid" muted autoplay playsinline preload="auto"></video>' +
+        '<video class="onb-vid" muted autoplay playsinline preload="auto"></video>' +
+        '<div class="onb-scrim"></div>' +
+      '</div>' +
+      '<div class="onb-stage"></div>';
     document.body.appendChild(ov);
   }
   return ov;
 }
 
+// Reveal the wizard (used on first open and when returning from a cancelled calibration).
+function showOverlay() {
+  const ov = ensureOverlay();
+  ov.hidden = false;
+  document.body.classList.add('onb-open');
+  startBroll(ov);
+}
+
 function closeOverlay() {
   const ov = document.getElementById('onboarding');
-  if (ov) ov.hidden = true;
+  if (ov) { ov.hidden = true; stopBroll(ov); }
   document.body.classList.remove('onb-open');
 }
 
@@ -71,9 +86,62 @@ const STEPS = [renderWelcome, renderPart];
 function setStep(n) {
   const ov = ensureOverlay();
   const step = STEPS[n];
-  ov.innerHTML = `<div class="onb-card">${step()}</div>`;
+  ov.querySelector('.onb-stage').innerHTML = `<div class="onb-card">${step()}</div>`;
   wireCommon(ov);
   if (step === renderPart) wirePart(ov);
+}
+
+/* ------------------------------------------------------ b-roll background --- */
+// Fading full-screen hymn-scroll clips behind the wizard. Mostly shape-note takes with a few
+// round-note ("circles") ones; drop more files in /broll and add them here to grow the rotation.
+const BROLL_CLIPS = [
+  'broll/broll_faithfulness_tenor_shapes.mp4',
+  'broll/broll_faithfulness_tenor_circles.mp4'
+];
+const BROLL_FADE_S = 1.5; // keep in sync with the .onb-vid opacity transition
+let brollLayers = null, brollActive = 0, brollIdx = -1, brollBusy = false;
+
+function startBroll(ov) {
+  const layers = [...ov.querySelectorAll('.onb-vid')];
+  if (layers.length < 2 || brollLayers === layers) return; // already running on these elements
+  brollLayers = layers; brollActive = 0; brollIdx = -1; brollBusy = false;
+  brollAdvance();
+}
+
+function brollAdvance() {
+  if (!brollLayers || brollBusy) return;
+  brollBusy = true;
+  brollIdx = (brollIdx + 1) % BROLL_CLIPS.length;
+  const incoming = brollLayers[1 - brollActive];
+  incoming.src = BROLL_CLIPS[brollIdx];
+  try { incoming.currentTime = 0; } catch (e) {}
+  const reveal = () => {
+    incoming.style.opacity = '1';
+    brollLayers[brollActive].style.opacity = '0';
+    brollActive = 1 - brollActive;
+    brollBusy = false;
+    brollSchedule(incoming);
+  };
+  const p = incoming.play();
+  if (p && p.then) p.then(reveal).catch(reveal); else reveal();
+}
+
+// Crossfade to the next clip a moment before this one ends (or on 'ended' as a fallback).
+function brollSchedule(video) {
+  const onTime = () => {
+    if (video.duration && video.currentTime >= video.duration - BROLL_FADE_S - 0.15) {
+      video.removeEventListener('timeupdate', onTime);
+      brollAdvance();
+    }
+  };
+  video.addEventListener('timeupdate', onTime);
+  video.addEventListener('ended', brollAdvance, { once: true });
+}
+
+function stopBroll(ov) {
+  (ov ? [...ov.querySelectorAll('.onb-vid')] : (brollLayers || []))
+    .forEach(v => { try { v.pause(); } catch (e) {} });
+  brollLayers = null; brollBusy = false; brollIdx = -1;
 }
 
 // data-go="N" advances to step N; data-part-go hands off to calibration.
@@ -121,7 +189,7 @@ function goToCalibration() {
     part: voice.part,
     doMidi: seedDo,
     onDone: (finalDo) => { draft.doMidi = finalDo; finish(); },
-    onCancel: () => { document.body.classList.add('onb-open'); ensureOverlay().hidden = false; setStep(1); }
+    onCancel: () => { showOverlay(); setStep(1); }
   });
 }
 

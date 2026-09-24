@@ -1833,6 +1833,14 @@ body.cal-active .perf-exit-btn { display: none !important; }
 }
 .onb[hidden] { display: none; }
 body.onb-open { overflow: hidden; }
+
+/* Fading hymn-scroll B-roll behind the wizard card (see js/session/onboarding.js). */
+.onb-broll { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #0f1220; }
+.onb-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.5s ease; }
+.onb-scrim { position: absolute; inset: 0;
+  background: radial-gradient(120% 90% at 50% 42%, rgba(15,18,32,.34) 0%, rgba(15,18,32,.72) 60%, rgba(15,18,32,.92) 100%); }
+.onb-stage { position: relative; z-index: 1; width: 100%; display: flex; justify-content: center; }
+
 .onb-card {
   width: 100%; max-width: 420px;
   display: flex; flex-direction: column; gap: 16px;
