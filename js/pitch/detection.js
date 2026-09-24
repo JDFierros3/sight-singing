@@ -55,11 +55,30 @@ const MAX_HZ = 1200;     // above a soprano high
 // line so ambiguous frames (note transitions, noise bursts) hold instead of drawing garbage.
 const YIN_THRESHOLD = 0.12;
 
+// Spectral sub-octave check. YIN's "first dip" can still lock onto the 2nd harmonic when the
+// fundamental is weak (breathy/low voices), reporting an octave HIGH — the flip that makes the line
+// jump. This confirms the octave against the SIGNAL (not the score, not the singer's history): if
+// the odd half-harmonics (f/2, 3f/2, 5f/2) carry real energy, a true fundamental sits an octave
+// below, so drop to it. A genuine note an octave up has no such energy, so a real octave leap is
+// left completely alone — nothing here folds pitch toward the part or the previous frame.
+const SUB_OCTAVE_FACTOR = 0.5; // odd half-harmonics must be ≥ half the main harmonics' strength to drop
+
+// Voicing gate. Sung tone concentrates its energy LOW (harmonics of ~100–600 Hz); breath, tongue
+// clicks and sibilants (/s/ /f/) are noise-like with energy spread HIGH. This rejects those frames
+// so the line HOLDS its last real note through a consonant instead of chasing the noise to a random
+// pitch. Signal-only, per-frame — no pitch is nudged, nothing is inferred from history or the score.
+// Tunable: raise VOICING_LOWBAND_MIN to reject more mouth noise, lower it if it ever clips real singing.
+const VOICING_LP_HZ = 2600;       // "low band" upper edge — above bright vowel formants, below sibilant hiss
+const VOICING_LOWBAND_MIN = 0.55; // min fraction of energy in the low band to count a frame as voiced
+
 export function detectPitch(buffer, sampleRate) {
   if (!buffer || buffer.length === 0) return { hz: -1, clarity: 0 };
 
   const rms = calculateRMS(buffer);
   if (rms < 0.003) return { hz: -1, clarity: 0 }; // silence gate (keeps quiet/decaying notes)
+
+  // Reject high-frequency noise (breath/consonants) before the costly pitch search.
+  if (lowBandFraction(buffer, sampleRate) < VOICING_LOWBAND_MIN) return { hz: -1, clarity: 0 };
 
   const work = decimateBuffer(buffer, DECIMATE);
   const rate = sampleRate / DECIMATE;
@@ -121,9 +140,62 @@ export function detectPitch(buffer, sampleRate) {
   const denom = x0 - 2 * cmnd[tau] + x2;
   const betterTau = denom !== 0 ? tau + 0.5 * (x0 - x2) / denom : tau;
 
-  const hz = rate / betterTau;
+  let hz = rate / betterTau;
+
+  // 5) Spectral octave confirmation on the FULL-rate buffer (better low-frequency resolution than
+  //    the decimated ACF). Drops an octave only when real sub-octave energy proves YIN grabbed a
+  //    harmonic — never touches a genuine high note or a real octave leap.
+  hz = resolveSubOctave(buffer, sampleRate, hz);
+
   if (hz < MIN_HZ || hz > MAX_HZ) return { hz: -1, clarity: 0 };
   return { hz, clarity: Math.max(0, Math.min(1, 1 - cmnd[tau])) };
+}
+
+// Fraction of energy in the low band (one-pole low-pass at VOICING_LP_HZ). ~1 for sung vowels
+// (energy low), small for breath/sibilants (energy high). Cheap: one pass, no FFT.
+function lowBandFraction(buffer, sampleRate) {
+  const dt = 1 / sampleRate;
+  const rc = 1 / (2 * Math.PI * VOICING_LP_HZ);
+  const a = dt / (rc + dt);
+  let y = 0, low = 0, total = 0;
+  for (let i = 0; i < buffer.length; i++) {
+    y += a * (buffer[i] - y);
+    low += y * y;
+    total += buffer[i] * buffer[i];
+  }
+  return total > 0 ? Math.sqrt(low / total) : 0;
+}
+
+// Goertzel magnitude at a single frequency over an already-windowed buffer — far cheaper than a
+// full FFT when we only need a handful of harmonic bins.
+function goertzelMag(win, f, sampleRate) {
+  const w = 2 * Math.PI * f / sampleRate;
+  const coeff = 2 * Math.cos(w);
+  let s1 = 0, s2 = 0;
+  for (let i = 0; i < win.length; i++) {
+    const s0 = win[i] + coeff * s1 - s2;
+    s2 = s1;
+    s1 = s0;
+  }
+  return Math.hypot(s1 - s2 * Math.cos(w), s2 * Math.sin(w));
+}
+
+// Compare energy in the odd half-harmonics (f/2, 3f/2, 5f/2 — present only if the true fundamental
+// is an octave down) against the main harmonics (f, 2f, 3f). Drop while the sub-octave clearly wins.
+function resolveSubOctave(buffer, sampleRate, hz) {
+  if (!(hz > 0)) return hz;
+  const n = buffer.length;
+  const win = new Float32Array(n);
+  for (let i = 0; i < n; i++) win[i] = buffer[i] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1)));
+
+  let f = hz, guard = 0;
+  while (guard++ < 2 && f / 2 >= MIN_HZ) {
+    const main = goertzelMag(win, f, sampleRate) + goertzelMag(win, 2 * f, sampleRate) + goertzelMag(win, 3 * f, sampleRate);
+    const sub = goertzelMag(win, f / 2, sampleRate) + goertzelMag(win, 1.5 * f, sampleRate) + goertzelMag(win, 2.5 * f, sampleRate);
+    if (main > 0 && sub > main * SUB_OCTAVE_FACTOR) f /= 2;
+    else break;
+  }
+  return f;
 }
 
 // Average-and-downsample by `factor` (the averaging is a cheap anti-alias pre-filter).
