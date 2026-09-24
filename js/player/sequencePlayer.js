@@ -7,6 +7,7 @@ import { createSequence, getCurrentSequenceId, isValidSequence, invalidateSequen
 import { scaleStanzasForTempo } from './tempoScaler.js';
 import { scheduleNotes, waitWithValidation } from './noteScheduler.js';
 import { playNote, stopAllNotes, stopAllNotesForAllSequences } from './audioPlayer.js';
+import { stopAllInstrumentNotes } from '../audio/instruments.js';
 import { setScrollingNotes, startScrollingAnimation, stopScrollingAnimation, resetScrollingAnimation, setTempo } from '../rendering/scrollingStaff.js';
 import { renderStaff } from '../rendering/staff.js';
 import { appState } from '../state/appState.js';
@@ -357,12 +358,18 @@ class StanzaSequencePlayer {
   haltKeepPosition() {
     this._suppressTeardown = true;
     this.isRunning = false;
+    this.isPaused = true;   // mark a transport halt so an exercise's post-await cleanup won't tear
+                            // down full-screen (the awaited startSequence resolves when we invalidate)
     invalidateSequence();
     if (this.currentSequenceId !== null) {
       clearTimeouts(this.currentSequenceId);
       clearBadgeTimeouts(this.currentSequenceId);
-      stopAllNotes(this.currentSequenceId);
     }
+    // Kill ALL sounding audio, not just this sequence's tracked notes — sampler voices whose
+    // per-note cleanup timer already ran aren't in the tracking map, and if left ringing they
+    // double against the freshly-scheduled notes on resume/seek.
+    stopAllNotesForAllSequences();
+    stopAllInstrumentNotes();
   }
 
   // Re-start playback (audio + scroll clock) from a real-seconds offset, reusing the stored

@@ -312,8 +312,9 @@ export async function runWarmupSequence(selectedStanzaIndices = null) {
     onStop: () => finishWarmup('stopped')
   });
 
-  // Cleanup if sequence ended without firing a callback (e.g. empty).
-  if (appState.exercise.warmupRunning) finishWarmup('done');
+  // The awaited sequence resolved. Do NOT tear down here — this await also resolves when a transport
+  // pause/seek halts the sequence, and exiting from here kicked the singer out of full-screen.
+  // Full-screen exit belongs to onComplete (natural end) and onStop (Stop button) only.
 }
 
 // Tear down a warmup run: stop audio, leave the full-screen surface, restore the static staff.

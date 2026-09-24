@@ -348,7 +348,9 @@ function ensureExitButton(show) {
     btn = document.createElement('button');
     btn.id = 'perfExitBtn';
     btn.className = 'perf-exit-btn';
-    btn.textContent = 'Stop';
+    btn.textContent = 'Quit';
+    btn.title = 'Quit — leave the full-screen playthrough';
+    btn.setAttribute('aria-label', 'Quit full-screen');
     btn.onclick = () => cfg && cfg.onExit && cfg.onExit();
     document.body.appendChild(btn);
   }
@@ -368,9 +370,9 @@ function ensureTransport(show) {
     bar.id = 'perfTransport';
     bar.className = 'perf-transport';
     bar.innerHTML =
-      '<button class="perf-tbtn" id="perfBack" aria-label="Back a measure" title="Back a measure">◀</button>' +
-      '<button class="perf-tbtn perf-tbtn-main" id="perfPlayPause" aria-label="Pause" title="Pause / resume">⏸</button>' +
-      '<button class="perf-tbtn" id="perfFwd" aria-label="Forward a measure" title="Forward a measure">▶</button>';
+      '<button class="perf-tbtn" id="perfBack" aria-label="Previous measure" title="Previous measure">⏮</button>' +
+      '<button class="perf-tbtn perf-tbtn-main" id="perfPlayPause" aria-label="Pause" title="Pause">⏸</button>' +
+      '<button class="perf-tbtn" id="perfFwd" aria-label="Next measure" title="Next measure">⏭</button>';
     document.body.appendChild(bar);
     getElementById('perfBack').onclick = () => seekPerf(-1);
     getElementById('perfPlayPause').onclick = togglePlayPause;
@@ -384,7 +386,9 @@ function updateTransportUI() {
   const btn = getElementById('perfPlayPause');
   if (btn) {
     btn.textContent = perfPaused ? '▶' : '⏸';
-    btn.setAttribute('aria-label', perfPaused ? 'Resume' : 'Pause');
+    const label = perfPaused ? 'Resume' : 'Pause';
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);   // spelled-out hover tooltip
   }
 }
 
@@ -406,15 +410,22 @@ function resumePerf() {
   stanzaSequencePlayer.replayFrom(appState.staff.currentTime || 0);  // audio + clock from here
 }
 
-// dir = -1 (back a measure) or +1 (forward). While paused we only reposition the staff; while
-// playing we jump and keep going.
+// dir = -1 (previous measure line) or +1 (next measure line). Snaps to the barline, not "current
+// spot minus a measure": forward jumps to the start of the next measure; back jumps to the start of
+// the measure you're in, or the previous one if you're already sitting on a line. Always PAUSES
+// first (halt audio, freeze scroll) so nothing restarts mid-scroll — press ▶ to resume from the line.
 function seekPerf(dir) {
+  if (!perfPaused) pausePerf();
   const measure = stanzaSequencePlayer.getMeasureSeconds();
   const total = stanzaSequencePlayer.getTotalDuration();
   const cap = Number.isFinite(total) ? total - 0.05 : Infinity;
-  const target = Math.max(0, Math.min(cap, (appState.staff.currentTime || 0) + dir * measure));
-  if (perfPaused) positionStaffAt(target);
-  else stanzaSequencePlayer.replayFrom(target);
+  const t = appState.staff.currentTime || 0;
+  const lineIndex = Math.floor(t / measure + 1e-6);   // the measure line at or just behind us
+  const onLine = (t - lineIndex * measure) < 0.12;    // already parked on a barline?
+  const target = dir < 0
+    ? (onLine ? lineIndex - 1 : lineIndex) * measure   // back: this line's start, or the previous
+    : (lineIndex + 1) * measure;                       // forward: next line
+  positionStaffAt(Math.max(0, Math.min(cap, target)));
 }
 
 /* ----------------------------------------------------------- count-in ---- */

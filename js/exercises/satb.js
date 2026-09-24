@@ -231,14 +231,15 @@ export async function playSATBExercise() {
     }
   });
   
-  // Cleanup if the sequence resolved without onComplete/onStop firing.
-  if (appState.satb.isPlaying) {
-    appState.satb.isPlaying = false;
-    updateSatbButton(false);
-    restoreSATBNotation();
+  // The awaited sequence resolved. Do NOT exit full-screen or clear isPlaying here: this await also
+  // resolves whenever a transport pause/seek halts the sequence, and the player's flags can be in a
+  // transient state at that instant — so deciding to tear down from here wrongly kicked the singer
+  // out of the full-screen playthrough. Full-screen exit belongs solely to onComplete (natural end)
+  // and onStop (Stop button). We only stop stray audio, and only when nothing is playing/paused.
+  if (!stanzaSequencePlayer.isPaused && !stanzaSequencePlayer.isSequenceRunning()) {
+    stopAllSATBOscillators();
+    stopAllDroneOscillators();
   }
-  stopAllSATBOscillators();
-  stopAllDroneOscillators();
 }
 
 /**
