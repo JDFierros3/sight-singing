@@ -3,6 +3,7 @@
  */
 
 import { SEMITONE_TO_SOLFEGE } from '../config/constants.js';
+import { appState } from '../state/appState.js';
 
 const SHAPE_COLORS = {
   Do: '#8bd3ff',
@@ -53,13 +54,15 @@ export function drawNoteHeadWithShape(ctx, x, y, solfege, size = 7) {
   const solfegeInfo = getSolfegeInfo(solfege);
   const baseShape = solfegeInfo ? solfegeInfo.base : solfege;
   const color = getShapeColor(baseShape);
-  
+  // Traditional mode: draw a plain round (oval) head for every note; keep the solfege colour.
+  const drawShape = appState.display?.shapeNotes === false ? 'Sol' : baseShape;
+
   ctx.save();
   ctx.fillStyle = color;
 
   // Staff rendering: draw our own shapes (NOT Unicode) so the center of each shape
   // is exactly the line/space center at (x,y) across all platforms.
-  drawStaffShapeNotehead(ctx, baseShape, x, y, size);
+  drawStaffShapeNotehead(ctx, drawShape, x, y, size);
   
   ctx.restore();
 }

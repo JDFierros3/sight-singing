@@ -30,6 +30,7 @@ function initializeDisplay() {
     tolerance: 100,
     zoom: 1.5,
     playAim: true,
+    shapeNotes: true, // false → plain round noteheads (traditional notation) everywhere
     showAccidentalsAndKey: false // Unified setting for both accidentals and key signatures
   };
 }

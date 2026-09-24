@@ -41,6 +41,7 @@ const {
   handleToleranceChange = () => {},
   handleZoomChange = () => {},
   handleShowAccidentalsAndKeyChange = () => {},
+  handleShapeNotesChange = () => {},
   handlePlayAimChange = () => {},
   handleScaleOnlyChange = () => {},
   handleHideAnswersIntervalsChange = () => {},
@@ -359,6 +360,13 @@ function setupDisplayControls() {
     showAccidentalsAndKeyCheckbox.addEventListener('change', handleShowAccidentalsAndKeyChange);
     // Initialize checkbox state from appState (default is false/disabled)
     showAccidentalsAndKeyCheckbox.checked = appState.display.showAccidentalsAndKey || false;
+  }
+
+  const shapeNotesCheckbox = getElementById('shapeNotes');
+  if (shapeNotesCheckbox) {
+    shapeNotesCheckbox.addEventListener('change', handleShapeNotesChange);
+    // Checked = shape noteheads (default); unchecked = traditional round heads.
+    shapeNotesCheckbox.checked = appState.display.shapeNotes !== false;
   }
   
   // Setup diatonic toggles for each exercise panel

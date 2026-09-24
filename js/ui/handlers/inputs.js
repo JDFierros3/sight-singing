@@ -98,6 +98,13 @@ export function handleShowAccidentalsAndKeyChange(event) {
   renderStaff();
 }
 
+export function handleShapeNotesChange(event) {
+  const value = event.target.checked;
+  updateDisplaySetting('shapeNotes', value); // false → plain round heads (traditional notation)
+  renderStaff();
+  refreshActiveNotation(); // re-engrave the SATB / Warmup VexFlow staves with the new heads
+}
+
 export function handleToleranceChange(event) {
   const value = Number(event.target.value);
   updateDisplaySetting('tolerance', value);

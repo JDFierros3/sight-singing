@@ -9,6 +9,7 @@
 
 import { spellMidiInKey } from '../utils/keySignature.js';
 import { getShapeColor } from './shapes.js';
+import { appState } from '../state/appState.js';
 
 const LETTER_STEP = { c: 0, d: 1, e: 2, f: 3, g: 4, a: 5, b: 6 };
 
@@ -82,8 +83,10 @@ function midiToVexKey(midi, tonicPc, mode) {
   if (letter === 'c' && pc >= 11) octave += 1;     // B# spelled as c just above B
   const shape = SHAPE_CODE[spelled.solfege] || 'SO';
   const accMap = { sharp: '#', flat: 'b', natural: 'n' };
+  // Traditional mode: plain round noteheads (no shape suffix).
+  const key = appState.display?.shapeNotes === false ? `${letter}/${octave}` : `${letter}/${octave}/${shape}`;
   return {
-    key: `${letter}/${octave}/${shape}`,
+    key,
     accidental: accMap[spelled.accidental] || null,
     color: getShapeColor(spelled.solfege)
   };
