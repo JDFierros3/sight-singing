@@ -2234,3 +2234,26 @@ details.advanced[open] > summary::before { transform: rotate(90deg); }
 .arcade-launch { background: linear-gradient(90deg,#e6b968,#f0c987); color: #241a06; font-weight: 800;
   border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-size: 13px; }
 .arcade-launch:hover { filter: brightness(1.06); }
+
+/* "Loading voice…" pill — shown only while an instrument's samples are downloading/decoding
+   (body.voices-loading, toggled around loadInstrument). Pure CSS, no markup needed. */
+body.voices-loading::after {
+  content: "\266A  Loading voice\2026";
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+  transform: translateX(-50%);
+  z-index: 90;
+  padding: 7px 15px;
+  border-radius: 999px;
+  background: #171a2b;
+  color: #c9d2ec;
+  border: 1px solid #2a2f48;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  box-shadow: 0 8px 22px -10px rgba(0,0,0,.65);
+  pointer-events: none;
+  animation: voicesPulse 1.2s ease-in-out infinite;
+}
+@keyframes voicesPulse { 0%,100% { opacity: .62; } 50% { opacity: 1; } }

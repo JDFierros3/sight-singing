@@ -60,6 +60,7 @@ export async function handleInstrumentChange(event) {
 
   // Load the new instrument (sampled)
   select.disabled = true;
+  document.body.classList.add('voices-loading');
   try {
     const { loadInstrument } = await import('../../audio/instruments.js');
     await loadInstrument(value);
@@ -75,6 +76,7 @@ export async function handleInstrumentChange(event) {
       // ignore
     }
   } finally {
+    document.body.classList.remove('voices-loading');
     select.disabled = false;
   }
 }

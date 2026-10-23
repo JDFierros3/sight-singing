@@ -111,10 +111,13 @@ async function initializeDefaultInstrument() {
       try {
         const { loadInstrument } = await import('./audio/instruments.js');
         instrumentSelect.disabled = true;
+        document.body.classList.add('voices-loading');
         await loadInstrument(defaultInstrument);
+        document.body.classList.remove('voices-loading');
         instrumentSelect.disabled = false;
       } catch (error) {
         console.error('Failed to load default instrument:', error);
+        document.body.classList.remove('voices-loading');
         // Revert to sine if loading fails
         updateTuningSetting('instrument', 'sine');
         if (instrumentSelect) {

@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two beamed eighth notes with shape-note heads Do and Mi">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="39%" r="86%">
+      <stop offset="0" stop-color="#141b35"/>
+      <stop offset="1" stop-color="#0b0f20"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- Grey stems on the right edge of each head (equal, slight lean) + beam parallel to the Do->Mi line -->
+  <g fill="#8ba3c6">
+    <polygon points="192,418 210,418 220,140 202,140"/>
+    <polygon points="404,322 422,322 432,87 414,87"/>
+    <polygon points="202,132 432,74 432,108 202,166"/>
+  </g>
+
+  <!-- Do — triangle (cyan) -->
+  <polygon points="155,316.7 93.5,427.4 216.5,427.4" fill="#8bd3ff"/>
+  <!-- Mi — diamond (yellow) -->
+  <polygon points="362,254.9 427.1,320 362,385.1 296.9,320" fill="#fde68a"/>
+</svg>

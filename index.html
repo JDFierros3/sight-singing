@@ -2,8 +2,34 @@
 <html lang="en" class="booting">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shape‑Note Ear Trainer (Lite, Modular)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Learn Shape Notes — Free Solfège Sight-Singing &amp; Ear Trainer</title>
+  <meta name="description" content="A free, no-ads tool for learning shape notes and movable-Do solfège: daily warm-ups, interval and chord ear training, and SATB hymn playback. Sing in your browser on phone, tablet, or desktop." />
+  <link rel="canonical" href="https://learnshapenotes.com/" />
+  <meta name="theme-color" content="#0f1220" />
+
+  <!-- PWA / install -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/icon-512.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Shape Notes" />
+
+  <!-- Social / Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Learn Shape Notes" />
+  <meta property="og:url" content="https://learnshapenotes.com/" />
+  <meta property="og:title" content="Learn Shape Notes — free solfège sight-singing &amp; ear training" />
+  <meta property="og:description" content="Learn shape notes and movable-Do solfège by ear and voice: warm-ups, interval and chord training, and SATB hymn playback. Free, no ads, works in any browser." />
+  <meta property="og:image" content="https://learnshapenotes.com/icons/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Learn Shape Notes" />
+  <meta name="twitter:description" content="Free solfège sight-singing and ear training for shape notes — sing in your browser." />
+  <meta name="twitter:image" content="https://learnshapenotes.com/icons/og-image.jpg" />
   <!-- Anti-FOUC gate: the raw markup is the old V1 layout; main.js rebuilds it into the new
        shell. Keep the page hidden until that finishes, then fade in (class removed in main.js). -->
   <style>
@@ -447,6 +473,17 @@
       console.error('Failed to load main.js:', err);
       document.body.innerHTML += '<div style="color:red;padding:20px;background:#1a1a1a;color:#ff6b6b;position:fixed;top:0;left:0;right:0;z-index:9999;"><h2>Module Load Error</h2><pre>' + err.message + '\n' + err.stack + '</pre></div>';
     });
+  </script>
+
+  <!-- Register the PWA service worker (offline + installable). No-op where unsupported. -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function (err) {
+          console.warn('Service worker registration failed:', err);
+        });
+      });
+    }
   </script>
 </body>
 </html>
