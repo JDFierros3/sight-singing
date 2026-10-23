@@ -1,0 +1,34 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Learn shape notes — free solfège sight-singing and ear training">
+  <defs>
+    <radialGradient id="bg" cx="38%" cy="42%" r="85%">
+      <stop offset="0%" stop-color="#151d39"/>
+      <stop offset="100%" stop-color="#0b0f20"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Left: staff with Do Re Mi rising -->
+  <g stroke="#828bab" stroke-opacity="0.5" stroke-width="5" stroke-linecap="round">
+    <line x1="90"  y1="236" x2="470" y2="236"/>
+    <line x1="90"  y1="286" x2="470" y2="286"/>
+    <line x1="90"  y1="336" x2="470" y2="336"/>
+    <line x1="90"  y1="386" x2="470" y2="386"/>
+    <line x1="90"  y1="436" x2="470" y2="436"/>
+  </g>
+  <!-- Do (triangle) — centered on the 4th line -->
+  <g transform="translate(140,338) scale(0.8)" fill="#8bd3ff"><polygon points="50,20 20,80 80,80"/></g>
+  <!-- Re (dome, hero) — in the space above -->
+  <g transform="translate(233,309) scale(1.06)" fill="#a7f3d0"><path d="M26 62 A24 30 0 0 1 74 62 L26 62 Z"/></g>
+  <!-- Mi (diamond) — centered on the middle line -->
+  <g transform="translate(346,290) scale(0.92)" fill="#fde68a"><polygon points="50,18 82,50 50,82 18,50"/></g>
+
+  <!-- Right: wordmark -->
+  <g font-family="Georgia, 'Times New Roman', serif" text-anchor="start">
+    <text x="540" y="290" font-size="96" font-weight="700" fill="#f3f5fb">Learn</text>
+    <text x="540" y="392" font-size="96" font-weight="700" fill="#f3f5fb">shape notes</text>
+  </g>
+  <g font-family="-apple-system, 'Segoe UI', system-ui, sans-serif" text-anchor="start">
+    <text x="544" y="452" font-size="34" fill="#aeb7d6">Free solfège sight-singing &amp; ear training</text>
+    <text x="544" y="512" font-size="30" font-weight="700" fill="#e6b968">learnshapenotes.com</text>
+  </g>
+</svg>
