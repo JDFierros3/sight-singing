@@ -7,7 +7,7 @@ import { createSequence, getCurrentSequenceId, isValidSequence, invalidateSequen
 import { scaleStanzasForTempo } from './tempoScaler.js';
 import { scheduleNotes, waitWithValidation } from './noteScheduler.js';
 import { playNote, stopAllNotes, stopAllNotesForAllSequences } from './audioPlayer.js';
-import { stopAllInstrumentNotes } from '../audio/instruments.js';
+import { stopAllInstrumentNotes, ensureInstrumentReady } from '../audio/instruments.js';
 import { setScrollingNotes, startScrollingAnimation, stopScrollingAnimation, resetScrollingAnimation, setTempo } from '../rendering/scrollingStaff.js';
 import { renderStaff } from '../rendering/staff.js';
 import { appState } from '../state/appState.js';
@@ -35,6 +35,10 @@ class StanzaSequencePlayer {
         return; // Still running, don't start another
       }
     }
+
+    // Hold until the selected voice is decoded, so a sequence started during the initial sample
+    // load plays the real instrument instead of the sine fallback. Bounded; a no-op once ready.
+    await ensureInstrumentReady();
 
     // Create new sequence
     this.currentSequenceId = createSequence();

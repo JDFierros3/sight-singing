@@ -227,12 +227,13 @@ export async function loadInstrument(instrumentName) {
     });
     // Also keep a default sampler for non-part playback (warmups/intervals/etc).
     currentSampler = makeSampler();
-    
+
+    // Wait for the samples to decode BEFORE claiming the instrument backend. Until this
+    // resolves, isUsingSoundfont() stays false, so any note that lands mid-load uses the sine
+    // fallback cleanly instead of triggering a half-loaded Sampler (which produced garbage audio).
+    await Tone.loaded();
     currentInstrumentName = instrumentName;
     currentBackend = 'toneSampler';
-    
-    // Wait for samples to load
-    await Tone.loaded();
     console.log(`✅ All samples loaded for ${instrumentConfig.name}`);
     
   } catch (error) {
@@ -322,6 +323,14 @@ export function getCurrentInstrument() {
  */
 export function isUsingSoundfont() {
   return currentInstrumentName !== 'sine' && (currentSampler !== null || partSamplers !== null || currentSoundfont !== null);
+}
+
+/**
+ * True while an instrument's samples are still downloading/decoding. Drives the "loading voice"
+ * indicator and lets callers hold playback until the real voice is ready.
+ */
+export function isInstrumentLoading() {
+  return isLoading;
 }
 
 /**
