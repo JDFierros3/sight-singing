@@ -10,7 +10,7 @@
  *
  * Bump CACHE_VERSION to force every client onto a fresh cache on the next load.
  */
-const CACHE_VERSION = 'lsn-v1';
+const CACHE_VERSION = 'lsn-v2';
 const APP_SHELL = ['/', '/index.html', '/styles.css', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
