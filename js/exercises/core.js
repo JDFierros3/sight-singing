@@ -5,6 +5,7 @@
 import { appState, getDroneFrequencies } from '../state/appState.js';
 import { midiToFrequency } from '../utils/audioMath.js';
 import { getDegreeForMidi } from '../utils/musicTheory.js';
+import { VOCAL_MIN_MIDI, VOCAL_MAX_MIDI } from '../config/constants.js';
 import { randomInRange } from '../utils/math.js';
 import { startDroneWithFrequencies, stopAllDroneOscillators } from '../audio/drone.js';
 import { updateNowPlayingBadge } from '../ui/components/status.js';
@@ -21,8 +22,9 @@ export function setActiveDisplay(midis, label) {
 
 
 export function pickRandomNoteInRange() {
-  // Use full MIDI range (0-127) instead of limited range
-  return randomInRange(0, 127);
+  // Stay within a comfortable sung/heard range (E2–C6), not the full MIDI
+  // range, so expert modes never land on sub-audible or whistle-register notes.
+  return randomInRange(VOCAL_MIN_MIDI, VOCAL_MAX_MIDI);
 }
 
 export function playTonesForDuration(midis, duration, label) {

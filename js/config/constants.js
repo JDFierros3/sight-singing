@@ -8,6 +8,12 @@ export const SOLFEGE = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Ti'];
 
 export const DEGREE_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
 
+// Comfortable sung/heard range for generated ear-training notes (E2–C6).
+// Keeps expert modes out of sub-audible rumble and whistle-register extremes —
+// a range an SATB singer can actually produce and internalise.
+export const VOCAL_MIN_MIDI = 40; // E2  ~82 Hz
+export const VOCAL_MAX_MIDI = 84; // C6  ~1047 Hz
+
 // Solfege accidentals: sharps (Di, Ri, Fi, Si, Li) and flats (Ra, Me, Se, Le, Te)
 export const SOLFEGE_ACCIDENTALS = {
   // Sharp accidentals

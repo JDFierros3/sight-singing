@@ -4,7 +4,7 @@
 
 import { getElementById, setTextContent } from '../utils/dom.js';
 import { appState } from '../state/appState.js';
-import { DIATONIC_ST, DEGREE_SEMITONES, SOLFEGE } from '../config/constants.js';
+import { DIATONIC_ST, DEGREE_SEMITONES, SOLFEGE, VOCAL_MIN_MIDI, VOCAL_MAX_MIDI } from '../config/constants.js';
 import { getDegreeForMidi, getIntervalName } from '../utils/musicTheory.js';
 import { randomInRange, normalizeModulo } from '../utils/math.js';
 import { pickRandomNoteInRange, filterNoteByScale, playTonesForDuration } from './core.js';
@@ -170,9 +170,9 @@ function getDirectionMultiplier(direction) {
 }
 
 function constrainNoteToRange(note) {
-  // No range clamping - use full MIDI range (0-127)
-  if (note < 0) return 0;
-  if (note > 127) return 127;
+  // Keep generated notes inside the comfortable sung/heard range (E2–C6).
+  if (note < VOCAL_MIN_MIDI) return VOCAL_MIN_MIDI;
+  if (note > VOCAL_MAX_MIDI) return VOCAL_MAX_MIDI;
   return note;
 }
 

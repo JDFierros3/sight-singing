@@ -4,7 +4,7 @@
 
 import { getElementById, setTextContent } from '../utils/dom.js';
 import { appState } from '../state/appState.js';
-import { DEGREE_SEMITONES, CLUSTER_DIFFICULTY_PRESETS } from '../config/constants.js';
+import { DEGREE_SEMITONES, CLUSTER_DIFFICULTY_PRESETS, VOCAL_MIN_MIDI, VOCAL_MAX_MIDI } from '../config/constants.js';
 import { randomInRange, normalizeModulo } from '../utils/math.js';
 import { getSolfegeForMidi, getIntervalName } from '../utils/musicTheory.js';
 import { playTonesForDuration } from './core.js';
@@ -107,10 +107,12 @@ function buildPool({ anchor, direction, diatonic, excludeDoPitchClass }) {
   const preset = CLUSTER_DIFFICULTY_PRESETS[appState.exercise.clusterDifficulty] || null;
   const octaveRange = preset ? preset.octaveRange : null;
   
-  // Use wide default range (full MIDI range 0-127) if no octaveRange constraint
-  // Otherwise calculate range based on Do and octaveRange, clamped to MIDI range
-  const minAllowed = octaveRange ? Math.max(0, doMidi - 12 * octaveRange) : 0;
-  const maxAllowed = octaveRange ? Math.min(127, doMidi + 12 * octaveRange) : 127;
+  // Without an octaveRange constraint ("full range" presets), fall back to the
+  // comfortable sung/heard range (E2–C6) instead of the whole MIDI range, so
+  // expert modes don't produce sub-audible or whistle-register notes.
+  // Otherwise calculate range based on Do and octaveRange, clamped to that range.
+  const minAllowed = octaveRange ? Math.max(VOCAL_MIN_MIDI, doMidi - 12 * octaveRange) : VOCAL_MIN_MIDI;
+  const maxAllowed = octaveRange ? Math.min(VOCAL_MAX_MIDI, doMidi + 12 * octaveRange) : VOCAL_MAX_MIDI;
 
   const pool = [];
 
