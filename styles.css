@@ -145,10 +145,6 @@ body {
   padding-left: 6px;
 }
 
-.micChip {
-  white-space: nowrap;
-}
-
 .appHeaderControls {
   padding-top: 4px;
   border-top: 1px solid #1f2336;
@@ -630,18 +626,10 @@ body[data-active-tab="flashcards"] .staffPanel {
   color: #c9d3e5;
 }
 
-.hz {
-  font-variant-numeric: tabular-nums;
-}
-
 .sectionTitle {
   margin: 8px 0 4px;
   font-weight: 600;
   color: #cfd7e6;
-}
-
-.micChip {
-  white-space: nowrap;
 }
 
 .tabSelectBlock {
@@ -1738,9 +1726,6 @@ body.cal-active .perf-exit-btn { display: none !important; }
 /* Mic health indicator: green = truly live, red = meant-to-be-on but not working. */
 #btnMicToggle.mic-live { background: #153426 !important; border-color: #245c40 !important; color: #7fe0a6 !important; }
 #btnMicToggle.mic-bad { background: #3a2226 !important; border-color: #5b2f34 !important; color: #f0b4b4 !important; }
-.micChip.mic-bad { color: #f0b4b4; }
-.micChip.mic-live { color: #cdd5f0; }
-.micChip.mic-hearing #micHz { color: #7fe0a6; font-weight: 700; }
 
 /* Per-screen "How to" modal (auto-pops first visit; reopen via the header "?"). */
 #btnHowto { min-width: 34px; font-weight: 700; }

@@ -7,17 +7,10 @@ import { appState } from '../../state/appState.js';
 import { DEGREE_SEMITONES } from '../../config/constants.js';
 import { normalizeModulo } from '../../utils/math.js';
 import { getSolfegeForMidi } from '../../utils/musicTheory.js';
-import { frequencyToMidi } from '../../utils/audioMath.js';
 
 export function updateStatusMessage(message) {
   const statusElement = getElementById('status');
   setTextContent(statusElement, message);
-}
-
-export function updateMicDisplay(pitch, targetFreq) {
-  const micHzElement = getElementById('micHz');
-  const displayText = pitch ? pitch.toFixed(1) : '—';
-  setTextContent(micHzElement, displayText);
 }
 
 export function updateTargetLabel() {

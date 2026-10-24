@@ -748,10 +748,7 @@ function drawMicrophoneDot(noteMapper, dimensions) {
   // rather than jumping to garbage.
   const rawHz = (pitchState.clarity || 0) >= 0.5 ? (pitchState.hz || 0) : 0;
 
-  updatePitchDisplay(rawHz);
-
   if (!rawHz) {
-    updateCentsDisplay(0);
     lastMicMidiForLine = null;
     return;
   }
@@ -789,7 +786,6 @@ function drawMicrophoneDot(noteMapper, dimensions) {
   const y = micYForMidi(micMidi, noteMapper, dimensions);
   const delta = centsBetween(rawHz, targetFreq);
 
-  updateCentsDisplay(delta);
   drawMicPitchLine(y, delta, dimensions, false, false);
 }
 
@@ -822,18 +818,6 @@ function micYForMidi(midiFloat, noteMapper, dimensions) {
 
 function calculateTargetMidi() {
   return appState.tuning.doMidi + appState.drone.rootSemi + appState.target.semi;
-}
-
-function updatePitchDisplay(micHz) {
-  const micHzElement = getElementById('micHz');
-  const displayText = micHz ? micHz.toFixed(1) : '—';
-  setTextContent(micHzElement, displayText);
-}
-
-function updateCentsDisplay(delta) {
-  const micCentsElement = getElementById('micCents');
-  const sign = delta > 0 ? '+' : '';
-  setTextContent(micCentsElement, sign + delta.toFixed(1));
 }
 
 function drawMicPitchLine(y, delta, dimensions, _isStable, colorByAccuracy = false) {
