@@ -326,6 +326,9 @@ function showControls() {
     <button class="cal-btn cal-go" data-cal="ok">This feels comfortable ✓</button>
     ${micOk ? '' : '<div class="cal-mic-off">Turn on your mic to see your pitch as you hum.</div>'}`;
   el.hidden = false;
+  // Soprano/Alto read the top (treble) staff, so drop the card to the bottom (over the
+  // bass clef) to keep it off their line; Tenor/Bass read the bottom staff, so keep it on top.
+  el.classList.toggle('cal-controls-bottom', calPart === 'S' || calPart === 'A');
   el.querySelectorAll('[data-cal]').forEach(b => { b.onclick = () => onCal(b.dataset.cal); });
 }
 
@@ -369,6 +372,9 @@ function showMicCheck(step) {
         <h3>Let's hear you hum</h3>
         <p>Turn your microphone on, then hum a note — a <b>coloured line</b> will appear on the staff
            and follow your voice.</p>
+        <p class="cal-tip">🎧 <b>Headphones help a lot.</b> On a phone the mic can pick up the sound
+           from the speaker and follow <em>that</em> instead of your voice. Headphones (or turning the
+           volume down) keep the line on you.</p>
         <div class="cal-modal-btns"><button class="cal-btn cal-go" data-mc="on">Turn on my microphone</button></div>
       </div>`;
   }
